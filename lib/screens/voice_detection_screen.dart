@@ -1,11 +1,15 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/emotion_badge.dart';
 import '../widgets/suggestion_card.dart';
+import 'auth_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VoiceDetectionScreen — Layar Rekaman & Deteksi Emosi
@@ -84,6 +88,22 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
 
   // Toggle start/stop recording
   void _toggleRecording() {
+    final auth = context.read<AuthProvider>();
+    if (!auth.isLoggedIn) {
+      // Buka pop-up atau arahkan ke login
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.tr('login_required')),
+          backgroundColor: AppTheme.primaryColor,
+        ),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const AuthScreen()),
+      );
+      return;
+    }
+
     setState(() {
       _isRecording = !_isRecording;
       if (_isRecording) {
@@ -104,7 +124,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.bg(context),
       appBar: _buildAppBar(context),
       body: SafeArea(
         bottom: false,
@@ -137,7 +157,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
                       const SizedBox(height: AppTheme.spaceMd),
                       SuggestionCard(
                         title:
-                            'Saran untuk ${_detectedEmotion.displayName}',
+                            '${AppLocalizations.tr('suggestion_for_emotion')} ${_detectedEmotion.displayName}',
                         suggestions: _detectedEmotion.recordingSuggestions,
                         icon: Icons.lightbulb_outline_rounded,
                         color: _detectedEmotion.color,
@@ -163,7 +183,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
   // ─────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.bg(context),
       title: Row(
         children: [
           Container(
@@ -179,9 +199,12 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
             ),
           ),
           const SizedBox(width: 8),
-          const Text('Deteksi Suara'),
+          Text(AppLocalizations.tr('voice_detection'),
+            style: TextStyle(color: AppTheme.textP(context)),
+          ),
         ],
       ),
+      iconTheme: IconThemeData(color: AppTheme.textP(context)),
     );
   }
 
@@ -201,7 +224,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
           height: 130,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: AppTheme.surfaceColor,
+            color: AppTheme.surface(context),
             borderRadius: BorderRadius.circular(AppTheme.radiusXl),
             boxShadow: AppTheme.cardShadow,
             border: Border.all(
@@ -386,16 +409,16 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
             children: [
               Text(
                 _isRecording
-                    ? 'Sedang Merekam...'
+                    ? AppLocalizations.tr('recording')
                     : (_hasResult
-                        ? 'Deteksi Selesai! ✓'
-                        : 'Tekan untuk Mulai Merekam'),
+                        ? AppLocalizations.tr('detection_done')
+                        : AppLocalizations.tr('press_to_record')),
                 style: GoogleFonts.poppins(
                   color: _isRecording
                       ? const Color(0xFFF87171)
                       : (_hasResult
                           ? AppTheme.primaryColor
-                          : AppTheme.textSecondary),
+                          : AppTheme.textS(context)),
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -454,19 +477,19 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
       (
         num: '1',
         icon: Icons.touch_app_rounded,
-        text: 'Tekan tombol mikrofon di atas',
+        text: AppLocalizations.tr('guide_step_1'),
         color: AppTheme.primaryColor,
       ),
       (
         num: '2',
         icon: Icons.record_voice_over_rounded,
-        text: 'Ucapkan beberapa kalimat dengan natural',
+        text: AppLocalizations.tr('guide_step_2'),
         color: const Color(0xFFA78BFA),
       ),
       (
         num: '3',
         icon: Icons.stop_circle_outlined,
-        text: 'Tekan lagi untuk berhenti dan lihat hasil',
+        text: AppLocalizations.tr('guide_step_3'),
         color: const Color(0xFFF87171),
       ),
     ];
@@ -474,7 +497,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
     return Container(
       padding: const EdgeInsets.all(AppTheme.spaceXl),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusXl),
         boxShadow: AppTheme.cardShadow,
         border: Border.all(
@@ -501,8 +524,10 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                'Cara Penggunaan',
-                style: Theme.of(context).textTheme.titleMedium,
+                AppLocalizations.tr('how_to_use'),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppTheme.textP(context),
+                ),
               ),
             ],
           ),
@@ -533,7 +558,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: AppTheme.textPrimary,
+                          color: AppTheme.textP(context),
                           height: 1.4,
                         ),
                       ),
@@ -572,8 +597,8 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
             ),
             const SizedBox(width: 8),
             Text(
-              'Hasil Deteksi',
-              style: Theme.of(context).textTheme.titleLarge,
+              AppLocalizations.tr('detection_result'),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.textP(context)),
             ),
           ],
         ),
@@ -589,9 +614,9 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
 
         // Sub-header distribusi
         Text(
-          'Distribusi Semua Emosi',
+          AppLocalizations.tr('all_emotion_dist'),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: AppTheme.textSecondary,
+            color: AppTheme.textS(context),
           ),
         ),
         const SizedBox(height: 12),
@@ -600,7 +625,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
         Container(
           padding: const EdgeInsets.all(AppTheme.spaceLg),
           decoration: BoxDecoration(
-            color: AppTheme.surfaceColor,
+            color: AppTheme.surface(context),
             borderRadius: BorderRadius.circular(AppTheme.radiusLg),
             boxShadow: AppTheme.cardShadow,
           ),
@@ -632,13 +657,13 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
           const SizedBox(width: 10),
           // Name label
           SizedBox(
-            width: 64,
+            width: 70,
             child: Text(
               emotion.displayName,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w600,
                 fontSize: 12.5,
-                color: AppTheme.textPrimary,
+                color: AppTheme.textP(context),
               ),
             ),
           ),
@@ -736,7 +761,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Pesan Psikologis',
+                  AppLocalizations.tr('psych_message'),
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -748,7 +773,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
                 Text(
                   _detectedEmotion.psychMessage,
                   style: GoogleFonts.poppins(
-                    color: AppTheme.textPrimary,
+                    color: AppTheme.textP(context),
                     fontSize: 13.5,
                     fontWeight: FontWeight.w400,
                     height: 1.6,

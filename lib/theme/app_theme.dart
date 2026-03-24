@@ -297,4 +297,199 @@ class AppTheme {
       ),
     );
   }
+
+  // ── Warna Dark Mode ──────────────────────────────────────────
+  static const Color darkBackground   = Color(0xFF121212);
+  static const Color darkSurface      = Color(0xFF1E1E1E);
+  static const Color darkCard         = Color(0xFF252525);
+  static const Color darkSurfaceVar   = Color(0xFF2C2C2C);
+  static const Color darkTextPrimary  = Color(0xDEFFFFFF); // white 87%
+  static const Color darkTextSecondary = Color(0x99FFFFFF); // white 60%
+  static const Color darkTextHint     = Color(0x61FFFFFF); // white 38%
+
+  /// ── ThemeData Dark ─────────────────────────────────────────────
+  static ThemeData get darkTheme {
+    final base = ThemeData(useMaterial3: true, brightness: Brightness.dark);
+    final poppinsText = GoogleFonts.poppinsTextTheme(base.textTheme);
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primaryColor,
+        primary: primaryColor,
+        secondary: secondaryColor,
+        surface: darkSurface,
+        brightness: Brightness.dark,
+      ).copyWith(
+        primaryContainer: primaryColor.withValues(alpha: 0.2),
+        secondaryContainer: secondaryColor.withValues(alpha: 0.2),
+      ),
+      scaffoldBackgroundColor: darkBackground,
+
+      textTheme: poppinsText.copyWith(
+        displayLarge: GoogleFonts.poppins(
+          fontSize: 28, fontWeight: FontWeight.w700,
+          color: darkTextPrimary, letterSpacing: -0.5, height: 1.2,
+        ),
+        headlineMedium: GoogleFonts.poppins(
+          fontSize: 22, fontWeight: FontWeight.w600,
+          color: darkTextPrimary, letterSpacing: -0.3,
+        ),
+        titleLarge: GoogleFonts.poppins(
+          fontSize: 17, fontWeight: FontWeight.w600,
+          color: darkTextPrimary, letterSpacing: -0.2,
+        ),
+        titleMedium: GoogleFonts.poppins(
+          fontSize: 15, fontWeight: FontWeight.w600,
+          color: darkTextPrimary,
+        ),
+        titleSmall: GoogleFonts.poppins(
+          fontSize: 13, fontWeight: FontWeight.w600,
+          color: darkTextSecondary, letterSpacing: 0.1,
+        ),
+        bodyLarge: GoogleFonts.poppins(
+          fontSize: 15, fontWeight: FontWeight.w400,
+          color: darkTextPrimary, height: 1.6,
+        ),
+        bodyMedium: GoogleFonts.poppins(
+          fontSize: 13, fontWeight: FontWeight.w400,
+          color: darkTextSecondary, height: 1.5,
+        ),
+        bodySmall: GoogleFonts.poppins(
+          fontSize: 11, fontWeight: FontWeight.w400,
+          color: darkTextHint,
+        ),
+        labelLarge: GoogleFonts.poppins(
+          fontSize: 14, fontWeight: FontWeight.w600,
+          color: darkTextPrimary, letterSpacing: 0.2,
+        ),
+        labelMedium: GoogleFonts.poppins(
+          fontSize: 12, fontWeight: FontWeight.w600,
+          color: darkTextSecondary, letterSpacing: 0.3,
+        ),
+      ),
+
+      cardTheme: CardThemeData(
+        color: darkCard,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusXl),
+        ),
+        margin: EdgeInsets.zero,
+      ),
+
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusMd),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+          textStyle: GoogleFonts.poppins(
+            fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.3,
+          ),
+        ),
+      ),
+
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primaryColor,
+          side: const BorderSide(color: primaryColor, width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusMd),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          textStyle: GoogleFonts.poppins(
+            fontSize: 14, fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: darkSurface,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: Color(0xFF616161),
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
+        selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
+        unselectedLabelStyle: TextStyle(fontSize: 11),
+      ),
+
+      appBarTheme: AppBarTheme(
+        backgroundColor: darkBackground,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleTextStyle: GoogleFonts.poppins(
+          fontSize: 20, fontWeight: FontWeight.w700,
+          color: darkTextPrimary, letterSpacing: -0.3,
+        ),
+        iconTheme: const IconThemeData(color: darkTextPrimary),
+      ),
+
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: darkSurfaceVar,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusMd),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: spaceMd, vertical: spaceMd,
+        ),
+      ),
+
+      chipTheme: ChipThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusFull),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      ),
+
+      dividerTheme: const DividerThemeData(
+        color: Color(0xFF383838),
+        space: 1,
+        thickness: 1,
+      ),
+    );
+  }
+
+  // ── Helper: warna adaptif berdasarkan brightness ────────────
+  static Color bg(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? darkBackground
+          : backgroundColor;
+
+  static Color surface(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? darkSurface
+          : surfaceColor;
+
+  static Color card(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? darkCard
+          : cardColor;
+
+  static Color textP(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? darkTextPrimary
+          : textPrimary;
+
+  static Color textS(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? darkTextSecondary
+          : textSecondary;
+
+  static Color textH(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? darkTextHint
+          : textHint;
+
+  static Color surfVar(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? darkSurfaceVar
+          : surfaceVariant;
 }

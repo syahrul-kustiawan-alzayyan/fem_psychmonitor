@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 
 // ==========================================
@@ -52,18 +53,12 @@ extension EmotionTypeExtension on EmotionType {
   /// Pesan psikologis singkat
   String get psychMessage {
     switch (this) {
-      case EmotionType.happy:
-        return 'Luar biasa! Suasana hatimu sangat positif hari ini. Pertahankan energi baikmu! 🌟';
-      case EmotionType.sad:
-        return 'Tidak apa-apa merasa sedih. Ambil napas dalam, kamu tidak sendirian. Kami ada untukmu. 💙';
-      case EmotionType.angry:
-        return 'Terdeteksi emosi kuat. Coba tarik napas perlahan selama 5 detik untuk menenangkan diri. 🌿';
-      case EmotionType.disgust:
-        return 'Kamu mungkin sedang tidak nyaman. Istirahat sebentar dan coba fokus pada hal positif. 🌈';
-      case EmotionType.neutral:
-        return 'Kondisimu stabil dan tenang hari ini. Tetap jaga keseimbanganmu! ⚖️';
-      case EmotionType.fear:
-        return 'Terdeteksi rasa cemas. Ingat, kamu lebih kuat dari ketakutanmu. Satu langkah kecil. 🤝';
+      case EmotionType.happy:   return AppLocalizations.tr('msg_happy');
+      case EmotionType.sad:     return AppLocalizations.tr('msg_sad');
+      case EmotionType.angry:   return AppLocalizations.tr('msg_angry');
+      case EmotionType.disgust: return AppLocalizations.tr('msg_disgust');
+      case EmotionType.neutral: return AppLocalizations.tr('msg_neutral');
+      case EmotionType.fear:    return AppLocalizations.tr('msg_fear');
     }
   }
 
@@ -82,46 +77,40 @@ extension EmotionTypeExtension on EmotionType {
   /// Daftar saran spesifik setelah rekaman emosi terdeteksi
   List<String> get recordingSuggestions {
     switch (this) {
-      case EmotionType.happy:
-        return [
-          'Bagus sekali! Abadikan momen positif ini — tulis 3 hal yang membuatmu bahagia hari ini.',
-          'Gunakan energi positifmu untuk menyelesaikan tugas yang sudah kamu tunda.',
-          'Bagikan kebahagiaanmu kepada orang terdekat, kebaikan emosi itu menular! 🌟',
-        ];
-      case EmotionType.sad:
-        return [
-          'Tidak apa-apa untuk bersedih. Beri dirimu izin untuk merasakan emosi ini.',
-          'Coba teknik 5-4-3-2-1: sebutkan 5 benda yang kamu lihat untuk kembali ke masa kini.',
-          'Hubungi seseorang yang kamu percaya — berbagi cerita bisa sangat membantu.',
-          'Lakukan aktivitas ringan yang kamu sukai: mendengarkan musik, membuat teh hangat.',
-        ];
-      case EmotionType.angry:
-        return [
-          'Hentikan sejenak. Tarik napas dalam 4 detik, tahan 4 detik, hembuskan 4 detik.',
-          'Identifikasi sumber kemarahanmu — tuliskan apa yang terjadi tanpa menghakimi.',
-          'Gerakkan tubuhmu: jalan santai 10 menit bisa meredakan ketegangan secara signifikan.',
-          'Hindari pengambilan keputusan penting saat emosi sedang memuncak.',
-        ];
-      case EmotionType.disgust:
-        return [
-          'Rasa tidak nyaman ini valid. Coba identifikasi apa yang memicunya.',
-          'Alihkan fokus dengan melihat atau menghirup sesuatu yang kamu sukai.',
-          'Bersihkan area sekitarmu — lingkungan yang rapi bisa memperbaiki suasana hati.',
-          'Tetapkan batasan yang sehat terhadap hal-hal yang membuatmu tidak nyaman.',
-        ];
-      case EmotionType.neutral:
-        return [
-          'Kondisimu stabil. Ini saat yang baik untuk merencanakan aktivitas produktif.',
-          'Gunakan ketenangan ini untuk bermeditasi 5 menit — fokus pada pernapasanmu.',
-          'Cek kembali tujuan harianmu dan apa yang sudah kamu capai.',
-        ];
-      case EmotionType.fear:
-        return [
-          'Ketakutan adalah sinyal, bukan musuh. Tanya dirimu: "Apa yang benar-benar aku takuti?"',
-          'Coba teknik grounding: injak tanah dengan kaki, rasakan lantai di bawahmu.',
-          'Pecah hal yang menakutimu menjadi langkah-langkah kecil yang bisa dilakukan.',
-          'Ingat: kamu sudah melewati hari-hari sulit sebelumnya. Kamu lebih kuat dari yang kamu kira. 💪',
-        ];
+      case EmotionType.happy: return [
+        AppLocalizations.tr('sugg_happy_1'),
+        AppLocalizations.tr('sugg_happy_2'),
+        AppLocalizations.tr('sugg_happy_3'),
+      ];
+      case EmotionType.sad: return [
+        AppLocalizations.tr('sugg_sad_1'),
+        AppLocalizations.tr('sugg_sad_2'),
+        AppLocalizations.tr('sugg_sad_3'),
+        AppLocalizations.tr('sugg_sad_4'),
+      ];
+      case EmotionType.angry: return [
+        AppLocalizations.tr('sugg_angry_1'),
+        AppLocalizations.tr('sugg_angry_2'),
+        AppLocalizations.tr('sugg_angry_3'),
+        AppLocalizations.tr('sugg_angry_4'),
+      ];
+      case EmotionType.disgust: return [
+        AppLocalizations.tr('sugg_disgust_1'),
+        AppLocalizations.tr('sugg_disgust_2'),
+        AppLocalizations.tr('sugg_disgust_3'),
+        AppLocalizations.tr('sugg_disgust_4'),
+      ];
+      case EmotionType.neutral: return [
+        AppLocalizations.tr('sugg_neutral_1'),
+        AppLocalizations.tr('sugg_neutral_2'),
+        AppLocalizations.tr('sugg_neutral_3'),
+      ];
+      case EmotionType.fear: return [
+        AppLocalizations.tr('sugg_fear_1'),
+        AppLocalizations.tr('sugg_fear_2'),
+        AppLocalizations.tr('sugg_fear_3'),
+        AppLocalizations.tr('sugg_fear_4'),
+      ];
     }
   }
 

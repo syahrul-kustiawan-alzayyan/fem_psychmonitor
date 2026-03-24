@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../models/user_model.dart';
-import '../services/storage_service.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/suggestion_card.dart';
+import 'profile_screen.dart';
+import 'settings_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomeScreen — Dashboard Utama Fem-PhysicsMonitor
@@ -28,14 +32,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
-  AppUser? _user;
   late AnimationController _pulseCtrl;
   late Animation<double> _pulseAnim;
 
   @override
   void initState() {
     super.initState();
-    _loadUser();
     // Subtle pulse untuk dekorasi CTA button
     _pulseCtrl = AnimationController(
       vsync: this,
@@ -52,18 +54,13 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
-  Future<void> _loadUser() async {
-    final user = await StorageService.getUser();
-    if (mounted) setState(() => _user = user);
-  }
-
   // ── Time-based greeting ──────────────────────────────────────
   String get _greeting {
     final h = DateTime.now().hour;
-    if (h < 11) return 'Selamat Pagi';
-    if (h < 15) return 'Selamat Siang';
-    if (h < 18) return 'Selamat Sore';
-    return 'Selamat Malam';
+    if (h < 11) return AppLocalizations.tr('greeting_morning');
+    if (h < 15) return AppLocalizations.tr('greeting_afternoon');
+    if (h < 18) return AppLocalizations.tr('greeting_evening');
+    return AppLocalizations.tr('greeting_night');
   }
 
   String get _greetingEmoji {
@@ -77,11 +74,17 @@ class _HomeScreenState extends State<HomeScreen>
   // ── Formatted date ───────────────────────────────────────────
   String get _todayLabel {
     final now = DateTime.now();
-    const months = [
+    final isId = AppLocalizations.currentLocale == 'id';
+    final months = isId ? [
       'Januari','Februari','Maret','April','Mei','Juni',
       'Juli','Agustus','September','Oktober','November','Desember',
+    ] : [
+      'January','February','March','April','May','June',
+      'July','August','September','October','November','December',
     ];
-    const days = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+    final days = isId 
+        ? ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu']
+        : ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
     final wd = days[now.weekday - 1];
     return '$wd, ${now.day} ${months[now.month - 1]} ${now.year}';
   }
@@ -91,53 +94,48 @@ class _HomeScreenState extends State<HomeScreen>
     final latest = DummyData.latestEmotion;
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.bg(context),
       body: SafeArea(
         bottom: false, // bottom nav melayang di atasnya
-        child: RefreshIndicator(
-          color: AppTheme.primaryColor,
-          backgroundColor: Colors.white,
-          onRefresh: _loadUser,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: AppTheme.spaceLg),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: AppTheme.spaceLg),
 
-                // ── Header ─────────────────────────────────────
-                _buildHeader(context),
+              // ── Header ─────────────────────────────────────
+              _buildHeader(context),
 
-                const SizedBox(height: AppTheme.spaceXl),
+              const SizedBox(height: AppTheme.spaceXl),
 
-                // ── Kartu Status Psikis ─────────────────────────
-                _buildPsychCard(context, latest),
+              // ── Kartu Status Psikis ─────────────────────────
+              _buildPsychCard(context, latest),
 
-                const SizedBox(height: AppTheme.spaceMd),
+              const SizedBox(height: AppTheme.spaceMd),
 
-                // ── Quick Stats ─────────────────────────────────
-                _buildQuickStats(context),
+              // ── Quick Stats ─────────────────────────────────
+              _buildQuickStats(context),
 
-                const SizedBox(height: AppTheme.spaceXl),
+              const SizedBox(height: AppTheme.spaceXl),
 
-                // ── Tombol CTA Rekam ────────────────────────────
-                _buildCTAButton(context),
+              // ── Tombol CTA Rekam ────────────────────────────
+              _buildCTAButton(context),
 
-                const SizedBox(height: AppTheme.spaceXl),
+              const SizedBox(height: AppTheme.spaceXl),
 
-                // ── Rekomendasi Psikis ──────────────────────────
-                _buildOverallSuggestion(context),
+              // ── Rekomendasi Psikis ──────────────────────────
+              _buildOverallSuggestion(context),
 
-                const SizedBox(height: AppTheme.spaceXl),
+              const SizedBox(height: AppTheme.spaceXl),
 
-                // ── Riwayat Terbaru ─────────────────────────────
-                _buildRecentHistory(context),
+              // ── Riwayat Terbaru ─────────────────────────────
+              _buildRecentHistory(context),
 
-                // Padding akhir agar tidak tertutup bottom nav
-                const SizedBox(height: 100),
-              ],
-            ),
+              // Padding akhir agar tidak tertutup bottom nav
+              const SizedBox(height: 100),
+            ],
           ),
         ),
       ),
@@ -148,7 +146,8 @@ class _HomeScreenState extends State<HomeScreen>
   // Widget: Header — Greeting + Avatar
   // ─────────────────────────────────────────────────────────────
   Widget _buildHeader(BuildContext context) {
-    final displayName = _user?.name ?? 'Ananda';
+    final auth = context.watch<AuthProvider>();
+    final displayName = auth.username.isNotEmpty ? auth.username : 'User';
     final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : '?';
 
     return Row(
@@ -162,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen>
               Text(
                 _todayLabel,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textHint,
+                  color: AppTheme.textH(context),
                   letterSpacing: 0.3,
                 ),
               ),
@@ -184,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen>
                       style: GoogleFonts.poppins(
                         fontSize: 26,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
+                        color: AppTheme.textP(context),
                         letterSpacing: -0.5,
                         height: 1.15,
                       ),
@@ -194,41 +193,95 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               const SizedBox(height: 4),
               Text(
-                'Bagaimana perasaanmu hari ini?',
-                style: Theme.of(context).textTheme.bodyMedium,
+                AppLocalizations.tr('how_are_you'),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.textS(context),
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(width: 12),
-        // Avatar lingkaran gradient dengan ring
-        Container(
-          padding: const EdgeInsets.all(2.5),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: AppTheme.primaryGradient,
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        // PopupMenuButton untuk Profil dan Settings
+        PopupMenuButton<String>(
+          offset: const Offset(0, 56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           ),
-          child: Container(
-            width: 52,
-            height: 52,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
+          color: AppTheme.surface(context),
+          onSelected: (val) {
+            if (val == 'profile') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+            } else if (val == 'settings') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            }
+          },
+          itemBuilder: (ctx) => [
+            PopupMenuItem(
+              value: 'profile',
+              child: Row(
+                children: [
+                  Icon(Icons.person_outline_rounded,
+                      color: AppTheme.textP(context), size: 20),
+                  const SizedBox(width: 12),
+                  Text(AppLocalizations.tr('profile_menu'),
+                      style: GoogleFonts.poppins(
+                          color: AppTheme.textP(context),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500)),
+                ],
+              ),
             ),
-            child: Center(
-              child: Text(
-                initial,
-                style: GoogleFonts.poppins(
-                  color: AppTheme.primaryColor,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
+            PopupMenuItem(
+              value: 'settings',
+              child: Row(
+                children: [
+                  Icon(Icons.settings_outlined,
+                      color: AppTheme.textP(context), size: 20),
+                  const SizedBox(width: 12),
+                  Text(AppLocalizations.tr('settings_menu'),
+                      style: GoogleFonts.poppins(
+                          color: AppTheme.textP(context),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
+          ],
+          child: Container(
+            padding: const EdgeInsets.all(2.5),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: AppTheme.primaryGradient,
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.surface(context),
+              ),
+              child: Center(
+                child: Text(
+                  initial,
+                  style: GoogleFonts.poppins(
+                    color: AppTheme.primaryColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
@@ -299,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Kondisi Psikis Hari Ini',
+                      AppLocalizations.tr('psych_status_today'),
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
@@ -384,7 +437,7 @@ class _HomeScreenState extends State<HomeScreen>
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'Deteksi terakhir: ${latest.formattedTime}',
+                                '${AppLocalizations.tr('last_detection')}: ${latest.formattedTime}',
                                 style: GoogleFonts.poppins(
                                   color: Colors.white.withValues(alpha: 0.8),
                                   fontSize: 11.5,
@@ -409,7 +462,7 @@ class _HomeScreenState extends State<HomeScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Kepercayaan Deteksi',
+                          AppLocalizations.tr('detection_confidence'),
                           style: GoogleFonts.poppins(
                             color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 11.5,
@@ -464,19 +517,19 @@ class _HomeScreenState extends State<HomeScreen>
     final stats = [
       (
         value: '${history.length}',
-        label: 'Rekaman',
+        label: AppLocalizations.tr('recordings'),
         icon: Icons.analytics_rounded,
         color: AppTheme.primaryColor,
       ),
       (
         value: '$positiveCount',
-        label: 'Positif',
+        label: AppLocalizations.tr('positive'),
         icon: Icons.sentiment_satisfied_alt_rounded,
         color: const Color(0xFFF59E0B),
       ),
       (
         value: '$negativeCount',
-        label: 'Perhatian',
+        label: AppLocalizations.tr('attention'),
         icon: Icons.favorite_border_rounded,
         color: const Color(0xFFF87171),
       ),
@@ -491,12 +544,13 @@ class _HomeScreenState extends State<HomeScreen>
             margin: EdgeInsets.only(right: i < stats.length - 1 ? 10 : 0),
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
             decoration: BoxDecoration(
-              color: s.color.withValues(alpha: 0.08),
+              color: AppTheme.surface(context),
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               border: Border.all(
                 color: s.color.withValues(alpha: 0.18),
                 width: 1,
               ),
+              boxShadow: AppTheme.cardShadow,
             ),
             child: Column(
               children: [
@@ -524,7 +578,7 @@ class _HomeScreenState extends State<HomeScreen>
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.textS(context),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -546,7 +600,7 @@ class _HomeScreenState extends State<HomeScreen>
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 26),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
+          color: AppTheme.surface(context),
           borderRadius: BorderRadius.circular(AppTheme.radiusXl),
           border: Border.all(
             color: AppTheme.primaryColor.withValues(alpha: 0.2),
@@ -613,21 +667,21 @@ class _HomeScreenState extends State<HomeScreen>
             const SizedBox(height: 16),
 
             Text(
-              'Mulai Rekam Suara',
+              AppLocalizations.tr('start_recording'),
               style: GoogleFonts.poppins(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: AppTheme.textP(context),
                 letterSpacing: -0.2,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Deteksi emosimu sekarang dengan AI',
+              AppLocalizations.tr('start_recording_desc'),
               style: GoogleFonts.poppins(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w400,
-                color: AppTheme.textSecondary,
+                color: AppTheme.textS(context),
               ),
             ),
 
@@ -639,9 +693,9 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 _buildFeatureTag('⚡ Real-time', AppTheme.primaryColor),
                 const SizedBox(width: 8),
-                _buildFeatureTag('🔒 Privat', const Color(0xFFA78BFA)),
+                _buildFeatureTag('🔒 Private', const Color(0xFFA78BFA)),
                 const SizedBox(width: 8),
-                _buildFeatureTag('🧠 6 Emosi', const Color(0xFFF59E0B)),
+                _buildFeatureTag('🧠 6 Emotions', const Color(0xFFF59E0B)),
               ],
             ),
           ],
@@ -681,7 +735,10 @@ class _HomeScreenState extends State<HomeScreen>
     final dominant = emotionCount.entries
         .reduce((a, b) => a.value >= b.value ? a : b)
         .key;
-    final psychLevel = _user?.psychLevel ?? PsychLevel.good;
+        
+    final psychLevel = context.watch<AuthProvider>().isLoggedIn 
+      ? PsychLevel.good // mockup (bisa disambung ke progress psikiater di user_model jika ada) 
+      : PsychLevel.good; 
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -690,7 +747,7 @@ class _HomeScreenState extends State<HomeScreen>
         _buildSectionHeader(
           context,
           icon: Icons.auto_awesome_rounded,
-          title: 'Rekomendasi Psikis',
+          title: AppLocalizations.tr('psych_recommendation'),
           trailingLabel: psychLevel.label,
           trailingColor: AppTheme.primaryColor,
         ),
@@ -724,11 +781,11 @@ class _HomeScreenState extends State<HomeScreen>
                   text: TextSpan(
                     children: [
                       TextSpan(
-                        text: 'Emosi dominan 7 hari ini: ',
+                        text: '${AppLocalizations.tr('dominant_emotion')}: ',
                         style: GoogleFonts.poppins(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w400,
-                          color: AppTheme.textSecondary,
+                          color: AppTheme.textS(context),
                         ),
                       ),
                       TextSpan(
@@ -737,7 +794,7 @@ class _HomeScreenState extends State<HomeScreen>
                         style: GoogleFonts.poppins(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.textPrimary,
+                          color: AppTheme.textP(context),
                         ),
                       ),
                     ],
@@ -752,7 +809,7 @@ class _HomeScreenState extends State<HomeScreen>
 
         // Card saran collapsible
         SuggestionCard(
-          title: 'Saran untuk Kondisi ${psychLevel.label}',
+          title: '${AppLocalizations.tr('suggestion_for')} ${psychLevel.label}',
           suggestions: psychLevel.overallSuggestions,
           icon: Icons.tips_and_updates_rounded,
           color: AppTheme.primaryColor,
@@ -777,10 +834,10 @@ class _HomeScreenState extends State<HomeScreen>
             _buildSectionHeader(
               context,
               icon: Icons.history_rounded,
-              title: 'Deteksi Terbaru',
+              title: AppLocalizations.tr('recent_detections'),
             ),
             Text(
-              'Lihat Semua →',
+              AppLocalizations.tr('see_all'),
               style: GoogleFonts.poppins(
                 color: AppTheme.primaryColor,
                 fontWeight: FontWeight.w600,
@@ -800,7 +857,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
         boxShadow: AppTheme.cardShadow,
       ),
@@ -850,14 +907,14 @@ class _HomeScreenState extends State<HomeScreen>
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
-                                color: AppTheme.textPrimary,
+                                color: AppTheme.textP(context),
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               record.formattedTime,
                               style: GoogleFonts.poppins(
-                                color: AppTheme.textSecondary,
+                                color: AppTheme.textS(context),
                                 fontSize: 11.5,
                               ),
                             ),

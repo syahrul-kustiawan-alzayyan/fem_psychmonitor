@@ -70,7 +70,7 @@ class _StaticCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusXl),
         boxShadow: AppTheme.cardShadow,
         border: Border.all(
@@ -129,7 +129,7 @@ class _CollapsibleCardState extends State<_CollapsibleCard> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusXl),
         boxShadow: AppTheme.cardShadow,
         border: Border.all(
@@ -245,7 +245,7 @@ class _CardHeader extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: AppTheme.textP(context),
                 height: 1.3,
               ),
             ),
@@ -316,7 +316,7 @@ class _SuggestionItem extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w400,
-                color: AppTheme.textPrimary,
+                color: AppTheme.textP(context),
                 height: 1.55,
               ),
             ),

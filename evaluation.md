@@ -143,3 +143,21 @@ Refaktor visual menyeluruh pada 7 file — tidak ada perubahan logika atau API, 
 | `lib/widgets/suggestion_card.dart` | ✅ Ditulis ulang total |
 
 **Hasil akhir Sesi 3:** `flutter analyze` → **No issues found!**
+
+---
+
+## Sesi 4 — 24 Maret 2026
+
+### ✅ Yang Diimplementasikan:
+- **Internationalization (i18n)**: Menambahkan `AppLocalizations` dan mengganti seluruh hardcoded string di semua layar (Home, Profile, Settings, Voice, History) untuk mendukung bahasa Indonesia dan Inggris.
+- **Theme & Dark Mode**: Mengadaptasi warna background, teks, dan komponen UI di seluruh aplikasi dengan menggunakan helper context dari `AppTheme` (seperti `AppTheme.bg(context)`, `AppTheme.surface(context)`).
+- **Settings Screen**: Mengintegrasikan `LocaleProvider` dan `ThemeProvider` ke dalam UI pengaturan sehingga bahasa dan mode tampilan bisa diubah secara responsif.
+- **Profile Screen**: Membuat UI manajemen profil dasar dengan opsi simpan.
+- **Auth Guard**: Menambahkan pengecekan autentikasi di layar deteksi suara menggunakan `AuthProvider`. Pengguna akan diarahkan ke `AuthScreen` jika mencoba merekam tanpa status login aktif.
+
+### 🔑 Pelajaran Sesi 4
+1. **Pola Adaptive Theming**: Menggunakan static helpers di `AppTheme` (seperti `.textP(context)`) membuat transisi Light-to-Dark sangat mulus tanpa menulis ulang spesifikasi `ThemeData` berulang kali di dalam komponen.
+2. **Lokalisasi Mandiri**: Membuat map lokalisasi dengan pendekatan sederhana (non-package) dapat menjaga performa dan meminimalkan ketergantungan selama struktur aplikasi belum terlalu besar.
+3. **Null-aware Elements**: Di Dart 3.3+, elemen opsional dalam list widget bisa ditulis dengan lebih efisien menggunakan sintaks `?widget` tanpa perlu `if (widget != null) widget`.
+
+**Hasil akhir Sesi 4:** UI Auth, Settings, Kustomisasi, Tema Adaptif, Transisi Bahasa berfungsi penuh.

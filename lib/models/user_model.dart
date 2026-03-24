@@ -1,5 +1,6 @@
 // Model data pengguna aplikasi Fem-PhysicsMonitor.
 // Menyimpan username dan hasil skor assessment psikis awal.
+import '../l10n/app_localizations.dart';
 
 // ==========================================
 // MODEL: Data pengguna
@@ -14,6 +15,15 @@ class AppUser {
     required this.psychScore,
     required this.createdAt,
   });
+
+  /// Buat salinan dengan field yang diubah
+  AppUser copyWith({String? name, int? psychScore, DateTime? createdAt}) {
+    return AppUser(
+      name: name ?? this.name,
+      psychScore: psychScore ?? this.psychScore,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 
   /// Level kesehatan psikis berdasarkan skor total
   PsychLevel get psychLevel {
@@ -30,10 +40,10 @@ enum PsychLevel { excellent, good, fair, needsAttention }
 extension PsychLevelExtension on PsychLevel {
   String get label {
     switch (this) {
-      case PsychLevel.excellent:      return 'Sangat Sehat';
-      case PsychLevel.good:           return 'Baik';
-      case PsychLevel.fair:           return 'Cukup';
-      case PsychLevel.needsAttention: return 'Perlu Perhatian';
+      case PsychLevel.excellent:      return AppLocalizations.tr('psych_excellent');
+      case PsychLevel.good:           return AppLocalizations.tr('psych_good');
+      case PsychLevel.fair:           return AppLocalizations.tr('psych_fair');
+      case PsychLevel.needsAttention: return AppLocalizations.tr('psych_needs_attention');
     }
   }
 
@@ -49,36 +59,32 @@ extension PsychLevelExtension on PsychLevel {
   /// Saran umum berdasarkan level psikis keseluruhan
   List<String> get overallSuggestions {
     switch (this) {
-      case PsychLevel.excellent:
-        return [
-          'Pertahankan rutinitas positifmu! Kondisi psikismu sangat baik.',
-          'Bagikan energi positifmu kepada orang-orang di sekitarmu.',
-          'Lanjutkan aktivitas fisik & sosial yang sudah berjalan baik.',
-          'Tetap jadwalkan waktu istirahat yang cukup setiap hari.',
-        ];
-      case PsychLevel.good:
-        return [
-          'Kondisimu baik! Pertahankan keseimbangan hidup sehari-hari.',
-          'Luangkan 10 menit setiap hari untuk refleksi diri atau jurnal.',
-          'Jaga kualitas tidur — tidur 7-8 jam membantu stabilitas emosi.',
-          'Coba teknik pernapasan dalam saat mulai merasa stres.',
-        ];
-      case PsychLevel.fair:
-        return [
-          'Kondisimu cukup stabil. Sedikit upaya ekstra bisa membuat perbedaan besar.',
-          'Mulai terapkan rutinitas harian yang konsisten: makan, tidur, olahraga.',
-          'Ceritakan perasaanmu kepada orang yang kamu percaya.',
-          'Pertimbangkan untuk mencoba meditasi atau journaling selama 5 menit/hari.',
-          'Batasi paparan konten negatif di media sosial.',
-        ];
-      case PsychLevel.needsAttention:
-        return [
-          'Kondisimu memerlukan perhatian lebih. Kamu tidak sendirian! 💙',
-          'Sangat disarankan untuk berbicara dengan konselor atau psikolog.',
-          'Fokus pada kebutuhan dasar: makan teratur, tidur cukup, gerak ringan.',
-          'Coba teknik grounding: sebutkan 5 hal yang kamu lihat, 4 yang bisa disentuh.',
-          'Jangan ragu menghubungi layanan kesehatan jiwa jika merasa kewalahan.',
-        ];
+      case PsychLevel.excellent: return [
+        AppLocalizations.tr('overall_exc_1'),
+        AppLocalizations.tr('overall_exc_2'),
+        AppLocalizations.tr('overall_exc_3'),
+        AppLocalizations.tr('overall_exc_4'),
+      ];
+      case PsychLevel.good: return [
+        AppLocalizations.tr('overall_good_1'),
+        AppLocalizations.tr('overall_good_2'),
+        AppLocalizations.tr('overall_good_3'),
+        AppLocalizations.tr('overall_good_4'),
+      ];
+      case PsychLevel.fair: return [
+        AppLocalizations.tr('overall_fair_1'),
+        AppLocalizations.tr('overall_fair_2'),
+        AppLocalizations.tr('overall_fair_3'),
+        AppLocalizations.tr('overall_fair_4'),
+        AppLocalizations.tr('overall_fair_5'),
+      ];
+      case PsychLevel.needsAttention: return [
+        AppLocalizations.tr('overall_attn_1'),
+        AppLocalizations.tr('overall_attn_2'),
+        AppLocalizations.tr('overall_attn_3'),
+        AppLocalizations.tr('overall_attn_4'),
+        AppLocalizations.tr('overall_attn_5'),
+      ];
     }
   }
 }

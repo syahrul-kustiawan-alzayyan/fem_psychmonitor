@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../theme/app_theme.dart';
 
@@ -49,7 +50,7 @@ class _HistoryScreenState extends State<HistoryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.bg(context),
       appBar: _buildAppBar(context),
       body: SafeArea(
         bottom: false,
@@ -69,12 +70,14 @@ class _HistoryScreenState extends State<HistoryScreen>
               _buildSectionHeader(
                 context,
                 icon: Icons.show_chart_rounded,
-                title: 'Tren Confidence per Rekaman',
+                title: AppLocalizations.tr('confidence_trend'),
               ),
               const SizedBox(height: 4),
               Text(
-                'Tiap titik = satu sesi rekaman (terlama → terbaru)',
-                style: Theme.of(context).textTheme.bodySmall,
+                AppLocalizations.tr('confidence_trend_sub'),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTheme.textS(context),
+                ),
               ),
               const SizedBox(height: 12),
 
@@ -87,7 +90,7 @@ class _HistoryScreenState extends State<HistoryScreen>
               _buildSectionHeader(
                 context,
                 icon: Icons.donut_small_rounded,
-                title: 'Distribusi Emosi',
+                title: AppLocalizations.tr('emotion_breakdown'),
               ),
               const SizedBox(height: 12),
               _buildEmotionBreakdown(),
@@ -98,7 +101,7 @@ class _HistoryScreenState extends State<HistoryScreen>
               _buildSectionHeader(
                 context,
                 icon: Icons.filter_list_rounded,
-                title: 'Log Deteksi',
+                title: AppLocalizations.tr('detection_log'),
                 trailingLabel:
                     '${_filteredHistory.length} entri',
                 trailingColor: AppTheme.primaryColor,
@@ -122,7 +125,7 @@ class _HistoryScreenState extends State<HistoryScreen>
   // ─────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.bg(context),
       title: Row(
         children: [
           Container(
@@ -138,9 +141,12 @@ class _HistoryScreenState extends State<HistoryScreen>
             ),
           ),
           const SizedBox(width: 8),
-          const Text('Riwayat & Progres'),
+          Text(AppLocalizations.tr('history_title'),
+            style: TextStyle(color: AppTheme.textP(context)),
+          ),
         ],
       ),
+      iconTheme: IconThemeData(color: AppTheme.textP(context)),
       actions: [
         Container(
           margin: const EdgeInsets.only(right: 16),
@@ -187,13 +193,13 @@ class _HistoryScreenState extends State<HistoryScreen>
       ),
       (
         value: '$positiveCount',
-        label: 'Positif',
+        label: AppLocalizations.tr('positive'),
         icon: Icons.sentiment_satisfied_alt_rounded,
         color: const Color(0xFFF59E0B),
       ),
       (
         value: '$negativeCount',
-        label: 'Perhatian',
+        label: AppLocalizations.tr('attention'),
         icon: Icons.sentiment_dissatisfied_rounded,
         color: const Color(0xFFF87171),
       ),
@@ -208,7 +214,7 @@ class _HistoryScreenState extends State<HistoryScreen>
             margin: EdgeInsets.only(right: i < stats.length - 1 ? 10 : 0),
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceColor,
+              color: AppTheme.surface(context),
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               boxShadow: AppTheme.cardShadow,
               border: Border.all(
@@ -242,7 +248,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.textS(context),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -281,7 +287,7 @@ class _HistoryScreenState extends State<HistoryScreen>
       height: 230,
       padding: const EdgeInsets.fromLTRB(8, 20, 16, 8),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusXl),
         boxShadow: AppTheme.cardShadow,
       ),
@@ -313,19 +319,36 @@ class _HistoryScreenState extends State<HistoryScreen>
                 getTitlesWidget: (v, _) {
                   final i = v.toInt();
                   if (i < 0 || i >= history.length) return const SizedBox();
+                  final rec = history[i];
+                  final dayStr = '${rec.timestamp.day}/${rec.timestamp.month}';
                   return Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      '#${i + 1}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondary,
-                      ),
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '#${i + 1}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textS(context),
+                            height: 1.1,
+                          ),
+                        ),
+                        Text(
+                          dayStr,
+                          style: GoogleFonts.poppins(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textH(context),
+                            height: 1.1,
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
-                reservedSize: 30,
+                reservedSize: 36,
               ),
             ),
             // Y-axis: 0%, 25%, 50%, 75%, 100%
@@ -337,7 +360,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   '${v.toInt()}%',
                   style: GoogleFonts.poppins(
                     fontSize: 9,
-                    color: AppTheme.textHint,
+                    color: AppTheme.textH(context),
                   ),
                 ),
                 reservedSize: 32,
@@ -389,7 +412,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                 if (i >= 0 && i < history.length) {
                   return history[i].emotion.color.withValues(alpha: 0.92);
                 }
-                return AppTheme.textPrimary.withValues(alpha: 0.9);
+                return AppTheme.textP(context).withValues(alpha: 0.9);
               },
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((s) {
@@ -427,7 +450,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     return Container(
       padding: const EdgeInsets.all(AppTheme.spaceLg),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusXl),
         boxShadow: AppTheme.cardShadow,
       ),
@@ -456,7 +479,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
+                      color: AppTheme.textP(context),
                     ),
                   ),
                 ),
@@ -518,7 +541,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         children: all.map((e) {
           final isSelected = _selectedFilter == e;
           final label =
-              e == null ? 'Semua' : '${e.emoji} ${e.displayName}';
+              e == null ? AppLocalizations.tr('all_filter') : '${e.emoji} ${e.displayName}';
           final color =
               e == null ? AppTheme.primaryColor : e.color;
 
@@ -564,7 +587,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
         boxShadow: AppTheme.cardShadow,
       ),
@@ -616,7 +639,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
-                                color: AppTheme.textPrimary,
+                                color: AppTheme.textP(context),
                               ),
                             ),
                             const SizedBox(height: 3),
@@ -625,14 +648,14 @@ class _HistoryScreenState extends State<HistoryScreen>
                                 Icon(
                                   Icons.access_time_rounded,
                                   size: 11,
-                                  color: AppTheme.textHint,
+                                  color: AppTheme.textH(context),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   record.formattedTime,
                                   style: GoogleFonts.poppins(
                                     fontSize: 11.5,
-                                    color: AppTheme.textSecondary,
+                                    color: AppTheme.textS(context),
                                   ),
                                 ),
                               ],
@@ -668,7 +691,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                       const SizedBox(width: 6),
                       Icon(
                         Icons.chevron_right_rounded,
-                        color: AppTheme.textHint,
+                        color: AppTheme.textH(context),
                         size: 18,
                       ),
                     ],
@@ -703,7 +726,7 @@ class _HistoryScreenState extends State<HistoryScreen>
           child: Icon(icon, color: AppTheme.primaryColor, size: 16),
         ),
         const SizedBox(width: 8),
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.textP(context))),
         if (trailingLabel != null && trailingColor != null) ...[
           const SizedBox(width: 8),
           Container(

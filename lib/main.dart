@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
+import 'l10n/app_localizations.dart';
+import 'providers/locale_provider.dart';
+import 'providers/theme_provider.dart';
+import 'providers/auth_provider.dart';
 import 'theme/app_theme.dart';
 import 'services/storage_service.dart';
 import 'screens/onboarding_screen.dart';
@@ -9,21 +14,34 @@ import 'screens/home_screen.dart';
 import 'screens/voice_detection_screen.dart';
 import 'screens/history_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: Colors.white,
-      systemNavigationBarIconBrightness: Brightness.dark,
+
+  // Inisialisasi providers sebelum runApp
+  final localeProvider = LocaleProvider();
+  final themeProvider = ThemeProvider();
+  final authProvider = AuthProvider();
+
+  await Future.wait([
+    localeProvider.init(),
+    themeProvider.init(),
+    authProvider.init(),
+  ]);
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: localeProvider),
+        ChangeNotifierProvider.value(value: themeProvider),
+        ChangeNotifierProvider.value(value: authProvider),
+      ],
+      child: const FemPhysicsMonitorApp(),
     ),
   );
-  runApp(const FemPhysicsMonitorApp());
 }
 
 /// Root aplikasi Fem-PhysicsMonitor
@@ -32,10 +50,29 @@ class FemPhysicsMonitorApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    // Watch locale agar rebuild saat bahasa berubah
+    context.watch<LocaleProvider>();
+
+    // Update system UI overlay sesuai tema
+    final isDark = themeProvider.isDark;
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarColor:
+            isDark ? AppTheme.darkBackground : Colors.white,
+        systemNavigationBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
+      ),
+    );
+
     return MaterialApp(
       title: 'Fem-PhysicsMonitor',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeProvider.themeMode,
       home: const AppRouter(),
     );
   }
@@ -85,12 +122,11 @@ class _SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.bg(context),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo dengan gradient premium
             Container(
               width: 96,
               height: 96,
@@ -111,17 +147,17 @@ class _SplashScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: AppTheme.textP(context),
                 letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              'Pemantau Psikis Personal',
+              AppLocalizations.tr('app_subtitle'),
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w400,
-                color: AppTheme.textSecondary,
+                color: AppTheme.textS(context),
               ),
             ),
             const SizedBox(height: 36),
@@ -143,7 +179,6 @@ class _SplashScreen extends StatelessWidget {
 
 // ────────────────────────────────────────────────────────
 // Main Navigation — Bottom Nav Bar Premium
-// Menggunakan IndexedStack agar state tiap screen tetap terjaga.
 // ────────────────────────────────────────────────────────
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -171,7 +206,6 @@ class _MainNavigationState extends State<MainNavigation>
           const HistoryScreen(),
         ],
       ),
-      // Bottom nav custom: floating pill-style dengan shadow premium
       extendBody: true,
       bottomNavigationBar: _PremiumBottomNavBar(
         currentIndex: _currentIndex,
@@ -193,39 +227,52 @@ class _PremiumBottomNavBar extends StatelessWidget {
     required this.onTap,
   });
 
-  static const _items = [
-    (icon: Icons.home_outlined,     activeIcon: Icons.home_rounded,        label: 'Beranda'),
-    (icon: Icons.mic_none_rounded,  activeIcon: Icons.mic_rounded,          label: 'Rekam'),
-    (icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart_rounded,  label: 'Riwayat'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final items = [
+      (
+        icon: Icons.home_outlined,
+        activeIcon: Icons.home_rounded,
+        label: AppLocalizations.tr('nav_home'),
+      ),
+      (
+        icon: Icons.mic_none_rounded,
+        activeIcon: Icons.mic_rounded,
+        label: AppLocalizations.tr('nav_record'),
+      ),
+      (
+        icon: Icons.bar_chart_outlined,
+        activeIcon: Icons.bar_chart_rounded,
+        label: AppLocalizations.tr('nav_history'),
+      ),
+    ];
+
     return Container(
-      // Padding agar tidak menempel di tepi bawah layar
       padding: EdgeInsets.fromLTRB(
         20,
         0,
         20,
         MediaQuery.of(context).padding.bottom + 12,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.transparent,
-      ),
+      decoration: const BoxDecoration(color: Colors.transparent),
       child: Container(
         height: 64,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? AppTheme.darkCard : Colors.white,
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1E293B).withValues(alpha: 0.12),
+              color: const Color(0xFF1E293B)
+                  .withValues(alpha: isDark ? 0.3 : 0.12),
               blurRadius: 24,
               spreadRadius: 0,
               offset: const Offset(0, 8),
             ),
             BoxShadow(
-              color: AppTheme.primaryColor.withValues(alpha: 0.08),
+              color: AppTheme.primaryColor
+                  .withValues(alpha: isDark ? 0.15 : 0.08),
               blurRadius: 12,
               spreadRadius: 0,
               offset: const Offset(0, 2),
@@ -233,8 +280,8 @@ class _PremiumBottomNavBar extends StatelessWidget {
           ],
         ),
         child: Row(
-          children: List.generate(_items.length, (i) {
-            final item = _items[i];
+          children: List.generate(items.length, (i) {
+            final item = items[i];
             final isActive = currentIndex == i;
 
             return Expanded(
@@ -247,7 +294,6 @@ class _PremiumBottomNavBar extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Pill indicator di atas ikon saat aktif
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 250),
                         curve: Curves.easeInOut,
@@ -255,11 +301,11 @@ class _PremiumBottomNavBar extends StatelessWidget {
                         height: 3,
                         decoration: BoxDecoration(
                           color: AppTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusFull),
                         ),
                       ),
                       const SizedBox(height: 6),
-                      // Ikon
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 200),
                         transitionBuilder: (child, anim) =>
@@ -269,20 +315,24 @@ class _PremiumBottomNavBar extends StatelessWidget {
                           key: ValueKey(isActive),
                           color: isActive
                               ? AppTheme.primaryColor
-                              : const Color(0xFFCBD5E1),
+                              : (isDark
+                                  ? const Color(0xFF616161)
+                                  : const Color(0xFFCBD5E1)),
                           size: 24,
                         ),
                       ),
                       const SizedBox(height: 3),
-                      // Label
                       AnimatedDefaultTextStyle(
                         duration: const Duration(milliseconds: 200),
                         style: GoogleFonts.poppins(
                           fontSize: 10.5,
-                          fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                          fontWeight:
+                              isActive ? FontWeight.w600 : FontWeight.w400,
                           color: isActive
                               ? AppTheme.primaryColor
-                              : const Color(0xFFCBD5E1),
+                              : (isDark
+                                  ? const Color(0xFF616161)
+                                  : const Color(0xFFCBD5E1)),
                         ),
                         child: Text(item.label),
                       ),

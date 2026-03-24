@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/user_model.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
@@ -132,12 +133,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.bg(context),
       body: SafeArea(
         child: Column(
           children: [
             // ── Progress bar & tombol back ──────────────
-            _buildTopBar(),
+            _buildTopBar(context),
 
             // ── PageView konten utama ───────────────────
             Expanded(
@@ -145,13 +146,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(), // navigasi manual
                 children: [
-                  _buildWelcomePage(),
-                  _buildNamePage(),
+                  _buildWelcomePage(context),
+                  _buildNamePage(context),
                   ...List.generate(
                     10,
-                    (i) => _buildQuestionPage(i),
+                    (i) => _buildQuestionPage(context, i),
                   ),
-                  _buildResultPage(),
+                  _buildResultPage(context),
                 ],
               ),
             ),
@@ -164,7 +165,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // ─────────────────────────────────────────────────────
   // Widget: Top bar (progress + back button)
   // ─────────────────────────────────────────────────────
-  Widget _buildTopBar() {
+  Widget _buildTopBar(BuildContext context) {
     final showBack = _currentPage > 0 && _currentPage < _totalPages - 1;
 
     return Padding(
@@ -205,8 +206,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           : _currentPage <= 11
                               ? 'Pertanyaan ${_currentPage - 1} dari 10'
                               : 'Selesai! 🎉',
-                  style: TextStyle(
-                    color: AppTheme.textSecondary,
+                  style: GoogleFonts.poppins(
+                    color: AppTheme.textS(context),
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -216,7 +217,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               // Nomor halaman
               Text(
                 _currentPage == 0 ? '' : '$_currentPage/${_totalPages - 1}',
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   color: AppTheme.primaryColor,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -244,75 +245,106 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // ─────────────────────────────────────────────────────
   // Page 0: Selamat datang
   // ─────────────────────────────────────────────────────
-  Widget _buildWelcomePage() {
+  Widget _buildWelcomePage(BuildContext context) {
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Ilustrasi
+            const SizedBox(height: 24),
+            // Ilustrasi logo
             Container(
-              width: 140,
-              height: 140,
+              width: 130,
+              height: 130,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF6BAE8A), Color(0xFF5B9FD5)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                    blurRadius: 28,
+                    offset: const Offset(0, 12),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 72),
+              child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 66),
             ),
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Fem-PhysicsMonitor',
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
-                color: AppTheme.textPrimary,
+                color: AppTheme.textP(context),
+                letterSpacing: -0.5,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               'Monitor kondisi psikismu melalui suara.\nKami di sini untuk menemanimu.',
-              style: TextStyle(
-                fontSize: 16,
-                color: AppTheme.textSecondary,
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                color: AppTheme.textS(context),
                 height: 1.6,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 40),
-            // Fitur singkat
-            ...[
-              ('🎤', 'Deteksi emosi dari suaramu'),
-              ('📊', 'Pantau perkembangan psikis'),
-              ('💡', 'Dapatkan saran yang personal'),
-            ].map(
-              (f) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
+            const SizedBox(height: 36),
+            // Fitur singkat — kartu premium
+            ...['🎤|Deteksi emosi dari suaramu', '📊|Pantau perkembangan psikis', '💡|Dapatkan saran yang personal']
+                .map((item) {
+              final parts = item.split('|');
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface(context),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  boxShadow: AppTheme.cardShadow,
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  ),
+                ),
                 child: Row(
                   children: [
-                    Text(f.$1, style: const TextStyle(fontSize: 20)),
-                    const SizedBox(width: 12),
-                    Text(
-                      f.$2,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimary,
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
                       ),
+                      child: Text(parts[0], style: const TextStyle(fontSize: 20)),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        parts[1],
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textP(context),
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: AppTheme.primaryColor.withValues(alpha: 0.5),
+                      size: 20,
                     ),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(height: 48),
+              );
+            }),
+            const SizedBox(height: 32),
             _buildNextButton('Mulai Sekarang 🚀', _nextPage),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -322,7 +354,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // ─────────────────────────────────────────────────────
   // Page 1: Input nama
   // ─────────────────────────────────────────────────────
-  Widget _buildNamePage() {
+  Widget _buildNamePage(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
       child: Column(
@@ -338,71 +370,83 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             child: const Icon(Icons.person_rounded, color: AppTheme.primaryColor, size: 36),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Hei! Siapa namamu?',
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 26,
               fontWeight: FontWeight.w800,
-              color: AppTheme.textPrimary,
+              color: AppTheme.textP(context),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Kami akan memanggilmu dengan namamu agar lebih personal.',
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 14,
-              color: AppTheme.textSecondary,
+              color: AppTheme.textS(context),
               height: 1.5,
             ),
           ),
           const SizedBox(height: 36),
           // TextField nama
-          TextField(
-            controller: _nameController,
-            autofocus: false,
-            textCapitalization: TextCapitalization.words,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.textPrimary,
+          Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+              borderRadius: BorderRadius.circular(16),
             ),
-            decoration: InputDecoration(
-              hintText: 'Masukkan namamu...',
-              hintStyle: TextStyle(
-                color: AppTheme.textSecondary.withValues(alpha: 0.6),
-                fontWeight: FontWeight.w400,
+            child: TextField(
+              controller: _nameController,
+              autofocus: false,
+              textCapitalization: TextCapitalization.words,
+              style: GoogleFonts.poppins(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textP(context),
               ),
-              prefixIcon: const Icon(Icons.badge_rounded, color: AppTheme.primaryColor),
-              filled: true,
-              fillColor: AppTheme.surfaceColor,
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                  width: 1.5,
+              decoration: InputDecoration(
+                hintText: 'Masukkan namamu...',
+                hintStyle: GoogleFonts.poppins(
+                  color: AppTheme.textH(context),
+                  fontWeight: FontWeight.w400,
                 ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(
-                  color: AppTheme.primaryColor,
-                  width: 2,
+                prefixIcon: const Icon(Icons.badge_rounded, color: AppTheme.primaryColor),
+                filled: true,
+                fillColor: AppTheme.surface(context),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                    width: 1.5,
+                  ),
                 ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(
+                    color: AppTheme.primaryColor,
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 18,
+                ),
               ),
             ),
           ),
           const Spacer(),
           _buildNextButton('Lanjut →', _nextPage),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Center(
             child: Text(
               'Selanjutnya: 10 pertanyaan singkat tentang kondisimu',
-              style: TextStyle(
-                color: AppTheme.textSecondary,
+              style: GoogleFonts.poppins(
+                color: AppTheme.textH(context),
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
@@ -417,7 +461,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // ─────────────────────────────────────────────────────
   // Page 2–11: Pertanyaan psikis
   // ─────────────────────────────────────────────────────
-  Widget _buildQuestionPage(int questionIndex) {
+  Widget _buildQuestionPage(BuildContext context, int questionIndex) {
     final q = onboardingQuestions[questionIndex];
 
     return Padding(
@@ -428,101 +472,132 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           const SizedBox(height: 8),
           // Label kategori
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.15),
+                  AppTheme.primaryColor.withValues(alpha: 0.06),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
             ),
             child: Text(
               q.category,
-              style: const TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.primaryColor,
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           // Teks pertanyaan
           Text(
             q.question,
-            style: const TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: AppTheme.textPrimary,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textP(context),
               height: 1.4,
             ),
           ),
           const SizedBox(height: 24),
           // 4 pilihan jawaban
-          ...List.generate(q.options.length, (optIdx) {
-            final isSelected = _answers[questionIndex] == optIdx;
-            return GestureDetector(
-              onTap: () {
-                setState(() => _answers[questionIndex] = optIdx);
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppTheme.primaryColor.withValues(alpha: 0.12)
-                      : AppTheme.surfaceColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isSelected
-                        ? AppTheme.primaryColor
-                        : AppTheme.primaryColor.withValues(alpha: 0.2),
-                    width: isSelected ? 2 : 1.2,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    // Radio indicator
-                    Container(
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
+          Expanded(
+            child: ListView.builder(
+              itemCount: q.options.length,
+              padding: EdgeInsets.zero,
+              itemBuilder: (ctx, optIdx) {
+                final isSelected = _answers[questionIndex] == optIdx;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _answers[questionIndex] = optIdx);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppTheme.primaryColor.withValues(alpha: 0.08)
+                          : AppTheme.surface(context),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.18),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ]
+                          : AppTheme.cardShadow,
+                      border: Border.all(
                         color: isSelected
                             ? AppTheme.primaryColor
                             : Colors.transparent,
-                        border: Border.all(
-                          color: isSelected
-                              ? AppTheme.primaryColor
-                              : AppTheme.textSecondary.withValues(alpha: 0.4),
-                          width: 2,
-                        ),
-                      ),
-                      child: isSelected
-                          ? const Icon(Icons.check, color: Colors.white, size: 14)
-                          : null,
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(
-                        q.options[optIdx],
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected
-                              ? AppTheme.primaryColor
-                              : AppTheme.textPrimary,
-                          height: 1.4,
-                        ),
+                        width: 1.5,
                       ),
                     ),
-                  ],
-                ),
-              ),
-            );
-          }),
-          const Spacer(),
+                    child: Row(
+                      children: [
+                        // Radio indicator
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isSelected
+                                ? AppTheme.primaryColor
+                                : AppTheme.surface(context),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppTheme.primaryColor
+                                  : AppTheme.textH(context),
+                              width: 2,
+                            ),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                          child: isSelected
+                              ? const Icon(Icons.check, color: Colors.white, size: 16)
+                              : null,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            q.options[optIdx],
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              color: isSelected
+                                  ? AppTheme.primaryColor
+                                  : AppTheme.textP(context),
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
           _buildNextButton(
             questionIndex == 9 ? 'Lihat Hasilku 🌟' : 'Lanjut →',
             _nextPage,
           ),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -531,7 +606,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // ─────────────────────────────────────────────────────
   // Page 12: Hasil assessment
   // ─────────────────────────────────────────────────────
-  Widget _buildResultPage() {
+  Widget _buildResultPage(BuildContext context) {
     final name = _nameController.text.trim().isEmpty
         ? 'Kamu'
         : _nameController.text.trim();
@@ -564,11 +639,18 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               height: 110,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF6BAE8A), Color(0xFF5B9FD5)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: Center(
                 child: Text(level.emoji, style: const TextStyle(fontSize: 52)),
@@ -577,19 +659,19 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             const SizedBox(height: 20),
             Text(
               'Hai, $name! 👋',
-              style: const TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
-                color: AppTheme.textPrimary,
+                color: AppTheme.textP(context),
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               'Berdasarkan jawabanmu, kondisi psikismu:',
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 14,
-                color: AppTheme.textSecondary,
+                color: AppTheme.textS(context),
               ),
               textAlign: TextAlign.center,
             ),
@@ -598,14 +680,21 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppTheme.primaryColor, AppTheme.accentColor],
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF6BAE8A), Color(0xFF7DD3C0)],
                 ),
                 borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Text(
                 '${level.emoji} ${level.label}',
-                style: const TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
@@ -615,26 +704,27 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             const SizedBox(height: 20),
             // Skor bar
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: AppTheme.surfaceColor,
-                borderRadius: BorderRadius.circular(16),
+                color: AppTheme.surface(context),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                boxShadow: AppTheme.cardShadow,
               ),
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Skor Psikismu',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.textPrimary,
+                          color: AppTheme.textP(context),
                         ),
                       ),
                       Text(
                         '$score / $maxScore',
-                        style: const TextStyle(
+                        style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w800,
                           color: AppTheme.primaryColor,
                           fontSize: 16,
@@ -658,33 +748,33 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             const SizedBox(height: 20),
             // Saran awal (2 saran pertama)
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: AppTheme.secondaryColor.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(16),
+                color: AppTheme.primaryColor.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 border: Border.all(
-                  color: AppTheme.secondaryColor.withValues(alpha: 0.5),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.15),
                 ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.auto_awesome_rounded,
+                      const Icon(Icons.auto_awesome_rounded,
                           color: AppTheme.primaryColor, size: 18),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         'Saran Awal Untukmu',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textP(context),
                           fontSize: 14,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   ...level.overallSuggestions.take(2).map(
                     (s) => Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -695,10 +785,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           Expanded(
                             child: Text(
                               s,
-                              style: const TextStyle(
+                              style: GoogleFonts.poppins(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
-                                color: AppTheme.textPrimary,
+                                color: AppTheme.textP(context),
                                 height: 1.5,
                               ),
                             ),
@@ -715,6 +805,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             _isSaving
                 ? const CircularProgressIndicator(color: AppTheme.primaryColor)
                 : _buildNextButton('Masuk ke Aplikasi 🚀', _finishOnboarding),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -725,24 +816,37 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // Helper: tombol aksi utama
   // ─────────────────────────────────────────────────────
   Widget _buildNextButton(String label, VoidCallback onTap) {
-    return SizedBox(
+    return Container(
       width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        gradient: AppTheme.primaryGradient,
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withValues(alpha: 0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryColor,
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
           ),
           elevation: 0,
         ),
         child: Text(
           label,
-          style: const TextStyle(
+          style: GoogleFonts.poppins(
             fontSize: 16,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.3,
           ),
         ),
       ),
