@@ -1,0 +1,729 @@
+import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../models/emotion_model.dart';
+import '../theme/app_theme.dart';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HistoryScreen — Riwayat & Analitik Psikis
+//
+// Arsitektur Widget (modular):
+//   • _buildStatsSummary()  → 3 kartu statistik  
+//   • _buildWeeklyChart()   → LineChart tren mingguan (fl_chart)
+//   • _buildFilterChips()   → Filter emosi horizontal
+//   • _buildLogList()       → List log emosi harian
+// ─────────────────────────────────────────────────────────────────────────────
+class HistoryScreen extends StatefulWidget {
+  const HistoryScreen({super.key});
+
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen>
+    with SingleTickerProviderStateMixin {
+  EmotionType? _selectedFilter;
+  late TabController _tabCtrl;
+
+  // ── Filter history berdasarkan emosi terpilih ────────────
+  List<EmotionRecord> get _filteredHistory {
+    if (_selectedFilter == null) return DummyData.emotionHistory;
+    return DummyData.emotionHistory
+        .where((r) => r.emotion == _selectedFilter)
+        .toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _tabCtrl = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: _buildAppBar(context),
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: AppTheme.spaceMd),
+
+              // ── Ringkasan Statistik ──────────────────────────
+              _buildStatsSummary(context),
+
+              const SizedBox(height: AppTheme.spaceXl),
+
+              // ── Section Header: Weekly Chart ─────────────────
+              _buildSectionHeader(
+                context,
+                icon: Icons.show_chart_rounded,
+                title: 'Tren Confidence per Rekaman',
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Tiap titik = satu sesi rekaman (terlama → terbaru)',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 12),
+
+              // ── Weekly Line Chart ────────────────────────────
+              _buildWeeklyLineChart(),
+
+              const SizedBox(height: AppTheme.spaceXl),
+
+              // ── Section Header: Emotional Breakdown ──────────
+              _buildSectionHeader(
+                context,
+                icon: Icons.donut_small_rounded,
+                title: 'Distribusi Emosi',
+              ),
+              const SizedBox(height: 12),
+              _buildEmotionBreakdown(),
+
+              const SizedBox(height: AppTheme.spaceXl),
+
+              // ── Filter Chip ──────────────────────────────────
+              _buildSectionHeader(
+                context,
+                icon: Icons.filter_list_rounded,
+                title: 'Log Deteksi',
+                trailingLabel:
+                    '${_filteredHistory.length} entri',
+                trailingColor: AppTheme.primaryColor,
+              ),
+              const SizedBox(height: 12),
+              _buildFilterChips(),
+              const SizedBox(height: 14),
+
+              // ── List Log ─────────────────────────────────────
+              ..._filteredHistory.map((r) => _buildLogItem(context, r)),
+              const SizedBox(height: 100),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Widget: AppBar Custom
+  // ─────────────────────────────────────────────────────────────
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: AppTheme.backgroundColor,
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.bar_chart_rounded,
+              color: AppTheme.primaryColor,
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Text('Riwayat & Progres'),
+        ],
+      ),
+      actions: [
+        Container(
+          margin: const EdgeInsets.only(right: 16),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: IconButton(
+            icon: const Icon(
+              Icons.calendar_month_rounded,
+              color: AppTheme.primaryColor,
+              size: 18,
+            ),
+            onPressed: () {},
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            tooltip: 'Filter Tanggal',
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Widget: Ringkasan 3 kartu statistik mini
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildStatsSummary(BuildContext context) {
+    final history = DummyData.emotionHistory;
+    final positiveCount =
+        history.where((r) => r.emotion == EmotionType.happy).length;
+    final negativeCount = history
+        .where((r) =>
+            r.emotion == EmotionType.angry ||
+            r.emotion == EmotionType.sad ||
+            r.emotion == EmotionType.fear)
+        .length;
+
+    final stats = [
+      (
+        value: '${history.length}',
+        label: 'Total',
+        icon: Icons.bar_chart_rounded,
+        color: AppTheme.primaryColor,
+      ),
+      (
+        value: '$positiveCount',
+        label: 'Positif',
+        icon: Icons.sentiment_satisfied_alt_rounded,
+        color: const Color(0xFFF59E0B),
+      ),
+      (
+        value: '$negativeCount',
+        label: 'Perhatian',
+        icon: Icons.sentiment_dissatisfied_rounded,
+        color: const Color(0xFFF87171),
+      ),
+    ];
+
+    return Row(
+      children: stats.asMap().entries.map((entry) {
+        final i = entry.key;
+        final s = entry.value;
+        return Expanded(
+          child: Container(
+            margin: EdgeInsets.only(right: i < stats.length - 1 ? 10 : 0),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceColor,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              boxShadow: AppTheme.cardShadow,
+              border: Border.all(
+                color: s.color.withValues(alpha: 0.15),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(
+                    color: s.color.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(s.icon, color: s.color, size: 20),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  s.value,
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: s.color,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  s.label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Widget: Per-Recording Confidence Line Chart (fl_chart)
+  //
+  // X-axis : urutan sesi rekaman (#1 terlama → #N terbaru)
+  // Y-axis : confidence score 0–100%
+  // Dot    : berwarna sesuai EmotionType yang terdeteksi
+  // Tooltip: tampilkan emoji, nama emosi, dan persentase confidence
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildWeeklyLineChart() {
+    // Urutkan history dari sesi terlama ke terbaru
+    final history = List<EmotionRecord>.from(DummyData.emotionHistory)
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    // Tiap FlSpot: x = indeks sesi, y = confidence dlm persen (0–100)
+    final spots = List.generate(
+      history.length,
+      (i) => FlSpot(i.toDouble(), history[i].confidence * 100),
+    );
+
+    // Warna per titik sesuai emosi rekaman tersebut
+    final emotionColors = history.map((r) => r.emotion.color).toList();
+
+    return Container(
+      width: double.infinity,
+      height: 230,
+      padding: const EdgeInsets.fromLTRB(8, 20, 16, 8),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: LineChart(
+        LineChartData(
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            getDrawingHorizontalLine: (v) => FlLine(
+              color: const Color(0xFFE2E8F0),
+              strokeWidth: 1,
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+          minX: 0,
+          maxX: (history.length - 1).toDouble(),
+          minY: 0,
+          maxY: 100,
+          titlesData: FlTitlesData(
+            topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false)),
+            // X-axis: #1, #2, #3, ...
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                interval: 1,
+                getTitlesWidget: (v, _) {
+                  final i = v.toInt();
+                  if (i < 0 || i >= history.length) return const SizedBox();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      '#${i + 1}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  );
+                },
+                reservedSize: 30,
+              ),
+            ),
+            // Y-axis: 0%, 25%, 50%, 75%, 100%
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                interval: 25,
+                getTitlesWidget: (v, _) => Text(
+                  '${v.toInt()}%',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    color: AppTheme.textHint,
+                  ),
+                ),
+                reservedSize: 32,
+              ),
+            ),
+          ),
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: true,
+              curveSmoothness: 0.25,
+              // Garis penghubung abu-abu tipis
+              color: AppTheme.primaryColor.withValues(alpha: 0.3),
+              barWidth: 2,
+              isStrokeCapRound: true,
+              // Dot berwarna sesuai emosi masing-masing rekaman
+              dotData: FlDotData(
+                show: true,
+                getDotPainter: (spot, pct, bar, idx) {
+                  final dotColor = idx < emotionColors.length
+                      ? emotionColors[idx]
+                      : AppTheme.primaryColor;
+                  return FlDotCirclePainter(
+                    radius: 6,
+                    color: dotColor,
+                    strokeWidth: 2,
+                    strokeColor: Colors.white,
+                  );
+                },
+              ),
+              belowBarData: BarAreaData(
+                show: true,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppTheme.primaryColor.withValues(alpha: 0.08),
+                    AppTheme.primaryColor.withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          // Tooltip: emoji emosi + nama + confidence%
+          lineTouchData: LineTouchData(
+            touchTooltipData: LineTouchTooltipData(
+              getTooltipColor: (spot) {
+                final i = spot.x.toInt();
+                if (i >= 0 && i < history.length) {
+                  return history[i].emotion.color.withValues(alpha: 0.92);
+                }
+                return AppTheme.textPrimary.withValues(alpha: 0.9);
+              },
+              getTooltipItems: (touchedSpots) {
+                return touchedSpots.map((s) {
+                  final i = s.x.toInt();
+                  final rec =
+                      (i >= 0 && i < history.length) ? history[i] : null;
+                  final label = rec != null
+                      ? '${rec.emotion.emoji} ${rec.emotion.displayName}\n${rec.confidencePercent}'
+                      : '${s.y.toStringAsFixed(0)}%';
+                  return LineTooltipItem(
+                    label,
+                    GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                      height: 1.5,
+                    ),
+                  );
+                }).toList();
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Widget: Distribusi Emosi — horizontal pill bars
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildEmotionBreakdown() {
+    final freq = DummyData.emotionFrequency;
+    final total = freq.values.fold(0, (a, b) => a + b);
+
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spaceLg),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Column(
+        children: freq.entries.map((entry) {
+          final pct = entry.value / total;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: [
+                // Emotion icon + name
+                Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: entry.key.color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Icon(entry.key.icon,
+                      color: entry.key.color, size: 14),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 60,
+                  child: Text(
+                    entry.key.displayName,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ),
+                // Progress pill
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Container(
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color:
+                              entry.key.color.withValues(alpha: 0.1),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusFull),
+                        ),
+                      ),
+                      FractionallySizedBox(
+                        widthFactor: pct,
+                        child: Container(
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: entry.key.color,
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusFull),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Count + percent
+                Text(
+                  '${entry.value}x',
+                  style: GoogleFonts.poppins(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: entry.key.color,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Widget: Filter Chips horizontal
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildFilterChips() {
+    final all = [null, ...EmotionType.values];
+
+    return SizedBox(
+      height: 36,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: all.map((e) {
+          final isSelected = _selectedFilter == e;
+          final label =
+              e == null ? 'Semua' : '${e.emoji} ${e.displayName}';
+          final color =
+              e == null ? AppTheme.primaryColor : e.color;
+
+          return GestureDetector(
+            onTap: () => setState(() => _selectedFilter = e),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? color
+                    : color.withValues(alpha: 0.08),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.radiusFull),
+                border: Border.all(
+                  color: isSelected
+                      ? color
+                      : color.withValues(alpha: 0.25),
+                  width: 1.5,
+                ),
+              ),
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  color: isSelected ? Colors.white : color,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.5,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Widget: Item Log Emosi — styled card dengan accent border
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildLogItem(BuildContext context, EmotionRecord record) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              // Left accent border
+              Container(
+                width: 4,
+                decoration: BoxDecoration(
+                  color: record.emotion.color,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(AppTheme.radiusMd),
+                    bottomLeft: Radius.circular(AppTheme.radiusMd),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 13),
+                  child: Row(
+                    children: [
+                      // Icon
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          color: record.emotion.color
+                              .withValues(alpha: 0.12),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSm),
+                        ),
+                        child: Icon(
+                          record.emotion.icon,
+                          color: record.emotion.color,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Name + time
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${record.emotion.emoji} ${record.emotion.displayName}',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.access_time_rounded,
+                                  size: 11,
+                                  color: AppTheme.textHint,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  record.formattedTime,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11.5,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Confidence chip + chevron
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: record.emotion.color
+                                  .withValues(alpha: 0.12),
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.radiusFull),
+                            ),
+                            child: Text(
+                              record.confidencePercent,
+                              style: GoogleFonts.poppins(
+                                color: record.emotion.color,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppTheme.textHint,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Helper: Section Header reusable
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildSectionHeader(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    String? trailingLabel,
+    Color? trailingColor,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: AppTheme.primaryColor, size: 16),
+        ),
+        const SizedBox(width: 8),
+        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        if (trailingLabel != null && trailingColor != null) ...[
+          const SizedBox(width: 8),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: trailingColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+            ),
+            child: Text(
+              trailingLabel,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: trailingColor,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
