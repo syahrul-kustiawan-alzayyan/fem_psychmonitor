@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../widgets/suggestion_card.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
+import 'auth_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomeScreen — Dashboard Utama Fem-PhysicsMonitor
@@ -220,6 +221,11 @@ class _HomeScreenState extends State<HomeScreen>
                 context,
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
               );
+            } else if (val == 'login') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AuthScreen()),
+              );
             }
           },
           itemBuilder: (ctx) => [
@@ -253,6 +259,31 @@ class _HomeScreenState extends State<HomeScreen>
                 ],
               ),
             ),
+            if (!auth.isLoggedIn) ...[
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'login',
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.warmGradient,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Icon(Icons.login_rounded,
+                          color: Colors.white, size: 16),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(AppLocalizations.tr('login_signup'),
+                        style: GoogleFonts.poppins(
+                            color: AppTheme.primaryColor,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            ],
           ],
           child: Container(
             padding: const EdgeInsets.all(2.5),
@@ -302,7 +333,7 @@ class _HomeScreenState extends State<HomeScreen>
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF6BAE8A), Color(0xFF5B9FD5)],
+          colors: [Color(0xFF1565C0), Color(0xFF1E88E5)],
         ),
         borderRadius: BorderRadius.circular(AppTheme.radiusXl),
         boxShadow: [
@@ -693,7 +724,7 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 _buildFeatureTag('⚡ Real-time', AppTheme.primaryColor),
                 const SizedBox(width: 8),
-                _buildFeatureTag('🔒 Private', const Color(0xFFA78BFA)),
+                _buildFeatureTag('🔒 Private', const Color(0xFFFFB300)),
                 const SizedBox(width: 8),
                 _buildFeatureTag('🧠 6 Emotions', const Color(0xFFF59E0B)),
               ],

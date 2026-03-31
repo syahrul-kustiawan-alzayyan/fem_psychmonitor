@@ -167,6 +167,9 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
                   ),
                 ),
 
+              // ── Prompt Kata-kata Pemancing ─────────────────────
+              if (!_hasResult && !_isRecording) _buildStoryPrompts(),
+
               // ── Panduan saat Idle ───────────────────────────────
               if (!_hasResult && !_isRecording) _buildIdleGuide(),
 
@@ -470,6 +473,125 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
   }
 
   // ─────────────────────────────────────────────────────────────
+  // Widget: Kata-kata pemancing untuk bercerita
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildStoryPrompts() {
+    final prompts = [
+      AppLocalizations.tr('recording_prompt_1'),
+      AppLocalizations.tr('recording_prompt_2'),
+      AppLocalizations.tr('recording_prompt_3'),
+      AppLocalizations.tr('recording_prompt_4'),
+      AppLocalizations.tr('recording_prompt_5'),
+      AppLocalizations.tr('recording_prompt_6'),
+      AppLocalizations.tr('recording_prompt_7'),
+      AppLocalizations.tr('recording_prompt_8'),
+    ];
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTheme.spaceLg),
+      padding: const EdgeInsets.all(AppTheme.spaceLg),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.primaryColor.withValues(alpha: 0.06),
+            AppTheme.secondaryColor.withValues(alpha: 0.06),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        border: Border.all(
+          color: AppTheme.secondaryColor.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.warmGradient,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.tips_and_updates_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  AppLocalizations.tr('recording_prompt_title'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textP(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spaceMd),
+
+          // Prompt chips
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: prompts.map((prompt) {
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface(context),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.04),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.format_quote_rounded,
+                      size: 14,
+                      color: AppTheme.secondaryColor,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        prompt,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: AppTheme.textS(context),
+                          fontStyle: FontStyle.italic,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // Widget: Panduan penggunaan saat idle
   // ─────────────────────────────────────────────────────────────
   Widget _buildIdleGuide() {
@@ -484,7 +606,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
         num: '2',
         icon: Icons.record_voice_over_rounded,
         text: AppLocalizations.tr('guide_step_2'),
-        color: const Color(0xFFA78BFA),
+        color: const Color(0xFFFFB300),
       ),
       (
         num: '3',

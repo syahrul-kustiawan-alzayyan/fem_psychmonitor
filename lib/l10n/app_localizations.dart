@@ -98,6 +98,26 @@ class AppLocalizations {
       'profile_menu': 'Profil',
       'settings': 'Pengaturan',
       'settings_menu': 'Pengaturan',
+      'login_signup': 'Login / Sign Up',
+
+      // ── Recording Prompts ──
+      'recording_prompt_title': 'Mulai dengan bercerita...',
+      'recording_prompt_1': 'Ceritakan tentang harimu hari ini...',
+      'recording_prompt_2': 'Apa yang membuatmu bahagia belakangan ini?',
+      'recording_prompt_3': 'Apakah ada sesuatu yang mengganggu pikiranmu?',
+      'recording_prompt_4': 'Bagaimana perasaanmu saat ini?',
+      'recording_prompt_5': 'Ceritakan hal yang kamu syukuri hari ini.',
+      'recording_prompt_6': 'Apa yang ingin kamu capai minggu ini?',
+      'recording_prompt_7': 'Siapa yang membuatmu tersenyum hari ini?',
+      'recording_prompt_8': 'Bagaimana kualitas tidurmu semalam?',
+
+      // ── Time Filter ──
+      'filter_all_time': 'Semua',
+      'filter_today': 'Hari Ini',
+      'filter_7_days': '7 Hari',
+      'filter_30_days': '30 Hari',
+      'filter_custom': 'Custom',
+      'filter_select_range': 'Pilih Rentang Tanggal',
 
       // ── Profile Screen ──
       'profile_title': 'Profil Saya',
@@ -335,6 +355,26 @@ class AppLocalizations {
       'profile_menu': 'Profile',
       'settings': 'Settings',
       'settings_menu': 'Settings',
+      'login_signup': 'Login / Sign Up',
+
+      // ── Recording Prompts ──
+      'recording_prompt_title': 'Start by sharing...',
+      'recording_prompt_1': 'Tell me about your day today...',
+      'recording_prompt_2': 'What has made you happy recently?',
+      'recording_prompt_3': 'Is there something on your mind?',
+      'recording_prompt_4': 'How are you feeling right now?',
+      'recording_prompt_5': 'Share something you are grateful for today.',
+      'recording_prompt_6': 'What do you want to achieve this week?',
+      'recording_prompt_7': 'Who made you smile today?',
+      'recording_prompt_8': 'How was your sleep last night?',
+
+      // ── Time Filter ──
+      'filter_all_time': 'All',
+      'filter_today': 'Today',
+      'filter_7_days': '7 Days',
+      'filter_30_days': '30 Days',
+      'filter_custom': 'Custom',
+      'filter_select_range': 'Select Date Range',
 
       // ── Profile Screen ──
       'profile_title': 'My Profile',

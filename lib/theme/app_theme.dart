@@ -6,8 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 ///
 /// Panduan Warna Psikologi:
 ///   • Background  : Off-white #F8FAFC  → bersih, tidak melelahkan mata
-///   • Primary     : Sage Green #6BAE8A → menenangkan, alami, menyehatkan
-///   • Secondary   : Soft Lavender #A78BFA → lembut, kreatif
+///   • Primary     : Deep Blue #1565C0  → terpercaya, tenang, profesional
+///   • Secondary   : Amber Gold #FFB300 → hangat, energik, optimis
 ///   • Emotion     : Palet pastel/muted agar tidak memicu kecemasan
 ///
 /// Tipografi: Poppins (Google Fonts) — modern, premium, rounded
@@ -16,11 +16,11 @@ class AppTheme {
   AppTheme._(); // Prevent instantiation
 
   // ── Warna Utama ─────────────────────────────────────────────
-  static const Color primaryColor    = Color(0xFF6BAE8A); // Sage Green
-  static const Color primaryLight    = Color(0xFF8EC4A8); // Lighter sage
-  static const Color primaryDark     = Color(0xFF4D9270); // Darker sage
-  static const Color secondaryColor  = Color(0xFFA78BFA); // Soft Lavender
-  static const Color accentColor     = Color(0xFF7DD3C0); // Aquamarine
+  static const Color primaryColor    = Color(0xFF1565C0); // Deep Blue
+  static const Color primaryLight    = Color(0xFF42A5F5); // Light Blue
+  static const Color primaryDark     = Color(0xFF0D47A1); // Navy
+  static const Color secondaryColor  = Color(0xFFFFB300); // Amber Gold
+  static const Color accentColor     = Color(0xFFFFC107); // Golden Yellow
 
   // ── Warna Surface & Background ──────────────────────────────
   static const Color backgroundColor = Color(0xFFF8FAFC); // Off-white
@@ -55,13 +55,13 @@ class AppTheme {
 
   // ── Gradien Utama ────────────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF6BAE8A), Color(0xFF7DD3C0)],
+    colors: [Color(0xFF1565C0), Color(0xFF42A5F5)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient warmGradient = LinearGradient(
-    colors: [Color(0xFF6BAE8A), Color(0xFF60A5FA)],
+    colors: [Color(0xFF1565C0), Color(0xFFFFB300)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

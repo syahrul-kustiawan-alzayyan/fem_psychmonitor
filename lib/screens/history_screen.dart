@@ -22,17 +22,108 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
+// ── Enum filter waktu ──
+enum TimeFilter { all, today, week7, month30, custom }
+
 class _HistoryScreenState extends State<HistoryScreen>
     with SingleTickerProviderStateMixin {
   EmotionType? _selectedFilter;
+  TimeFilter _timeFilter = TimeFilter.all;
+  DateTimeRange? _customRange;
   late TabController _tabCtrl;
 
-  // ── Filter history berdasarkan emosi terpilih ────────────
+  // ── Extended Dummy Data untuk demo filter waktu ────────────
+  static final List<EmotionRecord> _allHistory = [
+    ...DummyData.emotionHistory,
+    EmotionRecord(emotion: EmotionType.happy,   confidence: 0.88, timestamp: DateTime.now().subtract(const Duration(days: 5))),
+    EmotionRecord(emotion: EmotionType.fear,    confidence: 0.62, timestamp: DateTime.now().subtract(const Duration(days: 6))),
+    EmotionRecord(emotion: EmotionType.neutral, confidence: 0.75, timestamp: DateTime.now().subtract(const Duration(days: 8))),
+    EmotionRecord(emotion: EmotionType.angry,   confidence: 0.70, timestamp: DateTime.now().subtract(const Duration(days: 10))),
+    EmotionRecord(emotion: EmotionType.sad,     confidence: 0.80, timestamp: DateTime.now().subtract(const Duration(days: 12))),
+    EmotionRecord(emotion: EmotionType.happy,   confidence: 0.92, timestamp: DateTime.now().subtract(const Duration(days: 14))),
+    EmotionRecord(emotion: EmotionType.disgust, confidence: 0.48, timestamp: DateTime.now().subtract(const Duration(days: 18))),
+    EmotionRecord(emotion: EmotionType.neutral, confidence: 0.71, timestamp: DateTime.now().subtract(const Duration(days: 21))),
+    EmotionRecord(emotion: EmotionType.happy,   confidence: 0.85, timestamp: DateTime.now().subtract(const Duration(days: 25))),
+    EmotionRecord(emotion: EmotionType.sad,     confidence: 0.60, timestamp: DateTime.now().subtract(const Duration(days: 28))),
+    EmotionRecord(emotion: EmotionType.fear,    confidence: 0.55, timestamp: DateTime.now().subtract(const Duration(days: 30))),
+  ];
+
+  // ── Filter history berdasarkan waktu + emosi ────────────
   List<EmotionRecord> get _filteredHistory {
-    if (_selectedFilter == null) return DummyData.emotionHistory;
-    return DummyData.emotionHistory
-        .where((r) => r.emotion == _selectedFilter)
-        .toList();
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+
+    List<EmotionRecord> result = _allHistory;
+
+    // Filter waktu
+    switch (_timeFilter) {
+      case TimeFilter.all:
+        break;
+      case TimeFilter.today:
+        result = result.where((r) => r.timestamp.isAfter(todayStart)).toList();
+        break;
+      case TimeFilter.week7:
+        final weekAgo = now.subtract(const Duration(days: 7));
+        result = result.where((r) => r.timestamp.isAfter(weekAgo)).toList();
+        break;
+      case TimeFilter.month30:
+        final monthAgo = now.subtract(const Duration(days: 30));
+        result = result.where((r) => r.timestamp.isAfter(monthAgo)).toList();
+        break;
+      case TimeFilter.custom:
+        if (_customRange != null) {
+          result = result.where((r) =>
+            r.timestamp.isAfter(_customRange!.start.subtract(const Duration(days: 1))) &&
+            r.timestamp.isBefore(_customRange!.end.add(const Duration(days: 1)))
+          ).toList();
+        }
+        break;
+    }
+
+    // Filter emosi
+    if (_selectedFilter != null) {
+      result = result.where((r) => r.emotion == _selectedFilter).toList();
+    }
+
+    return result;
+  }
+
+  // ── Frequency map berdasarkan filtered data ────────────
+  Map<EmotionType, int> get _filteredFrequency {
+    final freq = <EmotionType, int>{};
+    for (final r in _filteredHistory) {
+      freq[r.emotion] = (freq[r.emotion] ?? 0) + 1;
+    }
+    return freq;
+  }
+
+  Future<void> _pickCustomRange() async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now(),
+      initialDateRange: _customRange ?? DateTimeRange(
+        start: DateTime.now().subtract(const Duration(days: 7)),
+        end: DateTime.now(),
+      ),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: AppTheme.primaryColor,
+              secondary: AppTheme.secondaryColor,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _customRange = picked;
+        _timeFilter = TimeFilter.custom;
+      });
+    }
   }
 
   @override
@@ -60,6 +151,10 @@ class _HistoryScreenState extends State<HistoryScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: AppTheme.spaceMd),
+
+              // ── Filter Waktu ──────────────────────────────────
+              _buildTimeFilterBar(),
+              const SizedBox(height: AppTheme.spaceLg),
 
               // ── Ringkasan Statistik ──────────────────────────
               _buildStatsSummary(context),
@@ -171,10 +266,88 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   // ─────────────────────────────────────────────────────────────
+  // Widget: Filter Waktu — Horizontal Chips
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildTimeFilterBar() {
+    final filters = [
+      (filter: TimeFilter.all,     label: AppLocalizations.tr('filter_all_time'), icon: Icons.all_inclusive_rounded),
+      (filter: TimeFilter.today,   label: AppLocalizations.tr('filter_today'),    icon: Icons.today_rounded),
+      (filter: TimeFilter.week7,   label: AppLocalizations.tr('filter_7_days'),   icon: Icons.date_range_rounded),
+      (filter: TimeFilter.month30, label: AppLocalizations.tr('filter_30_days'),  icon: Icons.calendar_month_rounded),
+      (filter: TimeFilter.custom,  label: AppLocalizations.tr('filter_custom'),   icon: Icons.edit_calendar_rounded),
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: filters.map((f) {
+          final isActive = _timeFilter == f.filter;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: GestureDetector(
+              onTap: () {
+                if (f.filter == TimeFilter.custom) {
+                  _pickCustomRange();
+                } else {
+                  setState(() => _timeFilter = f.filter);
+                }
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: isActive ? AppTheme.primaryGradient : null,
+                  color: isActive ? null : AppTheme.surface(context),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  border: Border.all(
+                    color: isActive
+                        ? Colors.transparent
+                        : AppTheme.primaryColor.withValues(alpha: 0.15),
+                  ),
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      f.icon,
+                      size: 14,
+                      color: isActive ? Colors.white : AppTheme.textS(context),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      _timeFilter == TimeFilter.custom && f.filter == TimeFilter.custom && _customRange != null
+                          ? '${_customRange!.start.day}/${_customRange!.start.month} - ${_customRange!.end.day}/${_customRange!.end.month}'
+                          : f.label,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                        color: isActive ? Colors.white : AppTheme.textS(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // Widget: Ringkasan 3 kartu statistik mini
   // ─────────────────────────────────────────────────────────────
   Widget _buildStatsSummary(BuildContext context) {
-    final history = DummyData.emotionHistory;
+    final history = _filteredHistory;
     final positiveCount =
         history.where((r) => r.emotion == EmotionType.happy).length;
     final negativeCount = history
@@ -270,7 +443,7 @@ class _HistoryScreenState extends State<HistoryScreen>
   // ─────────────────────────────────────────────────────────────
   Widget _buildWeeklyLineChart() {
     // Urutkan history dari sesi terlama ke terbaru
-    final history = List<EmotionRecord>.from(DummyData.emotionHistory)
+    final history = List<EmotionRecord>.from(_filteredHistory)
       ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
     // Tiap FlSpot: x = indeks sesi, y = confidence dlm persen (0–100)
@@ -444,7 +617,7 @@ class _HistoryScreenState extends State<HistoryScreen>
   // Widget: Distribusi Emosi — horizontal pill bars
   // ─────────────────────────────────────────────────────────────
   Widget _buildEmotionBreakdown() {
-    final freq = DummyData.emotionFrequency;
+    final freq = _filteredFrequency;
     final total = freq.values.fold(0, (a, b) => a + b);
 
     return Container(

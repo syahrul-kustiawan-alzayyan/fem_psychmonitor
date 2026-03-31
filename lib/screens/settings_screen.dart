@@ -90,7 +90,7 @@ class SettingsScreen extends StatelessWidget {
                         ? Icons.dark_mode_rounded
                         : Icons.light_mode_rounded,
                     iconColor: isDark
-                        ? const Color(0xFFA78BFA)
+                        ? const Color(0xFFFFB300)
                         : const Color(0xFFF59E0B),
                     title: AppLocalizations.tr('theme_mode'),
                     trailing: _buildSegmentedControl(
@@ -364,7 +364,7 @@ class SettingsScreen extends StatelessWidget {
         icon: Icons.psychology_rounded,
         title: AppLocalizations.tr('guide_step2_title'),
         desc: AppLocalizations.tr('guide_step2_desc'),
-        color: const Color(0xFFA78BFA),
+        color: const Color(0xFFFFB300),
       ),
       (
         icon: Icons.bar_chart_rounded,

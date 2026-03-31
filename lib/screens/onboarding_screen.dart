@@ -261,7 +261,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF6BAE8A), Color(0xFF5B9FD5)],
+                  colors: [Color(0xFF1565C0), Color(0xFF1E88E5)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -640,7 +640,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF6BAE8A), Color(0xFF5B9FD5)],
+                  colors: [Color(0xFF1565C0), Color(0xFF1E88E5)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -681,7 +681,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF6BAE8A), Color(0xFF7DD3C0)],
+                  colors: [Color(0xFF1565C0), Color(0xFF42A5F5)],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
