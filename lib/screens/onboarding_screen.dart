@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/user_model.dart';
 import '../services/storage_service.dart';
+import '../services/database_service.dart';
 import '../theme/app_theme.dart';
 
 /// Onboarding Screen untuk pengguna baru.
-/// Flow: Selamat datang → Input nama → 10 pertanyaan psikis → Ringkasan hasil
+/// Flow: Selamat datang → Input nama → 20 pertanyaan MBTI → Hasil MBTI
 class OnboardingScreen extends StatefulWidget {
-  /// Callback setelah onboarding selesai — navigasi ke MainNavigation
   final VoidCallback onCompleted;
 
   const OnboardingScreen({super.key, required this.onCompleted});
@@ -20,18 +20,22 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     with SingleTickerProviderStateMixin {
   final PageController _pageController = PageController();
 
-  // Halaman saat ini: 0=welcome, 1=nama, 2-11=pertanyaan, 12=hasil
+  // Halaman: 0=welcome, 1=nama, 2-21=pertanyaan MBTI, 22=hasil
   int _currentPage = 0;
-  final int _totalPages = 13; // 1 welcome + 1 nama + 10 pertanyaan + 1 hasil
+  final int _totalPages = 23; // 1 welcome + 1 nama + 20 pertanyaan + 1 hasil
 
   // Data yang dikumpulkan
   final TextEditingController _nameController = TextEditingController();
-  final List<int?> _answers = List.filled(10, null); // jawaban tiap soal
+  final List<int?> _answers = List.filled(20, null); // 0=opsi A, 1=opsi B
   bool _isSaving = false;
 
-  // Animasi transisi
+  // Animasi
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
+
+  // Hasil MBTI
+  String _mbtiType = '';
+  Map<String, int> _mbtiScores = {};
 
   @override
   void initState() {
@@ -55,32 +59,26 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     super.dispose();
   }
 
-  // ── Kalkulasi skor total dari jawaban ──────────────────
-  int get _totalScore {
-    int score = 0;
-    for (int i = 0; i < onboardingQuestions.length; i++) {
-      if (_answers[i] != null) {
-        score += onboardingQuestions[i].scores[_answers[i]!];
-      }
-    }
-    return score;
-  }
-
-  // ── Progres (0.0 – 1.0) untuk progress bar ──────────
   double get _progress => _currentPage / (_totalPages - 1);
 
-  // ── Pindah ke halaman berikutnya ─────────────────────
   void _nextPage() {
-    // Validasi nama minimal 2 karakter
+    // Validasi nama
     if (_currentPage == 1 && _nameController.text.trim().length < 2) {
       _showSnack('Masukkan namamu terlebih dahulu ya! 😊');
       return;
     }
-    // Validasi jawaban pertanyaan
+    // Validasi jawaban MBTI
     final qIndex = _currentPage - 2;
-    if (_currentPage >= 2 && _currentPage <= 11 && _answers[qIndex] == null) {
+    if (_currentPage >= 2 && _currentPage <= 21 && _answers[qIndex] == null) {
       _showSnack('Pilih salah satu jawaban dulu ya! ✨');
       return;
+    }
+
+    // Hitung MBTI saat semua pertanyaan selesai
+    if (_currentPage == 21) {
+      final result = calculateMBTI(_answers.map((e) => e ?? 0).toList());
+      _mbtiType = result.type;
+      _mbtiScores = result.scores;
     }
 
     if (_currentPage < _totalPages - 1) {
@@ -93,7 +91,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     }
   }
 
-  // ── Kembali ke halaman sebelumnya ────────────────────
   void _prevPage() {
     if (_currentPage > 0) {
       setState(() => _currentPage--);
@@ -108,7 +105,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   void _showSnack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg, style: const TextStyle(fontWeight: FontWeight.w600)),
+        content: Text(msg, style: GoogleFonts.poppins(fontSize: 13)),
         backgroundColor: AppTheme.primaryColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -117,17 +114,21 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
   }
 
-  // ── Simpan dan selesai ────────────────────────────────
-  Future<void> _finishOnboarding() async {
+  Future<void> _completeOnboarding() async {
+    if (_isSaving) return;
     setState(() => _isSaving = true);
+
     final user = AppUser(
       name: _nameController.text.trim(),
-      psychScore: _totalScore,
+      mbtiType: _mbtiType,
+      mbtiScores: _mbtiScores,
       createdAt: DateTime.now(),
     );
-    await StorageService.saveUser(user);
-    setState(() => _isSaving = false);
-    widget.onCompleted();
+
+    await DatabaseService.insertUser(user);
+    await StorageService.setOnboardingComplete(user.name);
+
+    if (mounted) widget.onCompleted();
   }
 
   @override
@@ -137,716 +138,769 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // ── Progress bar & tombol back ──────────────
-            _buildTopBar(context),
-
-            // ── PageView konten utama ───────────────────
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(), // navigasi manual
+            // ── Progress bar + Back button ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Row(
                 children: [
-                  _buildWelcomePage(context),
-                  _buildNamePage(context),
-                  ...List.generate(
-                    10,
-                    (i) => _buildQuestionPage(context, i),
-                  ),
-                  _buildResultPage(context),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────
-  // Widget: Top bar (progress + back button)
-  // ─────────────────────────────────────────────────────
-  Widget _buildTopBar(BuildContext context) {
-    final showBack = _currentPage > 0 && _currentPage < _totalPages - 1;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              // Tombol back
-              if (showBack)
-                GestureDetector(
-                  onTap: _prevPage,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      size: 18,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                )
-              else
-                const SizedBox(width: 36),
-
-              const SizedBox(width: 12),
-
-              // Label halaman
-              Expanded(
-                child: Text(
-                  _currentPage == 0
-                      ? 'Selamat Datang!'
-                      : _currentPage == 1
-                          ? 'Langkah 1 dari 11'
-                          : _currentPage <= 11
-                              ? 'Pertanyaan ${_currentPage - 1} dari 10'
-                              : 'Selesai! 🎉',
-                  style: GoogleFonts.poppins(
-                    color: AppTheme.textS(context),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-
-              // Nomor halaman
-              Text(
-                _currentPage == 0 ? '' : '$_currentPage/${_totalPages - 1}',
-                style: GoogleFonts.poppins(
-                  color: AppTheme.primaryColor,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          // Progress bar
-          if (_currentPage > 0)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: LinearProgressIndicator(
-                value: _progress,
-                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.15),
-                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                minHeight: 6,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────
-  // Page 0: Selamat datang
-  // ─────────────────────────────────────────────────────
-  Widget _buildWelcomePage(BuildContext context) {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 24),
-            // Ilustrasi logo
-            Container(
-              width: 130,
-              height: 130,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1565C0), Color(0xFF1E88E5)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                    blurRadius: 28,
-                    offset: const Offset(0, 12),
-                  ),
-                ],
-              ),
-              child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 66),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'Fem-PhysicsMonitor',
-              style: GoogleFonts.poppins(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textP(context),
-                letterSpacing: -0.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Monitor kondisi psikismu melalui suara.\nKami di sini untuk menemanimu.',
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                color: AppTheme.textS(context),
-                height: 1.6,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 36),
-            // Fitur singkat — kartu premium
-            ...['🎤|Deteksi emosi dari suaramu', '📊|Pantau perkembangan psikis', '💡|Dapatkan saran yang personal']
-                .map((item) {
-              final parts = item.split('|');
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface(context),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  boxShadow: AppTheme.cardShadow,
-                  border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
+                  if (_currentPage > 0 && _currentPage < _totalPages - 1)
+                    GestureDetector(
+                      onTap: _prevPage,
+                      child: Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfVar(context),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(Icons.arrow_back_ios_new_rounded,
+                            size: 16, color: AppTheme.textP(context)),
                       ),
-                      child: Text(parts[0], style: const TextStyle(fontSize: 20)),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        parts[1],
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textP(context),
+                    )
+                  else
+                    const SizedBox(width: 30),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: _progress,
+                        minHeight: 6,
+                        backgroundColor: AppTheme.surfVar(context),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppTheme.primaryColor,
                         ),
                       ),
                     ),
-                    Icon(
-                      Icons.check_circle_rounded,
-                      color: AppTheme.primaryColor.withValues(alpha: 0.5),
-                      size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  // Page counter
+                  Text(
+                    '${_currentPage + 1}/$_totalPages',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textS(context),
                     ),
-                  ],
-                ),
-              );
-            }),
-            const SizedBox(height: 32),
-            _buildNextButton('Mulai Sekarang 🚀', _nextPage),
-            const SizedBox(height: 20),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Page Content ──
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _buildWelcomePage(),
+                  _buildNamePage(),
+                  ...List.generate(20, (i) => _buildMBTIQuestionPage(i)),
+                  _buildResultPage(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // ─────────────────────────────────────────────────────
-  // Page 1: Input nama
-  // ─────────────────────────────────────────────────────
-  Widget _buildNamePage(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(16),
+  // ─────────────────────────────────────────────────────────────
+  // Page: Welcome
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildWelcomePage() {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: AppTheme.primaryGradient,
+                boxShadow: AppTheme.primaryShadow,
+              ),
+              child: const Icon(
+                Icons.psychology_rounded,
+                color: Colors.white,
+                size: 50,
+              ),
             ),
-            child: const Icon(Icons.person_rounded, color: AppTheme.primaryColor, size: 36),
+            const SizedBox(height: 32),
+            Text(
+              'Selamat Datang! 👋',
+              style: GoogleFonts.poppins(
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textP(context),
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Fem-PhysicsMonitor akan membantu kamu memahami emosi melalui analisis suara dan kepribadian.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: AppTheme.textS(context),
+                height: 1.6,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.quiz_rounded,
+                      color: AppTheme.primaryColor, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    '20 pertanyaan MBTI (~5 menit)',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 40),
+            _buildNextButton('Mulai Sekarang'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Page: Input Nama
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildNamePage() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: AppTheme.secondaryColor.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.person_rounded,
+              size: 36,
+              color: AppTheme.secondaryColor,
+            ),
           ),
           const SizedBox(height: 24),
           Text(
-            'Hei! Siapa namamu?',
+            'Siapa namamu? 😊',
             style: GoogleFonts.poppins(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
               color: AppTheme.textP(context),
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Kami akan memanggilmu dengan namamu agar lebih personal.',
+            'Kami ingin mengenalmu lebih dekat',
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: 13,
               color: AppTheme.textS(context),
-              height: 1.5,
             ),
           ),
-          const SizedBox(height: 36),
-          // TextField nama
-          Container(
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-              borderRadius: BorderRadius.circular(16),
+          const SizedBox(height: 28),
+          TextFormField(
+            controller: _nameController,
+            textCapitalization: TextCapitalization.words,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textP(context),
             ),
-            child: TextField(
-              controller: _nameController,
-              autofocus: false,
-              textCapitalization: TextCapitalization.words,
-              style: GoogleFonts.poppins(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textP(context),
-              ),
-              decoration: InputDecoration(
-                hintText: 'Masukkan namamu...',
-                hintStyle: GoogleFonts.poppins(
-                  color: AppTheme.textH(context),
-                  fontWeight: FontWeight.w400,
-                ),
-                prefixIcon: const Icon(Icons.badge_rounded, color: AppTheme.primaryColor),
-                filled: true,
-                fillColor: AppTheme.surface(context),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.15),
-                    width: 1.5,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
-                    color: AppTheme.primaryColor,
-                    width: 2,
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 18,
-                ),
-              ),
-            ),
-          ),
-          const Spacer(),
-          _buildNextButton('Lanjut →', _nextPage),
-          const SizedBox(height: 10),
-          Center(
-            child: Text(
-              'Selanjutnya: 10 pertanyaan singkat tentang kondisimu',
-              style: GoogleFonts.poppins(
+            decoration: InputDecoration(
+              hintText: 'Ketik namamu di sini...',
+              hintStyle: GoogleFonts.poppins(
+                fontSize: 16,
                 color: AppTheme.textH(context),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
               ),
-              textAlign: TextAlign.center,
+              filled: true,
+              fillColor: AppTheme.surfVar(context),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: AppTheme.primaryColor,
+                  width: 2,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 18,
+              ),
             ),
           ),
+          const SizedBox(height: 32),
+          _buildNextButton('Lanjut'),
         ],
       ),
     );
   }
 
-  // ─────────────────────────────────────────────────────
-  // Page 2–11: Pertanyaan psikis
-  // ─────────────────────────────────────────────────────
-  Widget _buildQuestionPage(BuildContext context, int questionIndex) {
-    final q = onboardingQuestions[questionIndex];
+  // ─────────────────────────────────────────────────────────────
+  // Page: MBTI Question (A vs B choice)
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildMBTIQuestionPage(int index) {
+    final q = mbtiQuestions[index];
+    final selected = _answers[index];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+    // Dimensi label & emoji
+    final dimensionLabels = {
+      'EI': ('🔋', 'Energi', 'Energy'),
+      'SN': ('🔍', 'Informasi', 'Information'),
+      'TF': ('💭', 'Keputusan', 'Decisions'),
+      'JP': ('📋', 'Gaya Hidup', 'Lifestyle'),
+    };
+    final dimInfo = dimensionLabels[q.dimension]!;
+    final questionNum = index + 1;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 8),
-          // Label kategori
+          const SizedBox(height: 20),
+          // Dimension badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppTheme.primaryColor.withValues(alpha: 0.15),
-                  AppTheme.primaryColor.withValues(alpha: 0.06),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              q.category,
+              '${dimInfo.$1} ${dimInfo.$2} · Pertanyaan $questionNum/20',
               style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
                 color: AppTheme.primaryColor,
               ),
             ),
           ),
-          const SizedBox(height: 18),
-          // Teks pertanyaan
+          const SizedBox(height: 20),
+          // Question text
           Text(
             q.question,
             style: GoogleFonts.poppins(
-              fontSize: 20,
+              fontSize: 19,
               fontWeight: FontWeight.w700,
               color: AppTheme.textP(context),
               height: 1.4,
             ),
           ),
-          const SizedBox(height: 24),
-          // 4 pilihan jawaban
-          Expanded(
-            child: ListView.builder(
-              itemCount: q.options.length,
-              padding: EdgeInsets.zero,
-              itemBuilder: (ctx, optIdx) {
-                final isSelected = _answers[questionIndex] == optIdx;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() => _answers[questionIndex] = optIdx);
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppTheme.primaryColor.withValues(alpha: 0.08)
-                          : AppTheme.surface(context),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.18),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : AppTheme.cardShadow,
-                      border: Border.all(
-                        color: isSelected
-                            ? AppTheme.primaryColor
-                            : Colors.transparent,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        // Radio indicator
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isSelected
-                                ? AppTheme.primaryColor
-                                : AppTheme.surface(context),
-                            border: Border.all(
-                              color: isSelected
-                                  ? AppTheme.primaryColor
-                                  : AppTheme.textH(context),
-                              width: 2,
-                            ),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ]
-                                : [],
-                          ),
-                          child: isSelected
-                              ? const Icon(Icons.check, color: Colors.white, size: 16)
-                              : null,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            q.options[optIdx],
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                              color: isSelected
-                                  ? AppTheme.primaryColor
-                                  : AppTheme.textP(context),
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+          const SizedBox(height: 28),
+          // Option A
+          _buildOptionCard(
+            label: 'A',
+            text: q.optionAText,
+            isSelected: selected == 0,
+            color: const Color(0xFF42A5F5),
+            onTap: () {
+              setState(() => _answers[index] = 0);
+              Future.delayed(const Duration(milliseconds: 300), _nextPage);
+            },
+          ),
+          const SizedBox(height: 14),
+          // VS divider
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.surfVar(context),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'ATAU',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textH(context),
+                  letterSpacing: 1.5,
+                ),
+              ),
             ),
           ),
-          _buildNextButton(
-            questionIndex == 9 ? 'Lihat Hasilku 🌟' : 'Lanjut →',
-            _nextPage,
+          const SizedBox(height: 14),
+          // Option B
+          _buildOptionCard(
+            label: 'B',
+            text: q.optionBText,
+            isSelected: selected == 1,
+            color: const Color(0xFFFFB300),
+            onTap: () {
+              setState(() => _answers[index] = 1);
+              Future.delayed(const Duration(milliseconds: 300), _nextPage);
+            },
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 40),
         ],
       ),
     );
   }
 
-  // ─────────────────────────────────────────────────────
-  // Page 12: Hasil assessment
-  // ─────────────────────────────────────────────────────
-  Widget _buildResultPage(BuildContext context) {
-    final name = _nameController.text.trim().isEmpty
-        ? 'Kamu'
-        : _nameController.text.trim();
-    final score = _totalScore;
-    final maxScore = 40;
-
-    // Tentukan level psikis sementara untuk tampilan
-    PsychLevel level;
-    if (score >= 35) {
-      level = PsychLevel.excellent;
-    } else if (score >= 27) {
-      level = PsychLevel.good;
-    } else if (score >= 20) {
-      level = PsychLevel.fair;
-    } else {
-      level = PsychLevel.needsAttention;
-    }
-
-    final progressValue = score / maxScore;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 8),
-            // Ilustrasi hasil
-            Container(
-              width: 110,
-              height: 110,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1565C0), Color(0xFF1E88E5)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
+  Widget _buildOptionCard({
+    required String label,
+    required String text,
+    required bool isSelected,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withValues(alpha: 0.12)
+              : AppTheme.surface(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? color : AppTheme.surfVar(context),
+            width: isSelected ? 2.5 : 1.5,
+          ),
+          boxShadow: isSelected
+              ? [
                   BoxShadow(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(level.emoji, style: const TextStyle(fontSize: 52)),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Hai, $name! 👋',
-              style: GoogleFonts.poppins(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textP(context),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Berdasarkan jawabanmu, kondisi psikismu:',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: AppTheme.textS(context),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            // Badge level
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1565C0), Color(0xFF42A5F5)],
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                    color: color.withValues(alpha: 0.15),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
-                  ),
-                ],
+                  )
+                ]
+              : AppTheme.cardShadow,
+        ),
+        child: Row(
+          children: [
+            // Label badge
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? color
+                    : color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
               ),
+              child: Center(
+                child: Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? Colors.white : color,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            // Text
+            Expanded(
               child: Text(
-                '${level.emoji} ${level.label}',
+                text,
                 style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: AppTheme.textP(context),
+                  height: 1.5,
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            // Skor bar
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: AppTheme.surface(context),
-                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                boxShadow: AppTheme.cardShadow,
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Skor Psikismu',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textP(context),
-                        ),
-                      ),
-                      Text(
-                        '$score / $maxScore',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.primaryColor,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: LinearProgressIndicator(
-                      value: progressValue,
-                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.15),
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                      minHeight: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Saran awal (2 saran pertama)
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                border: Border.all(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.15),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.auto_awesome_rounded,
-                          color: AppTheme.primaryColor, size: 18),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Saran Awal Untukmu',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textP(context),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ...level.overallSuggestions.take(2).map(
-                    (s) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('✨ ', style: TextStyle(fontSize: 14)),
-                          Expanded(
-                            child: Text(
-                              s,
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: AppTheme.textP(context),
-                                height: 1.5,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Tombol masuk
-            _isSaving
-                ? const CircularProgressIndicator(color: AppTheme.primaryColor)
-                : _buildNextButton('Masuk ke Aplikasi 🚀', _finishOnboarding),
-            const SizedBox(height: 16),
+            if (isSelected)
+              Icon(Icons.check_circle_rounded, color: color, size: 22),
           ],
         ),
       ),
     );
   }
 
-  // ─────────────────────────────────────────────────────
-  // Helper: tombol aksi utama
-  // ─────────────────────────────────────────────────────
-  Widget _buildNextButton(String label, VoidCallback onTap) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        gradient: AppTheme.primaryGradient,
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+  // ─────────────────────────────────────────────────────────────
+  // Page: MBTI Result
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildResultPage() {
+    if (_mbtiType.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final user = AppUser(
+      name: _nameController.text.trim(),
+      mbtiType: _mbtiType,
+      mbtiScores: _mbtiScores,
+      createdAt: DateTime.now(),
+    );
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        children: [
+          const SizedBox(height: 24),
+          // Confetti-like header
+          Text(
+            '🎉',
+            style: const TextStyle(fontSize: 48),
           ),
+          const SizedBox(height: 12),
+          Text(
+            'Hasil MBTI-mu!',
+            style: GoogleFonts.poppins(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textP(context),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Halo ${user.name}, ini kepribadianmu:',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: AppTheme.textS(context),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // MBTI Type Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: AppTheme.primaryGradient,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: AppTheme.primaryShadow,
+            ),
+            child: Column(
+              children: [
+                // Type letters
+                Text(
+                  _mbtiType,
+                  style: GoogleFonts.poppins(
+                    fontSize: 48,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 8,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  user.mbtiNickname,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Description card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.surface(context),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: AppTheme.cardShadow,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.auto_awesome_rounded,
+                        color: AppTheme.secondaryColor, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tentang Kepribadianmu',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textP(context),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  user.mbtiDescription,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: AppTheme.textS(context),
+                    height: 1.6,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Strengths
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.surface(context),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: AppTheme.cardShadow,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.star_rounded,
+                        color: AppTheme.secondaryColor, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Kekuatan Utama',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textP(context),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: user.mbtiStrengths.map((s) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '✨ $s',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Dimension scores
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.surface(context),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: AppTheme.cardShadow,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.bar_chart_rounded,
+                        color: AppTheme.secondaryColor, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Skor Dimensi',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textP(context),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildDimensionBar('E', 'Extravert', 'I', 'Introvert',
+                    _mbtiScores['E'] ?? 0, _mbtiScores['I'] ?? 0),
+                const SizedBox(height: 12),
+                _buildDimensionBar('S', 'Sensing', 'N', 'Intuition',
+                    _mbtiScores['S'] ?? 0, _mbtiScores['N'] ?? 0),
+                const SizedBox(height: 12),
+                _buildDimensionBar('T', 'Thinking', 'F', 'Feeling',
+                    _mbtiScores['T'] ?? 0, _mbtiScores['F'] ?? 0),
+                const SizedBox(height: 12),
+                _buildDimensionBar('J', 'Judging', 'P', 'Perceiving',
+                    _mbtiScores['J'] ?? 0, _mbtiScores['P'] ?? 0),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Complete button
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: _isSaving ? null : _completeOnboarding,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.5,
+                      ),
+                    )
+                  : Text(
+                      'Mulai Gunakan Aplikasi 🚀',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 40),
         ],
       ),
+    );
+  }
+
+  Widget _buildDimensionBar(
+    String labelA, String nameA,
+    String labelB, String nameB,
+    int scoreA, int scoreB,
+  ) {
+    final total = scoreA + scoreB;
+    final pctA = total > 0 ? scoreA / total : 0.5;
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '$labelA · $nameA',
+              style: GoogleFonts.poppins(
+                fontSize: 11.5,
+                fontWeight: pctA >= 0.5 ? FontWeight.w700 : FontWeight.w500,
+                color: pctA >= 0.5
+                    ? AppTheme.primaryColor
+                    : AppTheme.textS(context),
+              ),
+            ),
+            Text(
+              '$labelB · $nameB',
+              style: GoogleFonts.poppins(
+                fontSize: 11.5,
+                fontWeight: pctA < 0.5 ? FontWeight.w700 : FontWeight.w500,
+                color: pctA < 0.5
+                    ? AppTheme.secondaryColor
+                    : AppTheme.textS(context),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: SizedBox(
+            height: 10,
+            child: Row(
+              children: [
+                Expanded(
+                  flex: (pctA * 100).round().clamp(5, 95),
+                  child: Container(color: AppTheme.primaryColor),
+                ),
+                Expanded(
+                  flex: ((1 - pctA) * 100).round().clamp(5, 95),
+                  child: Container(color: AppTheme.secondaryColor),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '${(pctA * 100).toStringAsFixed(0)}%',
+              style: GoogleFonts.poppins(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textH(context),
+              ),
+            ),
+            Text(
+              '${((1 - pctA) * 100).toStringAsFixed(0)}%',
+              style: GoogleFonts.poppins(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textH(context),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Shared: Next Button
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildNextButton(String label) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
       child: ElevatedButton(
-        onPressed: onTap,
+        onPressed: _nextPage,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
+          backgroundColor: AppTheme.primaryColor,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            borderRadius: BorderRadius.circular(16),
           ),
           elevation: 0,
         ),
         child: Text(
           label,
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: 15,
             fontWeight: FontWeight.w700,
-            letterSpacing: 0.3,
           ),
         ),
       ),

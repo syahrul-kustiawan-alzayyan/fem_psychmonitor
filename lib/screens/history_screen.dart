@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
+import '../services/database_service.dart';
 import '../theme/app_theme.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -32,28 +33,33 @@ class _HistoryScreenState extends State<HistoryScreen>
   DateTimeRange? _customRange;
   late TabController _tabCtrl;
 
-  // ── Extended Dummy Data untuk demo filter waktu ────────────
-  static final List<EmotionRecord> _allHistory = [
-    ...DummyData.emotionHistory,
-    EmotionRecord(emotion: EmotionType.happy,   confidence: 0.88, timestamp: DateTime.now().subtract(const Duration(days: 5))),
-    EmotionRecord(emotion: EmotionType.fear,    confidence: 0.62, timestamp: DateTime.now().subtract(const Duration(days: 6))),
-    EmotionRecord(emotion: EmotionType.neutral, confidence: 0.75, timestamp: DateTime.now().subtract(const Duration(days: 8))),
-    EmotionRecord(emotion: EmotionType.angry,   confidence: 0.70, timestamp: DateTime.now().subtract(const Duration(days: 10))),
-    EmotionRecord(emotion: EmotionType.sad,     confidence: 0.80, timestamp: DateTime.now().subtract(const Duration(days: 12))),
-    EmotionRecord(emotion: EmotionType.happy,   confidence: 0.92, timestamp: DateTime.now().subtract(const Duration(days: 14))),
-    EmotionRecord(emotion: EmotionType.disgust, confidence: 0.48, timestamp: DateTime.now().subtract(const Duration(days: 18))),
-    EmotionRecord(emotion: EmotionType.neutral, confidence: 0.71, timestamp: DateTime.now().subtract(const Duration(days: 21))),
-    EmotionRecord(emotion: EmotionType.happy,   confidence: 0.85, timestamp: DateTime.now().subtract(const Duration(days: 25))),
-    EmotionRecord(emotion: EmotionType.sad,     confidence: 0.60, timestamp: DateTime.now().subtract(const Duration(days: 28))),
-    EmotionRecord(emotion: EmotionType.fear,    confidence: 0.55, timestamp: DateTime.now().subtract(const Duration(days: 30))),
-  ];
+  List<EmotionRecord> _dbHistory = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabCtrl = TabController(length: 2, vsync: this);
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final user = await DatabaseService.getUser();
+    final recordings = await DatabaseService.getRecordings(userId: user?.id);
+    if (mounted) {
+      setState(() {
+        _dbHistory = recordings.map((e) => e.toEmotionRecord()).toList();
+        _isLoading = false;
+      });
+    }
+  }
 
   // ── Filter history berdasarkan waktu + emosi ────────────
   List<EmotionRecord> get _filteredHistory {
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
 
-    List<EmotionRecord> result = _allHistory;
+    List<EmotionRecord> result = _dbHistory;
 
     // Filter waktu
     switch (_timeFilter) {
@@ -127,12 +133,6 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   @override
-  void initState() {
-    super.initState();
-    _tabCtrl = TabController(length: 2, vsync: this);
-  }
-
-  @override
   void dispose() {
     _tabCtrl.dispose();
     super.dispose();
@@ -140,12 +140,26 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: AppTheme.bg(context),
+        appBar: _buildAppBar(context),
+        body: Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppTheme.bg(context),
       appBar: _buildAppBar(context),
       body: SafeArea(
         bottom: false,
-        child: SingleChildScrollView(
+        child: RefreshIndicator(
+          onRefresh: _loadData,
+          color: AppTheme.primaryColor,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,6 +224,7 @@ class _HistoryScreenState extends State<HistoryScreen>
               const SizedBox(height: 100),
             ],
           ),
+        ),
         ),
       ),
     );

@@ -1,54 +1,38 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user_model.dart';
 
-/// Service untuk menyimpan & mengambil data pengguna menggunakan SharedPreferences.
-/// Semua operasi bersifat async.
+// ─────────────────────────────────────────────────────────────────────────────
+// StorageService — SharedPreferences (hanya untuk flag onboarding)
+//
+// Data user dan recording sekarang disimpan di SQLite (DatabaseService).
+// StorageService hanya menghandle flag sederhana.
+// ─────────────────────────────────────────────────────────────────────────────
 class StorageService {
-  // Keys untuk SharedPreferences
-  static const String _keyOnboardingDone = 'onboarding_done';
-  static const String _keyUsername = 'username';
-  static const String _keyPsychScore = 'psych_score';
-  static const String _keyCreatedAt = 'created_at';
+  static const String _keyFirstLaunch = 'first_launch';
+  static const String _keyUserName = 'user_name';
 
-  /// Apakah user sudah melewati onboarding?
+  /// Cek apakah ini peluncuran pertama
   static Future<bool> isFirstLaunch() async {
     final prefs = await SharedPreferences.getInstance();
-    return !(prefs.getBool(_keyOnboardingDone) ?? false);
+    return prefs.getBool(_keyFirstLaunch) ?? true;
   }
 
-  /// Simpan data user setelah onboarding selesai
-  static Future<void> saveUser(AppUser user) async {
+  /// Tandai onboarding selesai
+  static Future<void> setOnboardingComplete(String userName) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyUsername, user.name);
-    await prefs.setInt(_keyPsychScore, user.psychScore);
-    await prefs.setString(
-      _keyCreatedAt,
-      user.createdAt.toIso8601String(),
-    );
-    await prefs.setBool(_keyOnboardingDone, true);
+    await prefs.setBool(_keyFirstLaunch, false);
+    await prefs.setString(_keyUserName, userName);
   }
 
-  /// Ambil data user yang tersimpan (null jika belum ada)
-  static Future<AppUser?> getUser() async {
+  /// Ambil nama user (untuk keperluan cepat tanpa query DB)
+  static Future<String> getUserName() async {
     final prefs = await SharedPreferences.getInstance();
-    final name = prefs.getString(_keyUsername);
-    final score = prefs.getInt(_keyPsychScore);
-    final createdStr = prefs.getString(_keyCreatedAt);
-
-    if (name == null || score == null) return null;
-
-    return AppUser(
-      name: name,
-      psychScore: score,
-      createdAt: createdStr != null
-          ? DateTime.parse(createdStr)
-          : DateTime.now(),
-    );
+    return prefs.getString(_keyUserName) ?? 'User';
   }
 
-  /// Hapus semua data (untuk keperluan reset / testing)
-  static Future<void> clearAll() async {
+  /// Reset onboarding (untuk testing)
+  static Future<void> resetOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.remove(_keyFirstLaunch);
+    await prefs.remove(_keyUserName);
   }
 }

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
-import '../services/storage_service.dart';
+import '../services/database_service.dart';
 import '../theme/app_theme.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,10 +52,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       email: _emailCtrl.text.trim(),
     );
 
-    // Juga update username ke StorageService (onboarding user)
-    final user = await StorageService.getUser();
+    // Juga update username ke DatabaseService (SQLite)
+    final user = await DatabaseService.getUser();
     if (user != null) {
-      await StorageService.saveUser(user.copyWith(
+      await DatabaseService.updateUser(user.copyWith(
         name: _usernameCtrl.text.trim(),
       ));
     }

@@ -123,11 +123,13 @@ class EmotionRecord {
   final EmotionType emotion;      // Jenis emosi
   final double confidence;        // Tingkat kepercayaan (0.0 - 1.0)
   final DateTime timestamp;       // Waktu deteksi
+  final int? recordingId;         // ID recording di database (nullable untuk dummy)
 
   const EmotionRecord({
     required this.emotion,
     required this.confidence,
     required this.timestamp,
+    this.recordingId,
   });
 
   /// Format waktu singkat: "14 Mar, 09:30"

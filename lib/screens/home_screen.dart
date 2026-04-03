@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
-import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
+import '../services/database_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/suggestion_card.dart';
 import 'profile_screen.dart';
@@ -92,52 +92,64 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final latest = DummyData.latestEmotion;
-
     return Scaffold(
       backgroundColor: AppTheme.bg(context),
       body: SafeArea(
         bottom: false, // bottom nav melayang di atasnya
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: AppTheme.spaceLg),
+        child: FutureBuilder<List<RecordingData>>(
+          future: DatabaseService.getRecordings(),
+          builder: (context, snapshot) {
+            final recordings = snapshot.data ?? [];
+            final historyList = recordings.map((r) => r.toEmotionRecord()).toList();
+            
+            final latest = historyList.isNotEmpty
+                ? historyList.first
+                : DummyData.latestEmotion;
 
-              // ── Header ─────────────────────────────────────
-              _buildHeader(context),
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: AppTheme.spaceLg),
 
-              const SizedBox(height: AppTheme.spaceXl),
+                  // ── Header ─────────────────────────────────────
+                  _buildHeader(context),
 
-              // ── Kartu Status Psikis ─────────────────────────
-              _buildPsychCard(context, latest),
+                  const SizedBox(height: AppTheme.spaceXl),
 
-              const SizedBox(height: AppTheme.spaceMd),
+                  // ── Kartu Status Psikis ─────────────────────────
+                  _buildPsychCard(context, latest),
 
-              // ── Quick Stats ─────────────────────────────────
-              _buildQuickStats(context),
+                  const SizedBox(height: AppTheme.spaceMd),
 
-              const SizedBox(height: AppTheme.spaceXl),
+                  // ── Quick Stats ─────────────────────────────────
+                  _buildQuickStats(context, historyList),
 
-              // ── Tombol CTA Rekam ────────────────────────────
-              _buildCTAButton(context),
+                  const SizedBox(height: AppTheme.spaceXl),
 
-              const SizedBox(height: AppTheme.spaceXl),
+                  // ── Tombol CTA Rekam ────────────────────────────
+                  _buildCTAButton(context),
 
-              // ── Rekomendasi Psikis ──────────────────────────
-              _buildOverallSuggestion(context),
+                  const SizedBox(height: AppTheme.spaceXl),
 
-              const SizedBox(height: AppTheme.spaceXl),
+                  // ── Rekomendasi Psikis ──────────────────────────
+                  if (historyList.isNotEmpty) ...[
+                    _buildOverallSuggestion(context, historyList),
+                    const SizedBox(height: AppTheme.spaceXl),
+                  ],
 
-              // ── Riwayat Terbaru ─────────────────────────────
-              _buildRecentHistory(context),
+                  // ── Riwayat Terbaru ─────────────────────────────
+                  if (historyList.isNotEmpty)
+                    _buildRecentHistory(context, historyList),
 
-              // Padding akhir agar tidak tertutup bottom nav
-              const SizedBox(height: 100),
-            ],
-          ),
+                  // Padding akhir agar tidak tertutup bottom nav
+                  const SizedBox(height: 100),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -534,8 +546,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ─────────────────────────────────────────────────────────────
   // Widget: Quick Stats — 3 kartu statistik mini
   // ─────────────────────────────────────────────────────────────
-  Widget _buildQuickStats(BuildContext context) {
-    final history = DummyData.emotionHistory;
+  Widget _buildQuickStats(BuildContext context, List<EmotionRecord> history) {
     final positiveCount =
         history.where((r) => r.emotion == EmotionType.happy).length;
     final negativeCount = history
@@ -757,19 +768,18 @@ class _HomeScreenState extends State<HomeScreen>
   // ─────────────────────────────────────────────────────────────
   // Widget: Rekomendasi Psikis Keseluruhan
   // ─────────────────────────────────────────────────────────────
-  Widget _buildOverallSuggestion(BuildContext context) {
-    final history = DummyData.emotionHistory;
+  Widget _buildOverallSuggestion(BuildContext context, List<EmotionRecord> history) {
     final emotionCount = <EmotionType, int>{};
     for (final r in history) {
       emotionCount[r.emotion] = (emotionCount[r.emotion] ?? 0) + 1;
     }
-    final dominant = emotionCount.entries
-        .reduce((a, b) => a.value >= b.value ? a : b)
-        .key;
+    final dominant = emotionCount.isNotEmpty
+        ? emotionCount.entries.reduce((a, b) => a.value >= b.value ? a : b).key
+        : EmotionType.neutral;
         
-    final psychLevel = context.watch<AuthProvider>().isLoggedIn 
-      ? PsychLevel.good // mockup (bisa disambung ke progress psikiater di user_model jika ada) 
-      : PsychLevel.good; 
+    final psychLabel = context.watch<AuthProvider>().isLoggedIn 
+      ? 'MBTI' 
+      : 'Info'; 
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -779,7 +789,7 @@ class _HomeScreenState extends State<HomeScreen>
           context,
           icon: Icons.auto_awesome_rounded,
           title: AppLocalizations.tr('psych_recommendation'),
-          trailingLabel: psychLevel.label,
+          trailingLabel: psychLabel,
           trailingColor: AppTheme.primaryColor,
         ),
 
@@ -840,8 +850,12 @@ class _HomeScreenState extends State<HomeScreen>
 
         // Card saran collapsible
         SuggestionCard(
-          title: '${AppLocalizations.tr('suggestion_for')} ${psychLevel.label}',
-          suggestions: psychLevel.overallSuggestions,
+          title: '${AppLocalizations.tr('suggestion_for')} Anda',
+          suggestions: const [
+            'Lakukan deteksi emosi secara rutin untuk memahami pola perasaan Anda.',
+            'Gunakan hasil MBTI Anda untuk mendapatkan saran yang lebih personal.',
+            'Cobalah meditasi 5 menit setiap hari untuk keseimbangan emosional.',
+          ],
           icon: Icons.tips_and_updates_rounded,
           color: AppTheme.primaryColor,
           isCollapsible: true,
@@ -853,8 +867,8 @@ class _HomeScreenState extends State<HomeScreen>
   // ─────────────────────────────────────────────────────────────
   // Widget: Riwayat Terbaru — 3 entry terakhir
   // ─────────────────────────────────────────────────────────────
-  Widget _buildRecentHistory(BuildContext context) {
-    final recent = DummyData.emotionHistory.take(3).toList();
+  Widget _buildRecentHistory(BuildContext context, List<EmotionRecord> history) {
+    final recent = history.take(3).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

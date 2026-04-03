@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
+import '../services/database_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/emotion_badge.dart';
 import '../widgets/suggestion_card.dart';
@@ -44,12 +45,13 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
   late AnimationController _resultFadeCtrl;
   late Animation<double> _resultFade;
 
-  // Data dummy deteksi — diambil dari DummyData
-  final EmotionType _detectedEmotion = DummyData.latestEmotion.emotion;
-  final double _detectedConfidence = DummyData.latestEmotion.confidence;
+  // Data deteksi
+  EmotionType? _detectedEmotion;
+  double? _detectedConfidence;
+  Map<EmotionType, double>? _detectedScores;
 
   // Random seed tetap agar desain waveform konsisten saat idle
-  final _rand = Random(77);
+  final _rand = Random();
 
   @override
   void initState() {
@@ -87,7 +89,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
   }
 
   // Toggle start/stop recording
-  void _toggleRecording() {
+  Future<void> _toggleRecording() async {
     final auth = context.read<AuthProvider>();
     if (!auth.isLoggedIn) {
       // Buka pop-up atau arahkan ke login
@@ -104,21 +106,67 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
       return;
     }
 
-    setState(() {
-      _isRecording = !_isRecording;
-      if (_isRecording) {
+    if (!_isRecording) {
+      // START RECORDING
+      setState(() {
+        _isRecording = true;
         _hasResult = false;
+        _detectedEmotion = null;
+        _detectedConfidence = null;
+        _detectedScores = null;
         _resultFadeCtrl.reset();
         _pulseCtrl.repeat(reverse: true);
         _waveCtrl.repeat();
-      } else {
-        _pulseCtrl.stop();
-        _pulseCtrl.reset();
-        _waveCtrl.stop();
+      });
+    } else {
+      // STOP RECORDING
+      _pulseCtrl.stop();
+      _pulseCtrl.reset();
+      _waveCtrl.stop();
+
+      // MOKUP: Simulasikan hasil deteksi acak
+      final emotions = EmotionType.values;
+      final selectedEmotion = emotions[_rand.nextInt(emotions.length)];
+      final confidence = 0.5 + (_rand.nextDouble() * 0.45); // 0.5 - 0.95
+      
+      // MOKUP: Generate scores acak untuk grafik
+      final scores = <EmotionType, double>{};
+      double remaining = 1.0 - confidence;
+      for (final e in emotions) {
+        if (e == selectedEmotion) {
+          scores[e] = confidence;
+        } else {
+          final s = _rand.nextDouble() * remaining;
+          scores[e] = s;
+          remaining -= s;
+        }
+      }
+
+      final user = await DatabaseService.getUser();
+      final userId = user?.id ?? 1;
+
+      // Simpan ke SQLite
+      final record = RecordingData(
+        userId: userId,
+        dominantEmotion: selectedEmotion,
+        confidence: confidence,
+        date: DateTime.now(),
+        suggestion: selectedEmotion.recordingSuggestions.first,
+        audioEmotions: scores,
+        transcriptEmotions: scores,
+      );
+      
+      await DatabaseService.insertRecording(record);
+
+      setState(() {
+        _isRecording = false;
+        _detectedEmotion = selectedEmotion;
+        _detectedConfidence = confidence;
+        _detectedScores = scores;
         _hasResult = true;
         _resultFadeCtrl.forward();
-      }
-    });
+      });
+    }
   }
 
   @override
@@ -157,10 +205,10 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
                       const SizedBox(height: AppTheme.spaceMd),
                       SuggestionCard(
                         title:
-                            '${AppLocalizations.tr('suggestion_for_emotion')} ${_detectedEmotion.displayName}',
-                        suggestions: _detectedEmotion.recordingSuggestions,
+                            '${AppLocalizations.tr('suggestion_for_emotion')} ${_detectedEmotion!.displayName}',
+                        suggestions: _detectedEmotion!.recordingSuggestions,
                         icon: Icons.lightbulb_outline_rounded,
-                        color: _detectedEmotion.color,
+                        color: _detectedEmotion!.color,
                         isCollapsible: true,
                       ),
                     ],
@@ -708,12 +756,12 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: _detectedEmotion.color.withValues(alpha: 0.12),
+                color: _detectedEmotion!.color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
-                _detectedEmotion.icon,
-                color: _detectedEmotion.color,
+                _detectedEmotion!.icon,
+                color: _detectedEmotion!.color,
                 size: 16,
               ),
             ),
@@ -728,8 +776,8 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
 
         // Kartu emosi dominan
         EmotionResultCard(
-          emotion: _detectedEmotion,
-          confidence: _detectedConfidence,
+          emotion: _detectedEmotion!,
+          confidence: _detectedConfidence!,
         ),
 
         const SizedBox(height: 20),
@@ -752,7 +800,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
             boxShadow: AppTheme.cardShadow,
           ),
           child: Column(
-            children: DummyData.detectionScores.entries
+            children: (_detectedScores ?? DummyData.detectionScores).entries
                 .map((e) => _buildEmotionScoreBar(e.key, e.value))
                 .toList(),
           ),
@@ -850,15 +898,15 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            _detectedEmotion.color.withValues(alpha: 0.12),
-            _detectedEmotion.color.withValues(alpha: 0.04),
+            _detectedEmotion!.color.withValues(alpha: 0.12),
+            _detectedEmotion!.color.withValues(alpha: 0.04),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         border: Border.all(
-          color: _detectedEmotion.color.withValues(alpha: 0.28),
+          color: _detectedEmotion!.color.withValues(alpha: 0.28),
           width: 1.5,
         ),
       ),
@@ -868,12 +916,12 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: _detectedEmotion.color.withValues(alpha: 0.18),
+              color: _detectedEmotion!.color.withValues(alpha: 0.18),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.favorite_rounded,
-              color: _detectedEmotion.color,
+              color: _detectedEmotion!.color,
               size: 18,
             ),
           ),
@@ -887,13 +935,13 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: _detectedEmotion.color,
+                    color: _detectedEmotion!.color,
                     letterSpacing: 0.3,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  _detectedEmotion.psychMessage,
+                  _detectedEmotion!.psychMessage,
                   style: GoogleFonts.poppins(
                     color: AppTheme.textP(context),
                     fontSize: 13.5,
