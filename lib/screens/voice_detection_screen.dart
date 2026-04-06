@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,7 +9,10 @@ import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/animations.dart';
 import '../widgets/emotion_badge.dart';
+import '../widgets/gradient_background.dart';
+import '../widgets/particle_animation.dart';
 import '../widgets/suggestion_card.dart';
 import 'auth_screen.dart';
 
@@ -61,9 +65,10 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
       vsync: this,
       duration: const Duration(milliseconds: 900),
     );
-    _pulseAnim = Tween<double>(begin: 1.0, end: 1.22).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
-    );
+    _pulseAnim = Tween<double>(
+      begin: 1.0,
+      end: 1.22,
+    ).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
 
     _waveCtrl = AnimationController(
       vsync: this,
@@ -128,7 +133,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
       final emotions = EmotionType.values;
       final selectedEmotion = emotions[_rand.nextInt(emotions.length)];
       final confidence = 0.5 + (_rand.nextDouble() * 0.45); // 0.5 - 0.95
-      
+
       // MOKUP: Generate scores acak untuk grafik
       final scores = <EmotionType, double>{};
       double remaining = 1.0 - confidence;
@@ -155,7 +160,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
         audioEmotions: scores,
         transcriptEmotions: scores,
       );
-      
+
       await DatabaseService.insertRecording(record);
 
       setState(() {
@@ -172,60 +177,65 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bg(context),
+      backgroundColor: Colors.transparent,
       appBar: _buildAppBar(context),
-      body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spaceLg, vertical: 8),
-          child: Column(
-            children: [
-              const SizedBox(height: AppTheme.spaceMd),
+      body: GradientBackground(
+        useOverlay: true,
+        child: SafeArea(
+          bottom: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.spaceLg,
+              vertical: 8,
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: AppTheme.spaceMd),
 
-              // ── Visualizer Gelombang Suara ──────────────────────
-              _buildWaveVisualizer(),
+                // ── Visualizer Gelombang Suara ──────────────────────
+                _buildWaveVisualizer(),
 
-              const SizedBox(height: AppTheme.space2xl),
+                const SizedBox(height: AppTheme.space2xl),
 
-              // ── Area Tombol Rekam ───────────────────────────────
-              _buildRecordingSection(context),
+                // ── Area Tombol Rekam ───────────────────────────────
+                _buildRecordingSection(context),
 
-              const SizedBox(height: AppTheme.space2xl),
+                const SizedBox(height: AppTheme.space2xl),
 
-              // ── Hasil Deteksi (muncul setelah rekaman) ──────────
-              if (_hasResult)
-                FadeTransition(
-                  opacity: _resultFade,
-                  child: Column(
-                    children: [
-                      _buildDetectionResults(),
-                      const SizedBox(height: AppTheme.spaceMd),
-                      _buildPsychMessage(),
-                      const SizedBox(height: AppTheme.spaceMd),
-                      SuggestionCard(
-                        title:
-                            '${AppLocalizations.tr('suggestion_for_emotion')} ${_detectedEmotion!.displayName}',
-                        suggestions: _detectedEmotion!.recordingSuggestions,
-                        icon: Icons.lightbulb_outline_rounded,
-                        color: _detectedEmotion!.color,
-                        isCollapsible: true,
-                      ),
-                    ],
+                // ── Hasil Deteksi (muncul setelah rekaman) ──────────
+                if (_hasResult)
+                  FadeTransition(
+                    opacity: _resultFade,
+                    child: Column(
+                      children: [
+                        _buildDetectionResults(),
+                        const SizedBox(height: AppTheme.spaceMd),
+                        _buildPsychMessage(),
+                        const SizedBox(height: AppTheme.spaceMd),
+                        SuggestionCard(
+                          title:
+                              '${AppLocalizations.tr('suggestion_for_emotion')} ${_detectedEmotion!.displayName}',
+                          suggestions: _detectedEmotion!.recordingSuggestions,
+                          icon: Icons.lightbulb_outline_rounded,
+                          color: _detectedEmotion!.color,
+                          isCollapsible: true,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
-              // ── Prompt Kata-kata Pemancing ─────────────────────
-              if (!_hasResult && !_isRecording) _buildStoryPrompts(),
+                // ── Prompt Kata-kata Pemancing ─────────────────────
+                if (!_hasResult && !_isRecording) _buildStoryPrompts(),
 
-              // ── Panduan saat Idle ───────────────────────────────
-              if (!_hasResult && !_isRecording) _buildIdleGuide(),
+                // ── Panduan saat Idle ───────────────────────────────
+                if (!_hasResult && !_isRecording) _buildIdleGuide(),
 
-              const SizedBox(height: 100),
-            ],
+                const SizedBox(height: 100),
+              ],
+            ),
           ),
         ),
-      ),
+      ), // End GradientBackground
     );
   }
 
@@ -233,29 +243,51 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
   // Widget: AppBar Custom
   // ─────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: AppTheme.bg(context),
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: AppTheme.primaryGradient,
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            child: const Icon(
-              Icons.mic_rounded,
-              color: AppTheme.primaryColor,
-              size: 16,
-            ),
+          ],
+        ),
+        child: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.mic_none_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                AppLocalizations.tr('nav_record'),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Text(AppLocalizations.tr('voice_detection'),
-            style: TextStyle(color: AppTheme.textP(context)),
-          ),
-        ],
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
       ),
-      iconTheme: IconThemeData(color: AppTheme.textP(context)),
     );
   }
 
@@ -263,92 +295,43 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
   // Widget: Waveform Visualizer — animated bars mirrored top/bottom
   // ─────────────────────────────────────────────────────────────
   Widget _buildWaveVisualizer() {
-    return AnimatedBuilder(
-      animation: _waveCtrl,
-      builder: (context, _) {
-        // Saat rekam: generate heights random per frame
-        final waveRand = _isRecording ? Random() : _rand;
-        final count = 32;
-
-        return Container(
-          width: double.infinity,
-          height: 130,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: AppTheme.surface(context),
-            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-            boxShadow: AppTheme.cardShadow,
-            border: Border.all(
-              color: _isRecording
-                  ? AppTheme.primaryColor.withValues(alpha: 0.25)
-                  : Colors.transparent,
-              width: 1.5,
+    return GlassCard(
+      useBlur: !(Platform.isWindows || Platform.isLinux || Platform.isMacOS),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Animated wave bars
+          AnimatedWaveBars(
+            width: double.infinity,
+            height: 100,
+            barCount: 40,
+            isAnimating: _isRecording,
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
             ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: List.generate(count, (i) {
-              // Pola waveform: tengah lebih tinggi, tepi lebih rendah
-              final centerFactor =
-                  1.0 - ((i - count / 2).abs() / (count / 2)) * 0.4;
-              final baseH = _isRecording
-                  ? (8 + waveRand.nextDouble() * 52) * centerFactor
-                  : 6.0 + (sin(i * 0.5) * 6).abs();
 
-              // Warna bar: gradien dari tengah ke tepi saat rekaman
-              final opacity = _isRecording
-                  ? 0.5 + centerFactor * 0.5
-                  : 0.2;
+          const SizedBox(height: 12),
 
-              return Expanded(
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Bar atas (mirror effect)
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        height: baseH / 2,
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(3),
-                          ),
-                          color: (_isRecording
-                                  ? AppTheme.primaryColor
-                                  : AppTheme.primaryColor)
-                              .withValues(alpha: opacity),
-                        ),
-                      ),
-                      // Garis tengah (axis)
-                      Container(
-                        height: 1.5,
-                        color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                      ),
-                      // Bar bawah (mirror)
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        height: baseH / 2,
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.vertical(
-                            bottom: Radius.circular(3),
-                          ),
-                          color: (_isRecording
-                                  ? AppTheme.accentColor
-                                  : AppTheme.primaryColor)
-                              .withValues(alpha: opacity * 0.7),
-                        ),
-                      ),
-                    ],
-                  ),
+          // Status text
+          Text(
+            _isRecording
+                ? AppLocalizations.tr('listening')
+                : AppLocalizations.tr('ready_to_listen'),
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              foreground: Paint()
+                ..shader = AppTheme.primaryGradient.createShader(
+                  const Rect.fromLTWH(0, 0, 150, 50),
                 ),
-              );
-            }),
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -358,61 +341,87 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
   Widget _buildRecordingSection(BuildContext context) {
     return Column(
       children: [
-        // Mic Button dengan concentric pulse rings
+        // Mic Button dengan modern gradient pulse rings
         AnimatedBuilder(
           animation: _pulseAnim,
           builder: (context, child) {
             return GestureDetector(
               onTap: _toggleRecording,
               child: SizedBox(
-                width: 140,
-                height: 140,
+                width: 160,
+                height: 160,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Ring 3 (terluar, paling transparan)
+                    // Particle effect background saat recording
+                    if (_isRecording)
+                      Positioned.fill(
+                        child: ParticleAnimation(
+                          width: 160,
+                          height: 160,
+                          particleCount: 15,
+                          particleColor: AppTheme.secondaryColor,
+                        ),
+                      ),
+
+                    // Ring 3 (terluar, gradient)
                     if (_isRecording)
                       Transform.scale(
-                        scale: _pulseAnim.value,
+                        scale: _pulseAnim.value * 1.1,
                         child: Container(
-                          width: 140,
-                          height: 140,
+                          width: 150,
+                          height: 150,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: const Color(0xFFF87171)
-                                .withValues(alpha: 0.08),
+                            gradient: LinearGradient(
+                              colors: [
+                                AppTheme.primaryColor.withValues(alpha: 0.15),
+                                AppTheme.secondaryColor.withValues(alpha: 0.15),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    // Ring 2
+
+                    // Ring 2 (gradient)
                     if (_isRecording)
                       Transform.scale(
-                        scale: _pulseAnim.value * 0.85,
+                        scale: _pulseAnim.value * 0.95,
                         child: Container(
-                          width: 140,
-                          height: 140,
+                          width: 150,
+                          height: 150,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: const Color(0xFFF87171)
-                                .withValues(alpha: 0.13),
+                            gradient: LinearGradient(
+                              colors: [
+                                AppTheme.primaryColor.withValues(alpha: 0.25),
+                                AppTheme.secondaryColor.withValues(alpha: 0.25),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    // Ring 1 (idle: sage green)
+
+                    // Ring 1 (idle state)
                     if (!_isRecording)
                       Container(
-                        width: 116,
-                        height: 116,
+                        width: 130,
+                        height: 130,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color:
-                              AppTheme.primaryColor.withValues(alpha: 0.1),
+                          gradient: LinearGradient(
+                            colors: [
+                              AppTheme.primaryColor.withValues(alpha: 0.15),
+                              AppTheme.secondaryColor.withValues(alpha: 0.15),
+                            ],
+                          ),
                         ),
                       ),
-                    // Tombol utama
+
+                    // Tombol utama dengan gradient border
                     Container(
-                      width: 96,
-                      height: 96,
+                      width: 110,
+                      height: 110,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: _isRecording
@@ -420,12 +429,16 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
                             : AppTheme.primaryGradient,
                         boxShadow: [
                           BoxShadow(
-                            color: (_isRecording
-                                    ? const Color(0xFFF87171)
-                                    : AppTheme.primaryColor)
-                                .withValues(alpha: 0.45),
-                            blurRadius: 24,
-                            offset: const Offset(0, 10),
+                            color: AppTheme.primaryColor.withValues(alpha: 0.5),
+                            blurRadius: 30,
+                            offset: const Offset(0, 12),
+                          ),
+                          BoxShadow(
+                            color: AppTheme.secondaryColor.withValues(
+                              alpha: 0.4,
+                            ),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6),
                           ),
                         ],
                       ),
@@ -434,12 +447,10 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
                         transitionBuilder: (child, anim) =>
                             ScaleTransition(scale: anim, child: child),
                         child: Icon(
-                          _isRecording
-                              ? Icons.stop_rounded
-                              : Icons.mic_rounded,
+                          _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
                           key: ValueKey(_isRecording),
                           color: Colors.white,
-                          size: 44,
+                          size: 50,
                         ),
                       ),
                     ),
@@ -456,20 +467,22 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           child: Column(
-            key: ValueKey(_isRecording ? 'rec' : (_hasResult ? 'done' : 'idle')),
+            key: ValueKey(
+              _isRecording ? 'rec' : (_hasResult ? 'done' : 'idle'),
+            ),
             children: [
               Text(
                 _isRecording
                     ? AppLocalizations.tr('recording')
                     : (_hasResult
-                        ? AppLocalizations.tr('detection_done')
-                        : AppLocalizations.tr('press_to_record')),
+                          ? AppLocalizations.tr('detection_done')
+                          : AppLocalizations.tr('press_to_record')),
                 style: GoogleFonts.poppins(
                   color: _isRecording
                       ? const Color(0xFFF87171)
                       : (_hasResult
-                          ? AppTheme.primaryColor
-                          : AppTheme.textS(context)),
+                            ? AppTheme.primaryColor
+                            : AppTheme.textS(context)),
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -479,11 +492,12 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
                 // Timer placeholder visual
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 6),
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFEF2F2),
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.radiusFull),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     border: Border.all(
                       color: const Color(0xFFF87171).withValues(alpha: 0.3),
                     ),
@@ -593,7 +607,9 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
             children: prompts.map((prompt) {
               return Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 10),
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.surface(context),
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -654,7 +670,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
         num: '2',
         icon: Icons.record_voice_over_rounded,
         text: AppLocalizations.tr('guide_step_2'),
-        color: const Color(0xFFFFB300),
+        color: AppTheme.secondaryColor, // Pink
       ),
       (
         num: '3',
@@ -768,7 +784,9 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
             const SizedBox(width: 8),
             Text(
               AppLocalizations.tr('detection_result'),
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.textP(context)),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: AppTheme.textP(context)),
             ),
           ],
         ),
@@ -785,9 +803,9 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
         // Sub-header distribusi
         Text(
           AppLocalizations.tr('all_emotion_dist'),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: AppTheme.textS(context),
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(color: AppTheme.textS(context)),
         ),
         const SizedBox(height: 12),
 
@@ -846,8 +864,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
                   height: 8,
                   decoration: BoxDecoration(
                     color: emotion.color.withValues(alpha: 0.1),
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.radiusFull),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                   ),
                 ),
                 // Filled portion
@@ -857,8 +874,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
                     height: 8,
                     decoration: BoxDecoration(
                       color: emotion.color,
-                      borderRadius:
-                          BorderRadius.circular(AppTheme.radiusFull),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     ),
                   ),
                 ),
@@ -868,8 +884,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
           const SizedBox(width: 10),
           // Percentage chip
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
               color: emotion.color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppTheme.radiusFull),

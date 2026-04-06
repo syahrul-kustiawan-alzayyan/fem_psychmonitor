@@ -4,10 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 /// ─────────────────────────────────────────────────────────────
 /// AppTheme — Sistem Desain Premium Fem-PhysicsMonitor
 ///
-/// Panduan Warna Psikologi:
+/// Panduan Warna (Blue-Pink Gradient dari Logo):
 ///   • Background  : Off-white #F8FAFC  → bersih, tidak melelahkan mata
-///   • Primary     : Deep Blue #1565C0  → terpercaya, tenang, profesional
-///   • Secondary   : Amber Gold #FFB300 → hangat, energik, optimis
+///   • Primary     : Blue #3B82F6       → modern, teknologi, profesional
+///   • Secondary   : Pink #EC4899       → feminin, energik, hangat
 ///   • Emotion     : Palet pastel/muted agar tidak memicu kecemasan
 ///
 /// Tipografi: Poppins (Google Fonts) — modern, premium, rounded
@@ -15,61 +15,84 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   AppTheme._(); // Prevent instantiation
 
-  // ── Warna Utama ─────────────────────────────────────────────
-  static const Color primaryColor    = Color(0xFF1565C0); // Deep Blue
-  static const Color primaryLight    = Color(0xFF42A5F5); // Light Blue
-  static const Color primaryDark     = Color(0xFF0D47A1); // Navy
-  static const Color secondaryColor  = Color(0xFFFFB300); // Amber Gold
-  static const Color accentColor     = Color(0xFFFFC107); // Golden Yellow
+  // ── Warna Utama (Blue-Pink Gradient) ────────────────────────
+  static const Color primaryColor = Color(0xFF3B82F6); // Blue
+  static const Color primaryLight = Color(0xFF60A5FA); // Light Blue
+  static const Color primaryDark = Color(0xFF2563EB); // Dark Blue
+  static const Color secondaryColor = Color(0xFFEC4899); // Pink
+  static const Color accentColor = Color(0xFFF472B6); // Light Pink
 
   // ── Warna Surface & Background ──────────────────────────────
   static const Color backgroundColor = Color(0xFFF8FAFC); // Off-white
-  static const Color surfaceColor    = Color(0xFFFFFFFF); // Pure white
-  static const Color cardColor       = Color(0xFFFFFFFF);
-  static const Color surfaceVariant  = Color(0xFFF1F5F9); // Very light gray
+  static const Color surfaceColor = Color(0xFFFFFFFF); // Pure white
+  static const Color cardColor = Color(0xFFFFFFFF);
+  static const Color surfaceVariant = Color(0xFFF1F5F9); // Very light gray
 
   // ── Warna Teks ──────────────────────────────────────────────
-  static const Color textPrimary   = Color(0xFF1E293B); // Near-black slate
+  static const Color textPrimary = Color(0xFF1E293B); // Near-black slate
   static const Color textSecondary = Color(0xFF64748B); // Slate-500
-  static const Color textHint      = Color(0xFF94A3B8); // Slate-400
+  static const Color textHint = Color(0xFF94A3B8); // Slate-400
 
   // ── Warna Emosi (Pastel/Muted — ramah psikologis) ───────────
   static const Map<String, Color> emotionColors = {
-    'Happy'  : Color(0xFFF59E0B), // Amber-warm (bukan kuning neon)
-    'Sad'    : Color(0xFF60A5FA), // Sky Blue (lembut, bukan biru tua)
-    'Angry'  : Color(0xFFF87171), // Coral-red (bukan merah terang)
+    'Happy': Color(0xFFF59E0B), // Amber-warm (bukan kuning neon)
+    'Sad': Color(0xFF60A5FA), // Sky Blue (lembut, bukan biru tua)
+    'Angry': Color(0xFFF87171), // Coral-red (bukan merah terang)
     'Disgust': Color(0xFF34D399), // Emerald-muted
     'Neutral': Color(0xFF94A3B8), // Slate-muted-gray
-    'Fear'   : Color(0xFFA78BFA), // Soft Lavender (bukan ungu gelap)
+    'Fear': Color(0xFFA78BFA), // Soft Lavender (bukan ungu gelap)
   };
 
   // ── Warna Emosi Background (versi lebih terang untuk card) ──
   static const Map<String, Color> emotionBgColors = {
-    'Happy'  : Color(0xFFFEF3C7), // Amber-50
-    'Sad'    : Color(0xFFEFF6FF), // Blue-50
-    'Angry'  : Color(0xFFFEF2F2), // Red-50
+    'Happy': Color(0xFFFEF3C7), // Amber-50
+    'Sad': Color(0xFFEFF6FF), // Blue-50
+    'Angry': Color(0xFFFEF2F2), // Red-50
     'Disgust': Color(0xFFECFDF5), // Emerald-50
     'Neutral': Color(0xFFF8FAFC), // Slate-50
-    'Fear'   : Color(0xFFF5F3FF), // Violet-50
+    'Fear': Color(0xFFF5F3FF), // Violet-50
   };
 
-  // ── Gradien Utama ────────────────────────────────────────────
+  // ── Gradien Utama (Blue-Pink sesuai Logo) ────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF1565C0), Color(0xFF42A5F5)],
+    colors: [Color(0xFF3B82F6), Color(0xFFEC4899)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient warmGradient = LinearGradient(
-    colors: [Color(0xFF1565C0), Color(0xFFFFB300)],
+    colors: [Color(0xFF60A5FA), Color(0xFFF472B6)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient recordingGradient = LinearGradient(
-    colors: [Color(0xFFF87171), Color(0xFFFB923C)],
+    colors: [Color(0xFFEC4899), Color(0xFFF472B6)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
+  );
+
+  // Gradient Background untuk seluruh screen
+  static const LinearGradient lightGradientBackground = LinearGradient(
+    colors: [
+      Color(0xFFF0F7FF), // Very light blue
+      Color(0xFFFFF0F7), // Very light pink
+      Color(0xFFF8FAFC), // Off-white
+    ],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    stops: [0.0, 0.5, 1.0],
+  );
+
+  static const LinearGradient darkGradientBackground = LinearGradient(
+    colors: [
+      Color(0xFF0F172A), // Dark slate blue
+      Color(0xFF1E0F2E), // Dark purple-pink
+      Color(0xFF0F172A), // Dark slate
+    ],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    stops: [0.0, 0.5, 1.0],
   );
 
   // ── Shadow Reusable ─────────────────────────────────────────
@@ -92,17 +115,17 @@ class AppTheme {
   ];
 
   // ── Border Radius Tokens ─────────────────────────────────────
-  static const double radiusSm  = 12.0;
-  static const double radiusMd  = 16.0;
-  static const double radiusLg  = 20.0;
-  static const double radiusXl  = 24.0;
+  static const double radiusSm = 12.0;
+  static const double radiusMd = 16.0;
+  static const double radiusLg = 20.0;
+  static const double radiusXl = 24.0;
   static const double radiusFull = 100.0;
 
   // ── Spacing Tokens ───────────────────────────────────────────
-  static const double spaceSm  = 8.0;
-  static const double spaceMd  = 16.0;
-  static const double spaceLg  = 20.0;
-  static const double spaceXl  = 24.0;
+  static const double spaceSm = 8.0;
+  static const double spaceMd = 16.0;
+  static const double spaceLg = 20.0;
+  static const double spaceXl = 24.0;
   static const double space2xl = 32.0;
 
   /// ── ThemeData Lengkap ────────────────────────────────────────
@@ -114,17 +137,27 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryColor,
-        primary: primaryColor,
-        secondary: secondaryColor,
-        surface: surfaceColor,
-        brightness: Brightness.light,
-      ).copyWith(
-        primaryContainer: primaryColor.withValues(alpha: 0.12),
-        secondaryContainer: secondaryColor.withValues(alpha: 0.12),
+      colorScheme:
+          ColorScheme.fromSeed(
+            seedColor: primaryColor,
+            primary: primaryColor,
+            secondary: secondaryColor,
+            surface: surfaceColor,
+            brightness: Brightness.light,
+          ).copyWith(
+            primaryContainer: primaryColor.withValues(alpha: 0.12),
+            secondaryContainer: secondaryColor.withValues(alpha: 0.12),
+          ),
+      scaffoldBackgroundColor: Colors.transparent, // Use gradient decorator
+      // ── Decorator untuk gradient background ───────────────
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: Map.fromEntries(
+          TargetPlatform.values.map(
+            (platform) =>
+                MapEntry(platform, const CupertinoPageTransitionsBuilder()),
+          ),
+        ),
       ),
-      scaffoldBackgroundColor: backgroundColor,
 
       // ── Tipografi Poppins ──────────────────────────────────
       textTheme: poppinsText.copyWith(
@@ -299,13 +332,13 @@ class AppTheme {
   }
 
   // ── Warna Dark Mode ──────────────────────────────────────────
-  static const Color darkBackground   = Color(0xFF121212);
-  static const Color darkSurface      = Color(0xFF1E1E1E);
-  static const Color darkCard         = Color(0xFF252525);
-  static const Color darkSurfaceVar   = Color(0xFF2C2C2C);
-  static const Color darkTextPrimary  = Color(0xDEFFFFFF); // white 87%
+  static const Color darkBackground = Color(0xFF0F172A); // Dark slate
+  static const Color darkSurface = Color(0xFF1E293B); // Slate
+  static const Color darkCard = Color(0xFF334155); // Light slate
+  static const Color darkSurfaceVar = Color(0xFF475569); // Medium slate
+  static const Color darkTextPrimary = Color(0xDEFFFFFF); // white 87%
   static const Color darkTextSecondary = Color(0x99FFFFFF); // white 60%
-  static const Color darkTextHint     = Color(0x61FFFFFF); // white 38%
+  static const Color darkTextHint = Color(0x61FFFFFF); // white 38%
 
   /// ── ThemeData Dark ─────────────────────────────────────────────
   static ThemeData get darkTheme {
@@ -315,58 +348,78 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryColor,
-        primary: primaryColor,
-        secondary: secondaryColor,
-        surface: darkSurface,
-        brightness: Brightness.dark,
-      ).copyWith(
-        primaryContainer: primaryColor.withValues(alpha: 0.2),
-        secondaryContainer: secondaryColor.withValues(alpha: 0.2),
-      ),
-      scaffoldBackgroundColor: darkBackground,
+      colorScheme:
+          ColorScheme.fromSeed(
+            seedColor: primaryColor,
+            primary: primaryColor,
+            secondary: secondaryColor,
+            surface: darkSurface,
+            brightness: Brightness.dark,
+          ).copyWith(
+            primaryContainer: primaryColor.withValues(alpha: 0.2),
+            secondaryContainer: secondaryColor.withValues(alpha: 0.2),
+          ),
+      scaffoldBackgroundColor: Colors.transparent, // Use gradient decorator
 
       textTheme: poppinsText.copyWith(
         displayLarge: GoogleFonts.poppins(
-          fontSize: 28, fontWeight: FontWeight.w700,
-          color: darkTextPrimary, letterSpacing: -0.5, height: 1.2,
+          fontSize: 28,
+          fontWeight: FontWeight.w700,
+          color: darkTextPrimary,
+          letterSpacing: -0.5,
+          height: 1.2,
         ),
         headlineMedium: GoogleFonts.poppins(
-          fontSize: 22, fontWeight: FontWeight.w600,
-          color: darkTextPrimary, letterSpacing: -0.3,
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
+          color: darkTextPrimary,
+          letterSpacing: -0.3,
         ),
         titleLarge: GoogleFonts.poppins(
-          fontSize: 17, fontWeight: FontWeight.w600,
-          color: darkTextPrimary, letterSpacing: -0.2,
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+          color: darkTextPrimary,
+          letterSpacing: -0.2,
         ),
         titleMedium: GoogleFonts.poppins(
-          fontSize: 15, fontWeight: FontWeight.w600,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
           color: darkTextPrimary,
         ),
         titleSmall: GoogleFonts.poppins(
-          fontSize: 13, fontWeight: FontWeight.w600,
-          color: darkTextSecondary, letterSpacing: 0.1,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: darkTextSecondary,
+          letterSpacing: 0.1,
         ),
         bodyLarge: GoogleFonts.poppins(
-          fontSize: 15, fontWeight: FontWeight.w400,
-          color: darkTextPrimary, height: 1.6,
+          fontSize: 15,
+          fontWeight: FontWeight.w400,
+          color: darkTextPrimary,
+          height: 1.6,
         ),
         bodyMedium: GoogleFonts.poppins(
-          fontSize: 13, fontWeight: FontWeight.w400,
-          color: darkTextSecondary, height: 1.5,
+          fontSize: 13,
+          fontWeight: FontWeight.w400,
+          color: darkTextSecondary,
+          height: 1.5,
         ),
         bodySmall: GoogleFonts.poppins(
-          fontSize: 11, fontWeight: FontWeight.w400,
+          fontSize: 11,
+          fontWeight: FontWeight.w400,
           color: darkTextHint,
         ),
         labelLarge: GoogleFonts.poppins(
-          fontSize: 14, fontWeight: FontWeight.w600,
-          color: darkTextPrimary, letterSpacing: 0.2,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: darkTextPrimary,
+          letterSpacing: 0.2,
         ),
         labelMedium: GoogleFonts.poppins(
-          fontSize: 12, fontWeight: FontWeight.w600,
-          color: darkTextSecondary, letterSpacing: 0.3,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: darkTextSecondary,
+          letterSpacing: 0.3,
         ),
       ),
 
@@ -389,7 +442,9 @@ class AppTheme {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
           textStyle: GoogleFonts.poppins(
-            fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.3,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.3,
           ),
         ),
       ),
@@ -403,7 +458,8 @@ class AppTheme {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: GoogleFonts.poppins(
-            fontSize: 14, fontWeight: FontWeight.w600,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -414,7 +470,10 @@ class AppTheme {
         unselectedItemColor: Color(0xFF616161),
         type: BottomNavigationBarType.fixed,
         elevation: 0,
-        selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
+        selectedLabelStyle: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 11,
+        ),
         unselectedLabelStyle: TextStyle(fontSize: 11),
       ),
 
@@ -424,8 +483,10 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleTextStyle: GoogleFonts.poppins(
-          fontSize: 20, fontWeight: FontWeight.w700,
-          color: darkTextPrimary, letterSpacing: -0.3,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: darkTextPrimary,
+          letterSpacing: -0.3,
         ),
         iconTheme: const IconThemeData(color: darkTextPrimary),
       ),
@@ -438,7 +499,8 @@ class AppTheme {
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: spaceMd, vertical: spaceMd,
+          horizontal: spaceMd,
+          vertical: spaceMd,
         ),
       ),
 
@@ -460,36 +522,32 @@ class AppTheme {
   // ── Helper: warna adaptif berdasarkan brightness ────────────
   static Color bg(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
-          ? darkBackground
-          : backgroundColor;
+      ? darkBackground
+      : backgroundColor;
 
   static Color surface(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
-          ? darkSurface
-          : surfaceColor;
+      ? darkSurface
+      : surfaceColor;
 
   static Color card(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark
-          ? darkCard
-          : cardColor;
+      Theme.of(context).brightness == Brightness.dark ? darkCard : cardColor;
 
   static Color textP(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
-          ? darkTextPrimary
-          : textPrimary;
+      ? darkTextPrimary
+      : textPrimary;
 
   static Color textS(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
-          ? darkTextSecondary
-          : textSecondary;
+      ? darkTextSecondary
+      : textSecondary;
 
   static Color textH(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark
-          ? darkTextHint
-          : textHint;
+      Theme.of(context).brightness == Brightness.dark ? darkTextHint : textHint;
 
   static Color surfVar(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
-          ? darkSurfaceVar
-          : surfaceVariant;
+      ? darkSurfaceVar
+      : surfaceVariant;
 }

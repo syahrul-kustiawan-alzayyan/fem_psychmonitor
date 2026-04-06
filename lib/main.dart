@@ -60,10 +60,12 @@ class FemPhysicsMonitorApp extends StatelessWidget {
       SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-        systemNavigationBarColor:
-            isDark ? AppTheme.darkBackground : Colors.white,
-        systemNavigationBarIconBrightness:
-            isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarColor: isDark
+            ? AppTheme.darkBackground
+            : Colors.white,
+        systemNavigationBarIconBrightness: isDark
+            ? Brightness.light
+            : Brightness.dark,
       ),
     );
 
@@ -127,18 +129,24 @@ class _SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Logo dengan gradient border
             Container(
-              width: 96,
-              height: 96,
+              width: 120,
+              height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: AppTheme.primaryGradient,
                 boxShadow: AppTheme.primaryShadow,
               ),
-              child: const Icon(
-                Icons.psychology_rounded,
-                color: Colors.white,
-                size: 48,
+              padding: const EdgeInsets.all(4),
+              child: Container(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                child: ClipOval(
+                  child: Image.asset('lib/src/logo.jpeg', fit: BoxFit.cover),
+                ),
               ),
             ),
             const SizedBox(height: 28),
@@ -222,10 +230,7 @@ class _PremiumBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  const _PremiumBottomNavBar({
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const _PremiumBottomNavBar({required this.currentIndex, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -264,15 +269,17 @@ class _PremiumBottomNavBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1E293B)
-                  .withValues(alpha: isDark ? 0.3 : 0.12),
+              color: const Color(
+                0xFF1E293B,
+              ).withValues(alpha: isDark ? 0.3 : 0.12),
               blurRadius: 24,
               spreadRadius: 0,
               offset: const Offset(0, 8),
             ),
             BoxShadow(
-              color: AppTheme.primaryColor
-                  .withValues(alpha: isDark ? 0.15 : 0.08),
+              color: AppTheme.primaryColor.withValues(
+                alpha: isDark ? 0.15 : 0.08,
+              ),
               blurRadius: 12,
               spreadRadius: 0,
               offset: const Offset(0, 2),
@@ -301,8 +308,9 @@ class _PremiumBottomNavBar extends StatelessWidget {
                         height: 3,
                         decoration: BoxDecoration(
                           color: AppTheme.primaryColor,
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusFull),
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusFull,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -316,8 +324,8 @@ class _PremiumBottomNavBar extends StatelessWidget {
                           color: isActive
                               ? AppTheme.primaryColor
                               : (isDark
-                                  ? const Color(0xFF616161)
-                                  : const Color(0xFFCBD5E1)),
+                                    ? const Color(0xFF616161)
+                                    : const Color(0xFFCBD5E1)),
                           size: 24,
                         ),
                       ),
@@ -326,13 +334,14 @@ class _PremiumBottomNavBar extends StatelessWidget {
                         duration: const Duration(milliseconds: 200),
                         style: GoogleFonts.poppins(
                           fontSize: 10.5,
-                          fontWeight:
-                              isActive ? FontWeight.w600 : FontWeight.w400,
+                          fontWeight: isActive
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                           color: isActive
                               ? AppTheme.primaryColor
                               : (isDark
-                                  ? const Color(0xFF616161)
-                                  : const Color(0xFFCBD5E1)),
+                                    ? const Color(0xFF616161)
+                                    : const Color(0xFFCBD5E1)),
                         ),
                         child: Text(item.label),
                       ),

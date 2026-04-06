@@ -6,12 +6,13 @@ import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/gradient_background.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HistoryScreen — Riwayat & Analitik Psikis
 //
 // Arsitektur Widget (modular):
-//   • _buildStatsSummary()  → 3 kartu statistik  
+//   • _buildStatsSummary()  → 3 kartu statistik
 //   • _buildWeeklyChart()   → LineChart tren mingguan (fl_chart)
 //   • _buildFilterChips()   → Filter emosi horizontal
 //   • _buildLogList()       → List log emosi harian
@@ -78,10 +79,17 @@ class _HistoryScreenState extends State<HistoryScreen>
         break;
       case TimeFilter.custom:
         if (_customRange != null) {
-          result = result.where((r) =>
-            r.timestamp.isAfter(_customRange!.start.subtract(const Duration(days: 1))) &&
-            r.timestamp.isBefore(_customRange!.end.add(const Duration(days: 1)))
-          ).toList();
+          result = result
+              .where(
+                (r) =>
+                    r.timestamp.isAfter(
+                      _customRange!.start.subtract(const Duration(days: 1)),
+                    ) &&
+                    r.timestamp.isBefore(
+                      _customRange!.end.add(const Duration(days: 1)),
+                    ),
+              )
+              .toList();
         }
         break;
     }
@@ -108,10 +116,12 @@ class _HistoryScreenState extends State<HistoryScreen>
       context: context,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now(),
-      initialDateRange: _customRange ?? DateTimeRange(
-        start: DateTime.now().subtract(const Duration(days: 7)),
-        end: DateTime.now(),
-      ),
+      initialDateRange:
+          _customRange ??
+          DateTimeRange(
+            start: DateTime.now().subtract(const Duration(days: 7)),
+            end: DateTime.now(),
+          ),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -142,91 +152,95 @@ class _HistoryScreenState extends State<HistoryScreen>
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: AppTheme.bg(context),
+        backgroundColor: Colors.transparent,
         appBar: _buildAppBar(context),
-        body: Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+        body: GradientBackground(
+          child: Center(
+            child: CircularProgressIndicator(color: AppTheme.primaryColor),
+          ),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.bg(context),
+      backgroundColor: Colors.transparent,
       appBar: _buildAppBar(context),
-      body: SafeArea(
-        bottom: false,
-        child: RefreshIndicator(
-          onRefresh: _loadData,
-          color: AppTheme.primaryColor,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: AppTheme.spaceMd),
+      body: GradientBackground(
+        useOverlay: true,
+        child: SafeArea(
+          bottom: false,
+          child: RefreshIndicator(
+            onRefresh: _loadData,
+            color: AppTheme.primaryColor,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: AppTheme.spaceMd),
 
-              // ── Filter Waktu ──────────────────────────────────
-              _buildTimeFilterBar(),
-              const SizedBox(height: AppTheme.spaceLg),
+                  // ── Filter Waktu ──────────────────────────────────
+                  _buildTimeFilterBar(),
+                  const SizedBox(height: AppTheme.spaceLg),
 
-              // ── Ringkasan Statistik ──────────────────────────
-              _buildStatsSummary(context),
+                  // ── Ringkasan Statistik ──────────────────────────
+                  _buildStatsSummary(context),
 
-              const SizedBox(height: AppTheme.spaceXl),
+                  const SizedBox(height: AppTheme.spaceXl),
 
-              // ── Section Header: Weekly Chart ─────────────────
-              _buildSectionHeader(
-                context,
-                icon: Icons.show_chart_rounded,
-                title: AppLocalizations.tr('confidence_trend'),
+                  // ── Section Header: Weekly Chart ─────────────────
+                  _buildSectionHeader(
+                    context,
+                    icon: Icons.show_chart_rounded,
+                    title: AppLocalizations.tr('confidence_trend'),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    AppLocalizations.tr('confidence_trend_sub'),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.textS(context),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ── Weekly Line Chart ────────────────────────────
+                  _buildWeeklyLineChart(),
+
+                  const SizedBox(height: AppTheme.spaceXl),
+
+                  // ── Section Header: Emotional Breakdown ──────────
+                  _buildSectionHeader(
+                    context,
+                    icon: Icons.donut_small_rounded,
+                    title: AppLocalizations.tr('emotion_breakdown'),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildEmotionBreakdown(),
+
+                  const SizedBox(height: AppTheme.spaceXl),
+
+                  // ── Filter Chip ──────────────────────────────────
+                  _buildSectionHeader(
+                    context,
+                    icon: Icons.filter_list_rounded,
+                    title: AppLocalizations.tr('detection_log'),
+                    trailingLabel: '${_filteredHistory.length} entri',
+                    trailingColor: AppTheme.primaryColor,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildFilterChips(),
+                  const SizedBox(height: 14),
+
+                  // ── List Log ─────────────────────────────────────
+                  ..._filteredHistory.map((r) => _buildLogItem(context, r)),
+                  const SizedBox(height: 100),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                AppLocalizations.tr('confidence_trend_sub'),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textS(context),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // ── Weekly Line Chart ────────────────────────────
-              _buildWeeklyLineChart(),
-
-              const SizedBox(height: AppTheme.spaceXl),
-
-              // ── Section Header: Emotional Breakdown ──────────
-              _buildSectionHeader(
-                context,
-                icon: Icons.donut_small_rounded,
-                title: AppLocalizations.tr('emotion_breakdown'),
-              ),
-              const SizedBox(height: 12),
-              _buildEmotionBreakdown(),
-
-              const SizedBox(height: AppTheme.spaceXl),
-
-              // ── Filter Chip ──────────────────────────────────
-              _buildSectionHeader(
-                context,
-                icon: Icons.filter_list_rounded,
-                title: AppLocalizations.tr('detection_log'),
-                trailingLabel:
-                    '${_filteredHistory.length} entri',
-                trailingColor: AppTheme.primaryColor,
-              ),
-              const SizedBox(height: 12),
-              _buildFilterChips(),
-              const SizedBox(height: 14),
-
-              // ── List Log ─────────────────────────────────────
-              ..._filteredHistory.map((r) => _buildLogItem(context, r)),
-              const SizedBox(height: 100),
-            ],
+            ),
           ),
         ),
-        ),
-      ),
+      ), // End GradientBackground
     );
   }
 
@@ -234,49 +248,51 @@ class _HistoryScreenState extends State<HistoryScreen>
   // Widget: AppBar Custom
   // ─────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: AppTheme.bg(context),
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: AppTheme.primaryGradient,
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            child: const Icon(
-              Icons.bar_chart_rounded,
-              color: AppTheme.primaryColor,
-              size: 16,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(AppLocalizations.tr('history_title'),
-            style: TextStyle(color: AppTheme.textP(context)),
-          ),
-        ],
-      ),
-      iconTheme: IconThemeData(color: AppTheme.textP(context)),
-      actions: [
-        Container(
-          margin: const EdgeInsets.only(right: 16),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: IconButton(
-            icon: const Icon(
-              Icons.calendar_month_rounded,
-              color: AppTheme.primaryColor,
-              size: 18,
-            ),
-            onPressed: () {},
-            padding: const EdgeInsets.all(8),
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            tooltip: 'Filter Tanggal',
-          ),
+          ],
         ),
-      ],
+        child: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.bar_chart_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                AppLocalizations.tr('nav_history'),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+      ),
     );
   }
 
@@ -285,11 +301,31 @@ class _HistoryScreenState extends State<HistoryScreen>
   // ─────────────────────────────────────────────────────────────
   Widget _buildTimeFilterBar() {
     final filters = [
-      (filter: TimeFilter.all,     label: AppLocalizations.tr('filter_all_time'), icon: Icons.all_inclusive_rounded),
-      (filter: TimeFilter.today,   label: AppLocalizations.tr('filter_today'),    icon: Icons.today_rounded),
-      (filter: TimeFilter.week7,   label: AppLocalizations.tr('filter_7_days'),   icon: Icons.date_range_rounded),
-      (filter: TimeFilter.month30, label: AppLocalizations.tr('filter_30_days'),  icon: Icons.calendar_month_rounded),
-      (filter: TimeFilter.custom,  label: AppLocalizations.tr('filter_custom'),   icon: Icons.edit_calendar_rounded),
+      (
+        filter: TimeFilter.all,
+        label: AppLocalizations.tr('filter_all_time'),
+        icon: Icons.all_inclusive_rounded,
+      ),
+      (
+        filter: TimeFilter.today,
+        label: AppLocalizations.tr('filter_today'),
+        icon: Icons.today_rounded,
+      ),
+      (
+        filter: TimeFilter.week7,
+        label: AppLocalizations.tr('filter_7_days'),
+        icon: Icons.date_range_rounded,
+      ),
+      (
+        filter: TimeFilter.month30,
+        label: AppLocalizations.tr('filter_30_days'),
+        icon: Icons.calendar_month_rounded,
+      ),
+      (
+        filter: TimeFilter.custom,
+        label: AppLocalizations.tr('filter_custom'),
+        icon: Icons.edit_calendar_rounded,
+      ),
     ];
 
     return SingleChildScrollView(
@@ -309,7 +345,10 @@ class _HistoryScreenState extends State<HistoryScreen>
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   gradient: isActive ? AppTheme.primaryGradient : null,
                   color: isActive ? null : AppTheme.surface(context),
@@ -322,7 +361,9 @@ class _HistoryScreenState extends State<HistoryScreen>
                   boxShadow: isActive
                       ? [
                           BoxShadow(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.25),
+                            color: AppTheme.primaryColor.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
@@ -339,13 +380,19 @@ class _HistoryScreenState extends State<HistoryScreen>
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      _timeFilter == TimeFilter.custom && f.filter == TimeFilter.custom && _customRange != null
+                      _timeFilter == TimeFilter.custom &&
+                              f.filter == TimeFilter.custom &&
+                              _customRange != null
                           ? '${_customRange!.start.day}/${_customRange!.start.month} - ${_customRange!.end.day}/${_customRange!.end.month}'
                           : f.label,
                       style: GoogleFonts.poppins(
                         fontSize: 12,
-                        fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                        color: isActive ? Colors.white : AppTheme.textS(context),
+                        fontWeight: isActive
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: isActive
+                            ? Colors.white
+                            : AppTheme.textS(context),
                       ),
                     ),
                   ],
@@ -363,13 +410,16 @@ class _HistoryScreenState extends State<HistoryScreen>
   // ─────────────────────────────────────────────────────────────
   Widget _buildStatsSummary(BuildContext context) {
     final history = _filteredHistory;
-    final positiveCount =
-        history.where((r) => r.emotion == EmotionType.happy).length;
+    final positiveCount = history
+        .where((r) => r.emotion == EmotionType.happy)
+        .length;
     final negativeCount = history
-        .where((r) =>
-            r.emotion == EmotionType.angry ||
-            r.emotion == EmotionType.sad ||
-            r.emotion == EmotionType.fear)
+        .where(
+          (r) =>
+              r.emotion == EmotionType.angry ||
+              r.emotion == EmotionType.sad ||
+              r.emotion == EmotionType.fear,
+        )
         .length;
 
     final stats = [
@@ -484,10 +534,8 @@ class _HistoryScreenState extends State<HistoryScreen>
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            getDrawingHorizontalLine: (v) => FlLine(
-              color: const Color(0xFFE2E8F0),
-              strokeWidth: 1,
-            ),
+            getDrawingHorizontalLine: (v) =>
+                FlLine(color: const Color(0xFFE2E8F0), strokeWidth: 1),
           ),
           borderData: FlBorderData(show: false),
           minX: 0,
@@ -496,9 +544,11 @@ class _HistoryScreenState extends State<HistoryScreen>
           maxY: 100,
           titlesData: FlTitlesData(
             topTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false)),
+              sideTitles: SideTitles(showTitles: false),
+            ),
             rightTitles: const AxisTitles(
-                sideTitles: SideTitles(showTitles: false)),
+              sideTitles: SideTitles(showTitles: false),
+            ),
             // X-axis: #1, #2, #3, ...
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
@@ -605,8 +655,9 @@ class _HistoryScreenState extends State<HistoryScreen>
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((s) {
                   final i = s.x.toInt();
-                  final rec =
-                      (i >= 0 && i < history.length) ? history[i] : null;
+                  final rec = (i >= 0 && i < history.length)
+                      ? history[i]
+                      : null;
                   final label = rec != null
                       ? '${rec.emotion.emoji} ${rec.emotion.displayName}\n${rec.confidencePercent}'
                       : '${s.y.toStringAsFixed(0)}%';
@@ -656,8 +707,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                     color: entry.key.color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(7),
                   ),
-                  child: Icon(entry.key.icon,
-                      color: entry.key.color, size: 14),
+                  child: Icon(entry.key.icon, color: entry.key.color, size: 14),
                 ),
                 const SizedBox(width: 8),
                 SizedBox(
@@ -678,10 +728,10 @@ class _HistoryScreenState extends State<HistoryScreen>
                       Container(
                         height: 10,
                         decoration: BoxDecoration(
-                          color:
-                              entry.key.color.withValues(alpha: 0.1),
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusFull),
+                          color: entry.key.color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusFull,
+                          ),
                         ),
                       ),
                       FractionallySizedBox(
@@ -690,8 +740,9 @@ class _HistoryScreenState extends State<HistoryScreen>
                           height: 10,
                           decoration: BoxDecoration(
                             color: entry.key.color,
-                            borderRadius:
-                                BorderRadius.circular(AppTheme.radiusFull),
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusFull,
+                            ),
                           ),
                         ),
                       ),
@@ -728,28 +779,22 @@ class _HistoryScreenState extends State<HistoryScreen>
         scrollDirection: Axis.horizontal,
         children: all.map((e) {
           final isSelected = _selectedFilter == e;
-          final label =
-              e == null ? AppLocalizations.tr('all_filter') : '${e.emoji} ${e.displayName}';
-          final color =
-              e == null ? AppTheme.primaryColor : e.color;
+          final label = e == null
+              ? AppLocalizations.tr('all_filter')
+              : '${e.emoji} ${e.displayName}';
+          final color = e == null ? AppTheme.primaryColor : e.color;
 
           return GestureDetector(
             onTap: () => setState(() => _selectedFilter = e),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? color
-                    : color.withValues(alpha: 0.08),
-                borderRadius:
-                    BorderRadius.circular(AppTheme.radiusFull),
+                color: isSelected ? color : color.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 border: Border.all(
-                  color: isSelected
-                      ? color
-                      : color.withValues(alpha: 0.25),
+                  color: isSelected ? color : color.withValues(alpha: 0.25),
                   width: 1.5,
                 ),
               ),
@@ -798,17 +843,19 @@ class _HistoryScreenState extends State<HistoryScreen>
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 13),
+                    horizontal: 14,
+                    vertical: 13,
+                  ),
                   child: Row(
                     children: [
                       // Icon
                       Container(
                         padding: const EdgeInsets.all(9),
                         decoration: BoxDecoration(
-                          color: record.emotion.color
-                              .withValues(alpha: 0.12),
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.radiusSm),
+                          color: record.emotion.color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusSm,
+                          ),
                         ),
                         child: Icon(
                           record.emotion.icon,
@@ -858,12 +905,16 @@ class _HistoryScreenState extends State<HistoryScreen>
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: record.emotion.color
-                                  .withValues(alpha: 0.12),
-                              borderRadius:
-                                  BorderRadius.circular(AppTheme.radiusFull),
+                              color: record.emotion.color.withValues(
+                                alpha: 0.12,
+                              ),
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.radiusFull,
+                              ),
                             ),
                             child: Text(
                               record.confidencePercent,
@@ -914,12 +965,16 @@ class _HistoryScreenState extends State<HistoryScreen>
           child: Icon(icon, color: AppTheme.primaryColor, size: 16),
         ),
         const SizedBox(width: 8),
-        Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.textP(context))),
+        Text(
+          title,
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(color: AppTheme.textP(context)),
+        ),
         if (trailingLabel != null && trailingColor != null) ...[
           const SizedBox(width: 8),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
               color: trailingColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppTheme.radiusFull),

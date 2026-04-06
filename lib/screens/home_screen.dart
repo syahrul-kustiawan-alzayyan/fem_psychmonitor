@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,8 @@ import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/animations.dart';
+import '../widgets/gradient_background.dart';
 import '../widgets/suggestion_card.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
@@ -31,10 +34,12 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _pulseCtrl;
   late Animation<double> _pulseAnim;
+
+  // Animation controller for staggered animations
+  late AnimationController _staggerCtrl;
 
   @override
   void initState() {
@@ -44,14 +49,22 @@ class _HomeScreenState extends State<HomeScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
-    _pulseAnim = Tween<double>(begin: 0.94, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
-    );
+    _pulseAnim = Tween<double>(
+      begin: 0.94,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
+
+    // Stagger animation controller
+    _staggerCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..forward();
   }
 
   @override
   void dispose() {
     _pulseCtrl.dispose();
+    _staggerCtrl.dispose();
     super.dispose();
   }
 
@@ -76,16 +89,46 @@ class _HomeScreenState extends State<HomeScreen>
   String get _todayLabel {
     final now = DateTime.now();
     final isId = AppLocalizations.currentLocale == 'id';
-    final months = isId ? [
-      'Januari','Februari','Maret','April','Mei','Juni',
-      'Juli','Agustus','September','Oktober','November','Desember',
-    ] : [
-      'January','February','March','April','May','June',
-      'July','August','September','October','November','December',
-    ];
-    final days = isId 
-        ? ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu']
-        : ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    final months = isId
+        ? [
+            'Januari',
+            'Februari',
+            'Maret',
+            'April',
+            'Mei',
+            'Juni',
+            'Juli',
+            'Agustus',
+            'September',
+            'Oktober',
+            'November',
+            'Desember',
+          ]
+        : [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December',
+          ];
+    final days = isId
+        ? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
+        : [
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+            'Sunday',
+          ];
     final wd = days[now.weekday - 1];
     return '$wd, ${now.day} ${months[now.month - 1]} ${now.year}';
   }
@@ -93,65 +136,156 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bg(context),
-      body: SafeArea(
-        bottom: false, // bottom nav melayang di atasnya
-        child: FutureBuilder<List<RecordingData>>(
-          future: DatabaseService.getRecordings(),
-          builder: (context, snapshot) {
-            final recordings = snapshot.data ?? [];
-            final historyList = recordings.map((r) => r.toEmotionRecord()).toList();
-            
-            final latest = historyList.isNotEmpty
-                ? historyList.first
-                : DummyData.latestEmotion;
+      backgroundColor: Colors.transparent,
+      body: GradientBackground(
+        useOverlay: true,
+        child: SafeArea(
+          bottom: false, // bottom nav melayang di atasnya
+          child: FutureBuilder<List<RecordingData>>(
+            future: DatabaseService.getRecordings(),
+            builder: (context, snapshot) {
+              final recordings = snapshot.data ?? [];
+              final historyList = recordings
+                  .map((r) => r.toEmotionRecord())
+                  .toList();
 
-            return SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: AppTheme.spaceLg),
+              final latest = historyList.isNotEmpty
+                  ? historyList.first
+                  : DummyData.latestEmotion;
 
-                  // ── Header ─────────────────────────────────────
-                  _buildHeader(context),
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spaceLg,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: AppTheme.spaceLg),
 
-                  const SizedBox(height: AppTheme.spaceXl),
+                    // ── Header ─────────────────────────────────────
+                    FadeTransition(
+                      opacity: AnimationUtils.fadeInAnimation(
+                        _staggerCtrl,
+                        0,
+                        0.15,
+                      ),
+                      child: SlideTransition(
+                        position: AnimationUtils.slideUpAnimation(
+                          _staggerCtrl,
+                          0,
+                          0.15,
+                        ),
+                        child: _buildHeader(context),
+                      ),
+                    ),
 
-                  // ── Kartu Status Psikis ─────────────────────────
-                  _buildPsychCard(context, latest),
-
-                  const SizedBox(height: AppTheme.spaceMd),
-
-                  // ── Quick Stats ─────────────────────────────────
-                  _buildQuickStats(context, historyList),
-
-                  const SizedBox(height: AppTheme.spaceXl),
-
-                  // ── Tombol CTA Rekam ────────────────────────────
-                  _buildCTAButton(context),
-
-                  const SizedBox(height: AppTheme.spaceXl),
-
-                  // ── Rekomendasi Psikis ──────────────────────────
-                  if (historyList.isNotEmpty) ...[
-                    _buildOverallSuggestion(context, historyList),
                     const SizedBox(height: AppTheme.spaceXl),
+
+                    // ── Kartu Status Psikis ─────────────────────────
+                    FadeTransition(
+                      opacity: AnimationUtils.fadeInAnimation(
+                        _staggerCtrl,
+                        1,
+                        0.15,
+                      ),
+                      child: SlideTransition(
+                        position: AnimationUtils.slideUpAnimation(
+                          _staggerCtrl,
+                          1,
+                          0.15,
+                        ),
+                        child: _buildPsychCard(context, latest),
+                      ),
+                    ),
+
+                    const SizedBox(height: AppTheme.spaceMd),
+
+                    // ── Quick Stats ─────────────────────────────────
+                    FadeTransition(
+                      opacity: AnimationUtils.fadeInAnimation(
+                        _staggerCtrl,
+                        2,
+                        0.15,
+                      ),
+                      child: SlideTransition(
+                        position: AnimationUtils.slideUpAnimation(
+                          _staggerCtrl,
+                          2,
+                          0.15,
+                        ),
+                        child: _buildQuickStats(context, historyList),
+                      ),
+                    ),
+
+                    const SizedBox(height: AppTheme.spaceXl),
+
+                    // ── Tombol CTA Rekam ────────────────────────────
+                    FadeTransition(
+                      opacity: AnimationUtils.fadeInAnimation(
+                        _staggerCtrl,
+                        3,
+                        0.15,
+                      ),
+                      child: SlideTransition(
+                        position: AnimationUtils.slideUpAnimation(
+                          _staggerCtrl,
+                          3,
+                          0.15,
+                        ),
+                        child: _buildCTAButton(context),
+                      ),
+                    ),
+
+                    const SizedBox(height: AppTheme.spaceXl),
+
+                    // ── Rekomendasi Psikis ──────────────────────────
+                    if (historyList.isNotEmpty) ...[
+                      FadeTransition(
+                        opacity: AnimationUtils.fadeInAnimation(
+                          _staggerCtrl,
+                          4,
+                          0.15,
+                        ),
+                        child: SlideTransition(
+                          position: AnimationUtils.slideUpAnimation(
+                            _staggerCtrl,
+                            4,
+                            0.15,
+                          ),
+                          child: _buildOverallSuggestion(context, historyList),
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spaceXl),
+                    ],
+
+                    // ── Riwayat Terbaru ─────────────────────────────
+                    if (historyList.isNotEmpty)
+                      FadeTransition(
+                        opacity: AnimationUtils.fadeInAnimation(
+                          _staggerCtrl,
+                          5,
+                          0.15,
+                        ),
+                        child: SlideTransition(
+                          position: AnimationUtils.slideUpAnimation(
+                            _staggerCtrl,
+                            5,
+                            0.15,
+                          ),
+                          child: _buildRecentHistory(context, historyList),
+                        ),
+                      ),
+
+                    // Padding akhir agar tidak tertutup bottom nav
+                    const SizedBox(height: 100),
                   ],
-
-                  // ── Riwayat Terbaru ─────────────────────────────
-                  if (historyList.isNotEmpty)
-                    _buildRecentHistory(context, historyList),
-
-                  // Padding akhir agar tidak tertutup bottom nav
-                  const SizedBox(height: 100),
-                ],
-              ),
-            );
-          },
+                ),
+              );
+            },
+          ),
         ),
-      ),
+      ), // End GradientBackground
     );
   }
 
@@ -245,14 +379,20 @@ class _HomeScreenState extends State<HomeScreen>
               value: 'profile',
               child: Row(
                 children: [
-                  Icon(Icons.person_outline_rounded,
-                      color: AppTheme.textP(context), size: 20),
+                  Icon(
+                    Icons.person_outline_rounded,
+                    color: AppTheme.textP(context),
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
-                  Text(AppLocalizations.tr('profile_menu'),
-                      style: GoogleFonts.poppins(
-                          color: AppTheme.textP(context),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500)),
+                  Text(
+                    AppLocalizations.tr('profile_menu'),
+                    style: GoogleFonts.poppins(
+                      color: AppTheme.textP(context),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -260,14 +400,20 @@ class _HomeScreenState extends State<HomeScreen>
               value: 'settings',
               child: Row(
                 children: [
-                  Icon(Icons.settings_outlined,
-                      color: AppTheme.textP(context), size: 20),
+                  Icon(
+                    Icons.settings_outlined,
+                    color: AppTheme.textP(context),
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
-                  Text(AppLocalizations.tr('settings_menu'),
-                      style: GoogleFonts.poppins(
-                          color: AppTheme.textP(context),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500)),
+                  Text(
+                    AppLocalizations.tr('settings_menu'),
+                    style: GoogleFonts.poppins(
+                      color: AppTheme.textP(context),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -283,15 +429,21 @@ class _HomeScreenState extends State<HomeScreen>
                         gradient: AppTheme.warmGradient,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Icon(Icons.login_rounded,
-                          color: Colors.white, size: 16),
+                      child: const Icon(
+                        Icons.login_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
                     ),
                     const SizedBox(width: 12),
-                    Text(AppLocalizations.tr('login_signup'),
-                        style: GoogleFonts.poppins(
-                            color: AppTheme.primaryColor,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600)),
+                    Text(
+                      AppLocalizations.tr('login_signup'),
+                      style: GoogleFonts.poppins(
+                        color: AppTheme.primaryColor,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -406,10 +558,14 @@ class _HomeScreenState extends State<HomeScreen>
                     // Status pill
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 5),
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.22),
-                        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusFull,
+                        ),
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.35),
                           width: 1,
@@ -528,8 +684,9 @@ class _HomeScreenState extends State<HomeScreen>
                       child: LinearProgressIndicator(
                         value: latest.confidence,
                         backgroundColor: Colors.white.withValues(alpha: 0.25),
-                        valueColor:
-                            const AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Colors.white,
+                        ),
                         minHeight: 6,
                       ),
                     ),
@@ -547,13 +704,16 @@ class _HomeScreenState extends State<HomeScreen>
   // Widget: Quick Stats — 3 kartu statistik mini
   // ─────────────────────────────────────────────────────────────
   Widget _buildQuickStats(BuildContext context, List<EmotionRecord> history) {
-    final positiveCount =
-        history.where((r) => r.emotion == EmotionType.happy).length;
+    final positiveCount = history
+        .where((r) => r.emotion == EmotionType.happy)
+        .length;
     final negativeCount = history
-        .where((r) =>
-            r.emotion == EmotionType.angry ||
-            r.emotion == EmotionType.sad ||
-            r.emotion == EmotionType.fear)
+        .where(
+          (r) =>
+              r.emotion == EmotionType.angry ||
+              r.emotion == EmotionType.sad ||
+              r.emotion == EmotionType.fear,
+        )
         .length;
 
     final stats = [
@@ -582,49 +742,44 @@ class _HomeScreenState extends State<HomeScreen>
         final i = entry.key;
         final s = entry.value;
         return Expanded(
-          child: Container(
-            margin: EdgeInsets.only(right: i < stats.length - 1 ? 10 : 0),
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-            decoration: BoxDecoration(
-              color: AppTheme.surface(context),
-              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(
-                color: s.color.withValues(alpha: 0.18),
-                width: 1,
+          child: Padding(
+            padding: EdgeInsets.only(right: i < stats.length - 1 ? 10 : 0),
+            child: GlassCard(
+              useBlur:
+                  !(Platform.isWindows || Platform.isLinux || Platform.isMacOS),
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: s.color.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(s.icon, color: s.color, size: 20),
+                  ),
+                  const SizedBox(height: 8),
+                  AnimatedCounter(
+                    value: double.parse(s.value),
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: s.color,
+                      height: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    s.label,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textS(context),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              boxShadow: AppTheme.cardShadow,
-            ),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: s.color.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(s.icon, color: s.color, size: 18),
-                ),
-                const SizedBox(height: 7),
-                Text(
-                  s.value,
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: s.color,
-                    height: 1,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  s.label,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.textS(context),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
             ),
           ),
         );
@@ -640,15 +795,29 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: widget.onStartRecording,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 26),
+        padding: const EdgeInsets.symmetric(vertical: 28),
         decoration: BoxDecoration(
-          color: AppTheme.surface(context),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.primaryColor.withValues(alpha: 0.05),
+              AppTheme.secondaryColor.withValues(alpha: 0.05),
+            ],
+          ),
           borderRadius: BorderRadius.circular(AppTheme.radiusXl),
           border: Border.all(
             color: AppTheme.primaryColor.withValues(alpha: 0.2),
             width: 1.5,
           ),
-          boxShadow: AppTheme.cardShadow,
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              blurRadius: 20,
+              spreadRadius: 0,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -662,38 +831,61 @@ class _HomeScreenState extends State<HomeScreen>
                   children: [
                     // Ring luar (pulse)
                     Transform.scale(
-                      scale: _pulseAnim.value * 1.28,
+                      scale: _pulseAnim.value * 1.35,
                       child: Container(
-                        width: 72,
-                        height: 72,
+                        width: 76,
+                        height: 76,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppTheme.primaryColor
-                              .withValues(alpha: 0.08),
+                          gradient: LinearGradient(
+                            colors: [
+                              AppTheme.primaryColor.withValues(alpha: 0.08),
+                              AppTheme.secondaryColor.withValues(alpha: 0.08),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                     // Ring tengah (pulse lambat)
                     Transform.scale(
-                      scale: _pulseAnim.value * 1.12,
+                      scale: _pulseAnim.value * 1.18,
                       child: Container(
-                        width: 72,
-                        height: 72,
+                        width: 76,
+                        height: 76,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppTheme.primaryColor
-                              .withValues(alpha: 0.13),
+                          gradient: LinearGradient(
+                            colors: [
+                              AppTheme.primaryColor.withValues(alpha: 0.12),
+                              AppTheme.secondaryColor.withValues(alpha: 0.12),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                    // Tombol utama
+                    // Tombol utama dengan gradient border
                     Container(
-                      width: 72,
-                      height: 72,
+                      width: 76,
+                      height: 76,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: AppTheme.primaryGradient,
-                        boxShadow: AppTheme.primaryShadow,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                            blurRadius: 20,
+                            spreadRadius: 0,
+                            offset: const Offset(0, 8),
+                          ),
+                          BoxShadow(
+                            color: AppTheme.secondaryColor.withValues(
+                              alpha: 0.3,
+                            ),
+                            blurRadius: 16,
+                            spreadRadius: 0,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: const Icon(
                         Icons.mic_rounded,
@@ -713,7 +905,10 @@ class _HomeScreenState extends State<HomeScreen>
               style: GoogleFonts.poppins(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textP(context),
+                foreground: Paint()
+                  ..shader = AppTheme.primaryGradient.createShader(
+                    const Rect.fromLTWH(0, 0, 200, 70),
+                  ),
                 letterSpacing: -0.2,
               ),
             ),
@@ -735,7 +930,7 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 _buildFeatureTag('⚡ Real-time', AppTheme.primaryColor),
                 const SizedBox(width: 8),
-                _buildFeatureTag('🔒 Private', const Color(0xFFFFB300)),
+                _buildFeatureTag('🔒 Private', AppTheme.secondaryColor),
                 const SizedBox(width: 8),
                 _buildFeatureTag('🧠 6 Emotions', const Color(0xFFF59E0B)),
               ],
@@ -768,7 +963,10 @@ class _HomeScreenState extends State<HomeScreen>
   // ─────────────────────────────────────────────────────────────
   // Widget: Rekomendasi Psikis Keseluruhan
   // ─────────────────────────────────────────────────────────────
-  Widget _buildOverallSuggestion(BuildContext context, List<EmotionRecord> history) {
+  Widget _buildOverallSuggestion(
+    BuildContext context,
+    List<EmotionRecord> history,
+  ) {
     final emotionCount = <EmotionType, int>{};
     for (final r in history) {
       emotionCount[r.emotion] = (emotionCount[r.emotion] ?? 0) + 1;
@@ -776,10 +974,10 @@ class _HomeScreenState extends State<HomeScreen>
     final dominant = emotionCount.isNotEmpty
         ? emotionCount.entries.reduce((a, b) => a.value >= b.value ? a : b).key
         : EmotionType.neutral;
-        
-    final psychLabel = context.watch<AuthProvider>().isLoggedIn 
-      ? 'MBTI' 
-      : 'Info'; 
+
+    final psychLabel = context.watch<AuthProvider>().isLoggedIn
+        ? 'MBTI'
+        : 'Info';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -830,8 +1028,7 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                       ),
                       TextSpan(
-                        text:
-                            '${dominant.emoji} ${dominant.displayName}',
+                        text: '${dominant.emoji} ${dominant.displayName}',
                         style: GoogleFonts.poppins(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
@@ -867,7 +1064,10 @@ class _HomeScreenState extends State<HomeScreen>
   // ─────────────────────────────────────────────────────────────
   // Widget: Riwayat Terbaru — 3 entry terakhir
   // ─────────────────────────────────────────────────────────────
-  Widget _buildRecentHistory(BuildContext context, List<EmotionRecord> history) {
+  Widget _buildRecentHistory(
+    BuildContext context,
+    List<EmotionRecord> history,
+  ) {
     final recent = history.take(3).toList();
 
     return Column(
@@ -925,7 +1125,9 @@ class _HomeScreenState extends State<HomeScreen>
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 13),
+                    horizontal: 14,
+                    vertical: 13,
+                  ),
                   child: Row(
                     children: [
                       // Ikon emosi
@@ -933,7 +1135,9 @@ class _HomeScreenState extends State<HomeScreen>
                         padding: const EdgeInsets.all(9),
                         decoration: BoxDecoration(
                           color: record.emotion.color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusSm,
+                          ),
                         ),
                         child: Icon(
                           record.emotion.icon,
@@ -969,10 +1173,14 @@ class _HomeScreenState extends State<HomeScreen>
                       // Confidence chip
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: record.emotion.color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusFull,
+                          ),
                         ),
                         child: Text(
                           record.confidencePercent,
@@ -1038,5 +1246,3 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 }
-
-

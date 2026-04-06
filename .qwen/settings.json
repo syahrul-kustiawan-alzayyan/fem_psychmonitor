@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter *)",
+      "Bash(taskkill *)",
+      "Bash(del *)",
+      "Bash(copy *)",
+      "Bash(findstr *)",
+      "Bash(cmd *)"
+    ]
+  },
+  "$version": 3
+}

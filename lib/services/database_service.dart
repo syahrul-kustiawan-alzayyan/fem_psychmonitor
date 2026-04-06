@@ -1,8 +1,21 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../models/emotion_model.dart';
 import '../models/user_model.dart';
+
+// Initialize FFI for desktop platforms - only once
+bool _isFfiInitialized = false;
+void _initDatabaseFactory() {
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    if (!_isFfiInitialized) {
+      sqfliteFfiInit();
+      _isFfiInitialized = true;
+    }
+    // Use factoryFfi directly without changing global databaseFactory
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DatabaseService — SQLite local persistence
@@ -25,14 +38,23 @@ class DatabaseService {
   }
 
   static Future<Database> _initDB() async {
-    final dbPath = await getDatabasesPath();
+    _initDatabaseFactory();
+
+    // Use appropriate factory for getting database path
+    final dbPath = (Platform.isWindows || Platform.isLinux || Platform.isMacOS)
+        ? await databaseFactoryFfi.getDatabasesPath()
+        : await getDatabasesPath();
     final path = join(dbPath, _dbName);
 
-    return openDatabase(
-      path,
-      version: _dbVersion,
-      onCreate: _onCreate,
-    );
+    // Use databaseFactoryFfi for desktop platforms
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      return databaseFactoryFfi.openDatabase(
+        path,
+        options: OpenDatabaseOptions(version: _dbVersion, onCreate: _onCreate),
+      );
+    }
+
+    return openDatabase(path, version: _dbVersion, onCreate: _onCreate);
   }
 
   static Future<void> _onCreate(Database db, int version) async {
@@ -114,15 +136,11 @@ class DatabaseService {
   /// Update user data
   static Future<void> updateUser(AppUser user) async {
     final db = await database;
-    await db.update(
-      'users',
-      {
-        'name': user.name,
-        'mbti_type': user.mbtiType,
-        'mbti_scores': jsonEncode(user.mbtiScores),
-      },
-      where: 'id = (SELECT MAX(id) FROM users)',
-    );
+    await db.update('users', {
+      'name': user.name,
+      'mbti_type': user.mbtiType,
+      'mbti_scores': jsonEncode(user.mbtiScores),
+    }, where: 'id = (SELECT MAX(id) FROM users)');
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -165,7 +183,11 @@ class DatabaseService {
   /// Ambil recording by id
   static Future<RecordingData?> getRecording(int id) async {
     final db = await database;
-    final result = await db.query('recordings', where: 'id = ?', whereArgs: [id]);
+    final result = await db.query(
+      'recordings',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
     if (result.isEmpty) return null;
     return RecordingData.fromMap(result.first);
   }
@@ -208,9 +230,18 @@ class DatabaseService {
 
   /// Hapus database (untuk reset/testing)
   static Future<void> deleteDatabase() async {
-    final dbPath = await getDatabasesPath();
+    // Use appropriate factory for getting database path
+    final dbPath = (Platform.isWindows || Platform.isLinux || Platform.isMacOS)
+        ? await databaseFactoryFfi.getDatabasesPath()
+        : await getDatabasesPath();
     final path = join(dbPath, _dbName);
-    await databaseFactory.deleteDatabase(path);
+
+    // Use appropriate factory for deletion
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      await databaseFactoryFfi.deleteDatabase(path);
+    } else {
+      await databaseFactory.deleteDatabase(path);
+    }
     _db = null;
   }
 }
@@ -259,13 +290,19 @@ class RecordingData {
       suggestion: map['suggestion'] as String,
       audioEmotions: audioMap.map(
         (k, v) => MapEntry(
-          EmotionType.values.firstWhere((e) => e.name == k, orElse: () => EmotionType.neutral),
+          EmotionType.values.firstWhere(
+            (e) => e.name == k,
+            orElse: () => EmotionType.neutral,
+          ),
           (v as num).toDouble(),
         ),
       ),
       transcriptEmotions: textMap.map(
         (k, v) => MapEntry(
-          EmotionType.values.firstWhere((e) => e.name == k, orElse: () => EmotionType.neutral),
+          EmotionType.values.firstWhere(
+            (e) => e.name == k,
+            orElse: () => EmotionType.neutral,
+          ),
           (v as num).toDouble(),
         ),
       ),

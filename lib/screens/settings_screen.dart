@@ -3,10 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../main.dart'; // For MainNavigation
 import '../providers/locale_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
+import 'onboarding_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SettingsScreen — Halaman Pengaturan
@@ -90,7 +93,8 @@ class SettingsScreen extends StatelessWidget {
                         ? Icons.dark_mode_rounded
                         : Icons.light_mode_rounded,
                     iconColor: isDark
-                        ? const Color(0xFFFFB300)
+                        ? AppTheme
+                              .secondaryColor // Pink
                         : const Color(0xFFF59E0B),
                     title: AppLocalizations.tr('theme_mode'),
                     trailing: _buildSegmentedControl(
@@ -182,6 +186,17 @@ class SettingsScreen extends StatelessWidget {
               _buildSettingsCard(
                 context,
                 children: [
+                  // Reset Onboarding
+                  _buildSettingsTile(
+                    context,
+                    icon: Icons.restart_alt_rounded,
+                    iconColor: const Color(0xFF60A5FA),
+                    title: 'Tampilkan Onboarding Lagi',
+                    subtitle: 'Lihat splash screen & pertanyaan MBTI',
+                    onTap: () => _handleResetOnboarding(context),
+                  ),
+                  _buildDivider(context),
+                  // Logout
                   _buildSettingsTile(
                     context,
                     icon: Icons.logout_rounded,
@@ -227,8 +242,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingsCard(BuildContext context,
-      {required List<Widget> children}) {
+  Widget _buildSettingsCard(
+    BuildContext context, {
+    required List<Widget> children,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
@@ -304,10 +321,7 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildDivider(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Divider(
-        height: 1,
-        color: AppTheme.surfVar(context),
-      ),
+      child: Divider(height: 1, color: AppTheme.surfVar(context)),
     );
   }
 
@@ -364,7 +378,7 @@ class SettingsScreen extends StatelessWidget {
         icon: Icons.psychology_rounded,
         title: AppLocalizations.tr('guide_step2_title'),
         desc: AppLocalizations.tr('guide_step2_desc'),
-        color: const Color(0xFFFFB300),
+        color: AppTheme.secondaryColor, // Pink
       ),
       (
         icon: Icons.bar_chart_rounded,
@@ -419,15 +433,15 @@ class SettingsScreen extends StatelessWidget {
                 child: ListView.separated(
                   controller: scrollCtrl,
                   itemCount: steps.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 16),
                   itemBuilder: (ctx, i) {
                     final s = steps[i];
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: s.color.withValues(alpha: 0.08),
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusMd),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                         border: Border.all(
                           color: s.color.withValues(alpha: 0.2),
                         ),
@@ -532,6 +546,92 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _handleResetOnboarding(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        ),
+        title: Text(
+          'Tampilkan Onboarding Lagi?',
+          style: GoogleFonts.poppins(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textP(context),
+          ),
+        ),
+        content: Text(
+          'Aplikasi akan menampilkan splash screen dan pertanyaan MBTI kembali. Data Anda tidak akan dihapus.',
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: AppTheme.textS(context),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textS(context),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+            ),
+            onPressed: () async {
+              // Reset status onboarding di SharedPreferences
+              await StorageService.resetOnboarding();
+
+              if (ctx.mounted) {
+                Navigator.pop(ctx); // tutup dialog
+
+                // Navigasi ke onboarding dengan animasi
+                Navigator.of(context).pushAndRemoveUntil(
+                  PageRouteBuilder(
+                    pageBuilder: (context, a1, a2) => OnboardingScreen(
+                      onCompleted: () {
+                        Navigator.of(context).pushReplacement(
+                          PageRouteBuilder(
+                            pageBuilder: (context, b1, b2) =>
+                                const MainNavigation(),
+                            transitionsBuilder: (context, anim, b2, child) {
+                              return FadeTransition(
+                                opacity: anim,
+                                child: child,
+                              );
+                            },
+                            transitionDuration: const Duration(
+                              milliseconds: 600,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    transitionsBuilder: (context, anim, a2, child) {
+                      return FadeTransition(opacity: anim, child: child);
+                    },
+                    transitionDuration: const Duration(milliseconds: 600),
+                  ),
+                  (route) => false, // Hapus semua route sebelumnya
+                );
+              }
+            },
+            child: Text(
+              'Ya, Tampilkan',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
       ),
     );
   }
