@@ -28,7 +28,7 @@ void _initDatabaseFactory() {
 class DatabaseService {
   static Database? _db;
   static const String _dbName = 'fem_physics.db';
-  static const int _dbVersion = 1;
+  static const int _dbVersion = 2; // Naik ke versi 2 untuk migrasi psych_score
 
   /// Singleton database instance
   static Future<Database> get database async {
@@ -50,11 +50,20 @@ class DatabaseService {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       return databaseFactoryFfi.openDatabase(
         path,
-        options: OpenDatabaseOptions(version: _dbVersion, onCreate: _onCreate),
+        options: OpenDatabaseOptions(
+          version: _dbVersion,
+          onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
+        ),
       );
     }
 
-    return openDatabase(path, version: _dbVersion, onCreate: _onCreate);
+    return openDatabase(
+      path,
+      version: _dbVersion,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
   }
 
   static Future<void> _onCreate(Database db, int version) async {
@@ -65,6 +74,7 @@ class DatabaseService {
         name TEXT NOT NULL,
         mbti_type TEXT NOT NULL DEFAULT '',
         mbti_scores TEXT NOT NULL DEFAULT '{}',
+        psych_score INTEGER DEFAULT NULL,
         created_at TEXT NOT NULL
       )
     ''');
@@ -100,6 +110,25 @@ class DatabaseService {
     ''');
   }
 
+  // Migration handler untuk database yang sudah ada
+  static Future<void> _onUpgrade(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
+    // Jika oldVersion < 2, tambahkan kolom psych_score
+    if (oldVersion < 2) {
+      try {
+        await db.execute(
+          'ALTER TABLE users ADD COLUMN psych_score INTEGER DEFAULT NULL',
+        );
+      } catch (e) {
+        // Abaikan error jika kolom sudah ada
+        print('Migration warning: $e');
+      }
+    }
+  }
+
   // ═══════════════════════════════════════════════════════════════
   // USER CRUD
   // ═══════════════════════════════════════════════════════════════
@@ -111,6 +140,7 @@ class DatabaseService {
       'name': user.name,
       'mbti_type': user.mbtiType,
       'mbti_scores': jsonEncode(user.mbtiScores),
+      'psych_score': user.psychologicalScore,
       'created_at': user.createdAt.toIso8601String(),
     });
   }
@@ -129,6 +159,7 @@ class DatabaseService {
       mbtiScores: Map<String, int>.from(
         jsonDecode(row['mbti_scores'] as String) as Map,
       ),
+      psychologicalScore: row['psych_score'] as int?,
       createdAt: DateTime.parse(row['created_at'] as String),
     );
   }

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
+import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
@@ -149,9 +150,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   .map((r) => r.toEmotionRecord())
                   .toList();
 
-              final latest = historyList.isNotEmpty
-                  ? historyList.first
-                  : DummyData.latestEmotion;
+              // Only show emotion data if there are actual recordings
+              final latest = historyList.isNotEmpty ? historyList.first : null;
 
               return SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -488,215 +488,206 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // ─────────────────────────────────────────────────────────────
   // Widget: Kartu Status Psikis dengan Gradien
+  // Menampilkan hasil asesmen kesehatan mental dari onboarding
   // ─────────────────────────────────────────────────────────────
-  Widget _buildPsychCard(BuildContext context, EmotionRecord latest) {
-    return Container(
-      width: double.infinity,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1565C0), Color(0xFF1E88E5)],
-        ),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.35),
-            blurRadius: 24,
-            spreadRadius: 0,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // ── Dekorasi lingkaran latar ───────────────────────
-          Positioned(
-            top: -30,
-            right: -20,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
-              ),
+  Widget _buildPsychCard(BuildContext context, EmotionRecord? latest) {
+    // Ambil data user dari database
+    return FutureBuilder<AppUser?>(
+      future: DatabaseService.getUser(),
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+        final psychScore = user?.psychologicalScore;
+
+        // Tentukan warna berdasarkan skor
+        Color cardColor;
+        String statusLabel;
+        IconData statusIcon;
+
+        if (psychScore == null) {
+          cardColor = const Color(0xFF64748B);
+          statusLabel = 'Belum Dinilai';
+          statusIcon = Icons.help_outline_rounded;
+        } else if (psychScore <= 10) {
+          cardColor = const Color(0xFF1565C0); // Blue - Baik
+          statusLabel = 'Kondisi Stabil';
+          statusIcon = Icons.check_circle_rounded;
+        } else if (psychScore <= 20) {
+          cardColor = const Color(0xFFF59E0B); // Amber - Cukup
+          statusLabel = 'Perlu Istirahat';
+          statusIcon = Icons.warning_amber_rounded;
+        } else {
+          cardColor = const Color(0xFFDC2626); // Red - Perlu perhatian
+          statusLabel = 'Butuh Perhatian';
+          statusIcon = Icons.error_rounded;
+        }
+
+        return Container(
+          width: double.infinity,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [cardColor, cardColor.withValues(alpha: 0.85)],
             ),
-          ),
-          Positioned(
-            bottom: -40,
-            left: -20,
-            child: Container(
-              width: 160,
-              height: 160,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            boxShadow: [
+              BoxShadow(
+                color: cardColor.withValues(alpha: 0.35),
+                blurRadius: 24,
+                spreadRadius: 0,
+                offset: const Offset(0, 10),
               ),
-            ),
+            ],
           ),
-          // ── Konten Kartu ─────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.spaceXl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Row: label + status badge
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      AppLocalizations.tr('psych_status_today'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.85),
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                    // Status pill
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.22),
-                        borderRadius: BorderRadius.circular(
-                          AppTheme.radiusFull,
-                        ),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.35),
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        latest.emotion.psychStatus,
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ),
-                  ],
+          child: Stack(
+            children: [
+              // ── Dekorasi lingkaran latar ───────────────────────
+              Positioned(
+                top: -30,
+                right: -20,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
                 ),
-
-                const SizedBox(height: 18),
-
-                // Row: ikon emosi + nama + waktu
-                Row(
-                  children: [
-                    // Icon container frosted
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.22),
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.35),
-                          width: 1,
-                        ),
-                      ),
-                      child: Icon(
-                        latest.emotion.icon,
-                        color: Colors.white,
-                        size: 34,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            latest.emotion.emoji,
-                            style: const TextStyle(fontSize: 22),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            latest.emotion.displayName,
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.3,
-                              height: 1.1,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.access_time_rounded,
-                                color: Colors.white.withValues(alpha: 0.7),
-                                size: 12,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${AppLocalizations.tr('last_detection')}: ${latest.formattedTime}',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+              ),
+              Positioned(
+                bottom: -40,
+                left: -20,
+                child: Container(
+                  width: 160,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.06),
+                  ),
                 ),
-
-                const SizedBox(height: 18),
-
-                // Confidence bar
-                Column(
+              ),
+              // ── Konten Kartu ─────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.all(AppTheme.spaceXl),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Row: label + status badge
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          AppLocalizations.tr('detection_confidence'),
+                          'Kesehatan Mental',
                           style: GoogleFonts.poppins(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            fontSize: 11.5,
+                            fontSize: 13,
                             fontWeight: FontWeight.w500,
+                            color: Colors.white.withValues(alpha: 0.85),
+                            letterSpacing: 0.2,
                           ),
                         ),
-                        Text(
-                          latest.confidencePercent,
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                        // Status pill
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.22),
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusFull,
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.35),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(statusIcon, size: 12, color: Colors.white),
+                              const SizedBox(width: 4),
+                              Text(
+                                statusLabel,
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                      child: LinearProgressIndicator(
-                        value: latest.confidence,
-                        backgroundColor: Colors.white.withValues(alpha: 0.25),
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Colors.white,
-                        ),
-                        minHeight: 6,
+
+                    const SizedBox(height: 18),
+
+                    // Deskripsi kondisi mental
+                    Text(
+                      psychScore != null
+                          ? 'Skor: $psychScore/30'
+                          : 'Isi kuesioner untuk melihat skor',
+                      style: GoogleFonts.poppins(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
                       ),
                     ),
+
+                    const SizedBox(height: 12),
+
+                    // Saran singkat
+                    Text(
+                      psychScore != null
+                          ? (user?.mentalHealthAdvice ?? '').split('.').first
+                          : 'Kuesioner kesehatan mental membantu Anda memahami tingkat stres dan beban mental.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        color: Colors.white.withValues(alpha: 0.9),
+                        height: 1.5,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Last emotion (jika ada)
+                    if (latest != null)
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              latest.emotion.icon,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Deteksi terakhir: ${latest.emotion.displayName} (${(latest.confidence * 100).toStringAsFixed(0)}%)',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

@@ -290,6 +290,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       name: _nameController.text.trim(),
       mbtiType: _mbtiType,
       mbtiScores: _mbtiScores,
+      psychologicalScore: _psyScore,
       createdAt: DateTime.now(),
     );
 

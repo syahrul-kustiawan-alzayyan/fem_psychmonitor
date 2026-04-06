@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
-import '../main.dart'; // For MainNavigation
+import '../main.dart'; // For MainNavigation & AppRouter
 import '../providers/locale_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
@@ -676,9 +676,21 @@ class SettingsScreen extends StatelessWidget {
             ),
             onPressed: () async {
               await ctx.read<AuthProvider>().logout();
+
               if (ctx.mounted) {
-                Navigator.pop(ctx); // dialog
-                Navigator.pop(context); // settings
+                Navigator.pop(ctx); // tutup dialog
+
+                // Kembali ke AppRouter (splash screen akan muncul)
+                Navigator.of(context).pushAndRemoveUntil(
+                  PageRouteBuilder(
+                    pageBuilder: (context, a1, a2) => const AppRouter(),
+                    transitionsBuilder: (context, anim, a2, child) {
+                      return FadeTransition(opacity: anim, child: child);
+                    },
+                    transitionDuration: const Duration(milliseconds: 600),
+                  ),
+                  (route) => false, // Hapus semua route sebelumnya
+                );
               }
             },
             child: Text(
