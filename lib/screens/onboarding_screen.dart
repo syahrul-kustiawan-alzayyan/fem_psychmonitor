@@ -4,6 +4,7 @@ import '../models/user_model.dart';
 import '../services/storage_service.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/gradient_background.dart';
 
 /// Onboarding Screen untuk pengguna baru.
 /// Flow: Selamat datang → Input nama → Skip MBTI question → (Manual MBTI input | 20 pertanyaan MBTI) → 10 Pertanyaan Psikologis → Hasil MBTI → Hasil Psikologis
@@ -48,27 +49,34 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   Map<String, int> _mbtiScores = {};
 
   int get _totalPages {
-    // 0=welcome, 1=nama, 2=skip MBTI question
-    int pages = 3;
+    int pages = 3; // welcome, nama, skip MBTI question
     if (_mbtiSkipped) {
       if (_showManualMbti) pages += 1; // manual MBTI input
     } else {
-      pages += 20; // 20 MBTI questions
+      pages += 21; // 20 MBTI questions + 1 result
     }
+    pages += 1; // info page
     pages += 10; // 10 psychological questions
-    pages += 2; // MBTI result + psychological result
+    pages += 1; // psychological result
     return pages;
   }
 
   int get _mbtiStartPage => 3;
   int get _mbtiEndPage {
     if (_mbtiSkipped) {
-      return _showManualMbti ? 4 : 3;
+      // Manual MBTI: page 3 saja
+      return 4;
+    } else {
+      // 20 questions (3-22) + result (23)
+      return 24;
     }
-    return 3 + 20;
   }
 
-  int get _psyStartPage => _mbtiEndPage;
+  int get _psyStartPage {
+    // Setelah info page
+    return _mbtiSkipped ? 5 : 25;
+  }
+
   int get _psyEndPage => _psyStartPage + 10;
 
   @override
@@ -351,10 +359,16 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
             // ── Page Content ──
             Expanded(
-              child: PageView(
+              child: PageView.builder(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                children: _buildPages(),
+                itemCount: _totalPages,
+                itemBuilder: (context, index) {
+                  final pages = _buildPages();
+                  return index < pages.length
+                      ? pages[index]
+                      : const SizedBox.shrink();
+                },
               ),
             ),
           ],
@@ -543,6 +557,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       _buildMbtiSkipPage(),
     ];
 
+    // MBTI Section
     if (_mbtiSkipped) {
       if (_showManualMbti) {
         pages.add(_buildManualMbtiPage());
@@ -551,13 +566,17 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       for (int i = 0; i < 20; i++) {
         pages.add(_buildMBTIQuestionPage(i));
       }
+      pages.add(_buildMbtiResultPage());
     }
 
+    // Info Page (setelah MBTI section selesai)
+    pages.add(_buildInfoPage());
+
+    // Psychological Questionnaire
     for (int i = 0; i < 10; i++) {
       pages.add(_buildPsyQuestionPage(i));
     }
 
-    pages.add(_buildMbtiResultPage());
     pages.add(_buildPsyResultPage());
 
     return pages;
@@ -616,16 +635,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   _mbtiSkipped = true;
                   _showManualMbti = true;
                 });
-                // Rebuild pages
-                setState(() {});
                 // Navigate to manual input page
-                Future.delayed(const Duration(milliseconds: 100), () {
-                  setState(() => _currentPage++);
-                  _pageController.animateToPage(
-                    _currentPage,
-                    duration: const Duration(milliseconds: 350),
-                    curve: Curves.easeInOut,
-                  );
+                Future.delayed(const Duration(milliseconds: 200), () {
+                  if (mounted) {
+                    setState(() => _currentPage++);
+                    _pageController.jumpToPage(_currentPage);
+                  }
                 });
               },
               style: ElevatedButton.styleFrom(
@@ -695,141 +710,518 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   // ─────────────────────────────────────────────────────────────
+  // Page: Info - Penjelasan MBTI vs Kesehatan Mental
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildInfoPage() {
+    return GradientBackground(
+      useOverlay: false,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.white,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Memahami Perbedaan',
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'MBTI vs Kesehatan Mental',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // MBTI Section
+            _buildInfoCard(
+              icon: Icons.psychology_rounded,
+              iconColor: const Color(0xFF3B82F6),
+              title: 'Apa itu MBTI?',
+              description:
+                  'MBTI (Myers-Briggs Type Indicator) adalah kuesioner kepribadian yang membantu Anda memahami tipe kepribadian dasar Anda.',
+              points: const [
+                '✨ Mengidentifikasi 16 tipe kepribadian berbeda',
+                '🎯 Berfokus pada preferensi alami Anda',
+                '📊 Bukan alat diagnosis medis',
+                '💡 Membantu memahami kekuatan & kelemahan diri',
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Mental Health Section
+            _buildInfoCard(
+              icon: Icons.favorite_rounded,
+              iconColor: const Color(0xFFEC4899),
+              title: 'Kuesioner Kesehatan Mental',
+              description:
+                  'Kuesioner ini dirancang untuk membantu Anda memahami tingkat stres, beban mental, dan kesejahteraan emosional sehari-hari.',
+              points: const [
+                '🧠 10 pertanyaan refleksi diri',
+                '⚠️ BUKAN alat diagnosis medis',
+                '📈 Memberikan gambaran kondisi mental Anda',
+                '💚 Disertai saran yang sesuai dengan skor Anda',
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Important Notice
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: const Color(0xFFF59E0B),
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Catatan Penting',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFFF59E0B),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Kedua kuesioner ini adalah alat bantu pemetaan mandiri (self-assessment) dan BUKAN pengganti diagnosis profesional. Jika Anda merasa kewalahan secara terus-menerus, sangat disarankan untuk berkonsultasi dengan psikolog atau psikiater.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: AppTheme.textS(context),
+                            height: 1.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // Continue button
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton.icon(
+                onPressed: _nextPage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.arrow_forward_rounded),
+                label: Text(
+                  'Lanjut ke Pertanyaan',
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper widget untuk info card
+  Widget _buildInfoCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String description,
+    required List<String> points,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: iconColor, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textP(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            description,
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: AppTheme.textS(context),
+              height: 1.6,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...points.map(
+            (point) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    point.substring(0, 2),
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      point.substring(2),
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        color: AppTheme.textS(context),
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // Page: Manual MBTI Input
   // ─────────────────────────────────────────────────────────────
   Widget _buildManualMbtiPage() {
+    // Daftar 16 tipe MBTI
+    final mbtiTypes = [
+      'INTJ',
+      'INTP',
+      'ENTJ',
+      'ENTP',
+      'INFJ',
+      'INFP',
+      'ENFJ',
+      'ENFP',
+      'ISTJ',
+      'ISFJ',
+      'ESTJ',
+      'ESFJ',
+      'ISTP',
+      'ISFP',
+      'ESTP',
+      'ESFP',
+    ];
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 40),
+          // Icon
           Container(
-            width: 72,
-            height: 72,
+            width: 80,
+            height: 80,
             decoration: BoxDecoration(
-              color: AppTheme.secondaryColor.withValues(alpha: 0.15),
+              gradient: AppTheme.primaryGradient,
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
-            child: Icon(
-              Icons.edit_rounded,
-              size: 36,
-              color: AppTheme.secondaryColor,
+            child: const Icon(
+              Icons.psychology_rounded,
+              size: 40,
+              color: Colors.white,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
+          // Title
           Text(
-            'Masukkan Tipe MBTI Anda',
+            'Pilih Tipe MBTI Anda',
             style: GoogleFonts.poppins(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
               color: AppTheme.textP(context),
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Ketik tipe MBTI yang sudah Anda ketahui',
+            'Silakan pilih tipe MBTI yang sudah Anda ketahui dari daftar di bawah ini.',
+            textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 13,
               color: AppTheme.textS(context),
+              height: 1.5,
             ),
           ),
-          const SizedBox(height: 28),
-          TextFormField(
-            controller: _manualMbtiController,
-            textCapitalization: TextCapitalization.characters,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 4,
-              color: AppTheme.textP(context),
+          const SizedBox(height: 32),
+
+          // Dropdown Card
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: AppTheme.cardShadow,
+              border: Border.all(
+                color: _manualMbtiError.isNotEmpty
+                    ? Colors.red
+                    : AppTheme.primaryColor.withValues(alpha: 0.2),
+                width: _manualMbtiError.isNotEmpty ? 2 : 1.5,
+              ),
             ),
-            decoration: InputDecoration(
-              hintText: 'INTJ, ENFP, dll.',
-              hintStyle: GoogleFonts.poppins(
-                fontSize: 16,
-                color: AppTheme.textH(context),
-              ),
-              filled: true,
-              fillColor: AppTheme.surfVar(context),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
-                  color: _manualMbtiError.isNotEmpty
-                      ? Colors.red
-                      : Colors.transparent,
-                  width: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.arrow_drop_down_circle_rounded,
+                      color: AppTheme.primaryColor,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tipe MBTI Anda',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textS(context),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(
-                  color: AppTheme.primaryColor,
-                  width: 2,
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: _manualMbtiController.text.isNotEmpty
+                      ? _manualMbtiController.text
+                      : null,
+                  hint: Text(
+                    'Pilih tipe MBTI...',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textH(context),
+                    ),
+                  ),
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                  iconSize: 28,
+                  isExpanded: true,
+                  dropdownColor: Colors.white,
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primaryColor,
+                    letterSpacing: 3,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  items: mbtiTypes.map((type) {
+                    return DropdownMenuItem<String>(
+                      value: type,
+                      child: Text(type),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _manualMbtiController.text = value ?? '';
+                      _manualMbtiError = '';
+                    });
+                  },
                 ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 18,
-              ),
-              errorText: _manualMbtiError.isNotEmpty ? _manualMbtiError : null,
+                if (_manualMbtiError.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      _manualMbtiError,
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
-          const SizedBox(height: 12),
-          // Valid types hint
+
+          const SizedBox(height: 20),
+
+          // Info card
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppTheme.primaryColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: AppTheme.primaryColor.withValues(alpha: 0.2),
               ),
             ),
-            child: Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children:
-                  [
-                    'INTJ',
-                    'INTP',
-                    'ENTJ',
-                    'ENTP',
-                    'INFJ',
-                    'INFP',
-                    'ENFJ',
-                    'ENFP',
-                    'ISTJ',
-                    'ISFJ',
-                    'ESTJ',
-                    'ESFJ',
-                    'ISTP',
-                    'ISFP',
-                    'ESTP',
-                    'ESFP',
-                  ].map((type) {
-                    return Container(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: AppTheme.primaryColor,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'MBTI terdiri dari 16 tipe yang merupakan kombinasi dari 4 dimensi kepribadian. Setiap tipe memiliki karakteristik unik.',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: AppTheme.textS(context),
+                      height: 1.6,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // All types grid (visual reference)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: AppTheme.cardShadow,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '16 Tipe MBTI',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textP(context),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: mbtiTypes.map((type) {
+                    final isSelected = _manualMbtiController.text == type;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                        horizontal: 12,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
+                        gradient: isSelected ? AppTheme.primaryGradient : null,
+                        color: isSelected ? null : AppTheme.surfVar(context),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: AppTheme.primaryColor.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
                       ),
                       child: Text(
                         type,
                         style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primaryColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isSelected
+                              ? Colors.white
+                              : AppTheme.primaryColor,
                         ),
                       ),
                     );
                   }).toList(),
+                ),
+              ],
             ),
           ),
+
           const SizedBox(height: 32),
           _buildNextButton('Lanjut'),
           const SizedBox(height: 40),

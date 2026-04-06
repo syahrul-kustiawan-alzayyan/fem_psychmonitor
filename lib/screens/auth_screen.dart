@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../main.dart'; // For MainNavigation
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 
@@ -73,7 +74,12 @@ class _AuthScreenState extends State<AuthScreen>
       username: _loginEmail.text.split('@').first,
     );
 
-    if (mounted) Navigator.of(context).pop(true);
+    if (mounted) {
+      // Ganti AuthScreen dengan MainNavigation
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainNavigation()),
+      );
+    }
   }
 
   // Mock register
@@ -90,7 +96,12 @@ class _AuthScreenState extends State<AuthScreen>
       username: _regUsername.text.trim(),
     );
 
-    if (mounted) Navigator.of(context).pop(true);
+    if (mounted) {
+      // Ganti AuthScreen dengan MainNavigation
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainNavigation()),
+      );
+    }
   }
 
   @override
@@ -180,10 +191,7 @@ class _AuthScreenState extends State<AuthScreen>
                 height: 520,
                 child: TabBarView(
                   controller: _tabCtrl,
-                  children: [
-                    _buildLoginTab(isDark),
-                    _buildRegisterTab(isDark),
-                  ],
+                  children: [_buildLoginTab(isDark), _buildRegisterTab(isDark)],
                 ),
               ),
             ],
@@ -245,7 +253,9 @@ class _AuthScreenState extends State<AuthScreen>
             obscure: _obscureLogin,
             suffixIcon: IconButton(
               icon: Icon(
-                _obscureLogin ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                _obscureLogin
+                    ? Icons.visibility_off_rounded
+                    : Icons.visibility_rounded,
                 color: AppTheme.textH(context),
                 size: 20,
               ),
@@ -390,7 +400,9 @@ class _AuthScreenState extends State<AuthScreen>
               obscure: _obscureReg,
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscureReg ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                  _obscureReg
+                      ? Icons.visibility_off_rounded
+                      : Icons.visibility_rounded,
                   color: AppTheme.textH(context),
                   size: 20,
                 ),
@@ -413,11 +425,14 @@ class _AuthScreenState extends State<AuthScreen>
               obscure: _obscureRegConfirm,
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscureRegConfirm ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                  _obscureRegConfirm
+                      ? Icons.visibility_off_rounded
+                      : Icons.visibility_rounded,
                   color: AppTheme.textH(context),
                   size: 20,
                 ),
-                onPressed: () => setState(() => _obscureRegConfirm = !_obscureRegConfirm),
+                onPressed: () =>
+                    setState(() => _obscureRegConfirm = !_obscureRegConfirm),
               ),
               validator: (v) {
                 if (v == null || v.isEmpty) return 'Konfirmasi password';
@@ -578,12 +593,7 @@ class _AuthScreenState extends State<AuthScreen>
   Widget _buildDividerWithText(String text) {
     return Row(
       children: [
-        Expanded(
-          child: Container(
-            height: 1,
-            color: AppTheme.surfVar(context),
-          ),
-        ),
+        Expanded(child: Container(height: 1, color: AppTheme.surfVar(context))),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
@@ -594,12 +604,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
           ),
         ),
-        Expanded(
-          child: Container(
-            height: 1,
-            color: AppTheme.surfVar(context),
-          ),
-        ),
+        Expanded(child: Container(height: 1, color: AppTheme.surfVar(context))),
       ],
     );
   }
@@ -615,9 +620,7 @@ class _AuthScreenState extends State<AuthScreen>
         icon: Container(
           width: 20,
           height: 20,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-          ),
+          decoration: const BoxDecoration(shape: BoxShape.circle),
           child: const Icon(
             Icons.g_mobiledata_rounded,
             size: 24,
@@ -626,17 +629,11 @@ class _AuthScreenState extends State<AuthScreen>
         ),
         label: Text(
           AppLocalizations.tr('google_signin'),
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-          ),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 14),
         ),
         style: OutlinedButton.styleFrom(
           foregroundColor: AppTheme.textP(context),
-          side: BorderSide(
-            color: AppTheme.surfVar(context),
-            width: 1.5,
-          ),
+          side: BorderSide(color: AppTheme.surfVar(context), width: 1.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           ),

@@ -9,6 +9,7 @@ import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'theme/app_theme.dart';
 import 'services/storage_service.dart';
+import 'screens/auth_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/voice_detection_screen.dart';
@@ -80,7 +81,7 @@ class FemPhysicsMonitorApp extends StatelessWidget {
   }
 }
 
-/// Router utama: cek status onboarding user dari SharedPreferences.
+/// Router utama: cek status onboarding dan login user dari SharedPreferences.
 class AppRouter extends StatelessWidget {
   const AppRouter({super.key});
 
@@ -93,12 +94,14 @@ class AppRouter extends StatelessWidget {
 
         final isFirstLaunch = snapshot.data!;
 
+        // Jika first launch, tampilkan onboarding dulu
         if (isFirstLaunch) {
           return OnboardingScreen(
             onCompleted: () {
+              // Setelah onboarding selesai, arahkan ke AuthScreen
               Navigator.of(context).pushReplacement(
                 PageRouteBuilder(
-                  pageBuilder: (context, a1, a2) => const MainNavigation(),
+                  pageBuilder: (context, a1, a2) => const AuthScreen(),
                   transitionsBuilder: (context, anim, a2, child) {
                     return FadeTransition(opacity: anim, child: child);
                   },
@@ -109,6 +112,15 @@ class AppRouter extends StatelessWidget {
           );
         }
 
+        // Jika bukan first launch, cek apakah sudah login
+        final authProvider = context.watch<AuthProvider>();
+
+        // Jika belum login, tampilkan AuthScreen
+        if (!authProvider.isLoggedIn) {
+          return const AuthScreen();
+        }
+
+        // Jika sudah login dan bukan first launch, langsung ke main navigation
         return const MainNavigation();
       },
     );
@@ -116,66 +128,207 @@ class AppRouter extends StatelessWidget {
 }
 
 // ────────────────────────────────────────────────────────
-// Splash Screen Premium
+// Splash Screen Premium dengan Animasi Partikel
 // ────────────────────────────────────────────────────────
-class _SplashScreen extends StatelessWidget {
+class _SplashScreen extends StatefulWidget {
   const _SplashScreen();
+
+  @override
+  State<_SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<_SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.05,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bg(context),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF3B82F6), Color(0xFFEC4899), Color(0xFF8B5CF6)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            stops: [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: Stack(
           children: [
-            // Logo dengan gradient border
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: AppTheme.primaryGradient,
-                boxShadow: AppTheme.primaryShadow,
-              ),
-              padding: const EdgeInsets.all(4),
-              child: Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
+            // Animated background circles
+            ...List.generate(3, (index) {
+              return Positioned.fill(
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    return CustomPaint(
+                      painter: _CirclePainter(
+                        index: index,
+                        animation: _controller.value,
+                      ),
+                    );
+                  },
                 ),
-                child: ClipOval(
-                  child: Image.asset('lib/src/logo.jpeg', fit: BoxFit.cover),
+              );
+            }),
+
+            // Main content
+            Center(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo dengan gradient border dan glow effect
+                      Container(
+                        width: 140,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: AppTheme.primaryGradient,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              blurRadius: 30,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(6),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                          ),
+                          child: ClipOval(
+                            child: Image.asset(
+                              'lib/src/logo.jpeg',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Text(
+                        'Fem-PhysicsMonitor',
+                        style: GoogleFonts.poppins(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              offset: const Offset(0, 2),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          AppLocalizations.tr('app_subtitle'),
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+                      // Animated loading indicator
+                      SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 3,
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Memuat aplikasi...',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 28),
-            Text(
-              'Fem-PhysicsMonitor',
-              style: GoogleFonts.poppins(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textP(context),
-                letterSpacing: -0.5,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              AppLocalizations.tr('app_subtitle'),
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-                color: AppTheme.textS(context),
-              ),
-            ),
-            const SizedBox(height: 36),
-            SizedBox(
-              width: 28,
-              height: 28,
-              child: CircularProgressIndicator(
-                color: AppTheme.primaryColor,
-                strokeWidth: 2.5,
-                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.15),
+
+            // Feature cards at bottom
+            Positioned(
+              bottom: 60,
+              left: 0,
+              right: 0,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: [
+                      _buildFeatureCard(
+                        icon: Icons.psychology_rounded,
+                        label: 'MBTI Test',
+                        delay: 0.2,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildFeatureCard(
+                        icon: Icons.favorite_rounded,
+                        label: 'Mental Health',
+                        delay: 0.4,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildFeatureCard(
+                        icon: Icons.mic_rounded,
+                        label: 'Voice Analysis',
+                        delay: 0.6,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
@@ -183,6 +336,74 @@ class _SplashScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildFeatureCard({
+    required IconData icon,
+    required String label,
+    required double delay,
+  }) {
+    return Expanded(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final slideProgress = (_controller.value - delay).clamp(0.0, 1.0);
+          return Transform.translate(
+            offset: Offset(0, 50 * (1 - slideProgress)),
+            child: Opacity(opacity: slideProgress),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: Colors.white, size: 24),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Custom painter untuk animated circles
+class _CirclePainter extends CustomPainter {
+  final int index;
+  final double animation;
+
+  _CirclePainter({required this.index, required this.animation});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.05 + (index * 0.03))
+      ..style = PaintingStyle.fill;
+
+    final radius = 100 + (index * 80) + (animation * 30);
+    final offset = Offset(
+      size.width * (0.3 + (index * 0.2)),
+      size.height * (0.2 + (index * 0.15)),
+    );
+
+    canvas.drawCircle(offset, radius, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CirclePainter oldDelegate) => true;
 }
 
 // ────────────────────────────────────────────────────────
