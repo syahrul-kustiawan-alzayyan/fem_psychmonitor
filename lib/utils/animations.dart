@@ -12,12 +12,15 @@ class AnimationUtils {
     int index,
     double staggerDelay,
   ) {
+    final start = (index * staggerDelay).clamp(0.0, 1.0);
+    final end = ((index * staggerDelay) + 0.6).clamp(0.0, 1.0);
     return Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: controller,
         curve: Interval(
-          index * staggerDelay,
-          (index * staggerDelay) + 0.6,
+          start,
+          // Interval end > start required (except if both are 1.0 ok, but safest to ensure begin <= end)
+          end < start ? start : end,
           curve: Curves.easeOutCubic,
         ),
       ),
@@ -30,12 +33,14 @@ class AnimationUtils {
     int index,
     double staggerDelay,
   ) {
+    final start = (index * staggerDelay).clamp(0.0, 1.0);
+    final end = ((index * staggerDelay) + 0.5).clamp(0.0, 1.0);
     return Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
       CurvedAnimation(
         parent: controller,
         curve: Interval(
-          index * staggerDelay,
-          (index * staggerDelay) + 0.5,
+          start,
+          end < start ? start : end,
           curve: Curves.easeOutCubic,
         ),
       ),
@@ -48,12 +53,14 @@ class AnimationUtils {
     int index,
     double staggerDelay,
   ) {
+    final start = (index * staggerDelay).clamp(0.0, 1.0);
+    final end = ((index * staggerDelay) + 0.5).clamp(0.0, 1.0);
     return Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: controller,
         curve: Interval(
-          index * staggerDelay,
-          (index * staggerDelay) + 0.5,
+          start,
+          end < start ? start : end,
           curve: Curves.easeOutBack,
         ),
       ),
@@ -66,12 +73,14 @@ class AnimationUtils {
     int index,
     double staggerDelay,
   ) {
+    final start = (index * staggerDelay).clamp(0.0, 1.0);
+    final end = ((index * staggerDelay) + 0.4).clamp(0.0, 1.0);
     return Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: controller,
         curve: Interval(
-          index * staggerDelay,
-          (index * staggerDelay) + 0.4,
+          start,
+          end < start ? start : end,
           curve: Curves.easeIn,
         ),
       ),
@@ -108,7 +117,7 @@ class GlassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final cardContent = AnimatedContainer(
+    Widget content = AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: width,
       padding: padding ?? const EdgeInsets.all(20),
@@ -145,15 +154,20 @@ class GlassCard extends StatelessWidget {
           ),
         ],
       ),
-      child: useBlur
-          ? BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: child,
-            )
-          : child,
+      child: child,
     );
 
-    return GestureDetector(onTap: onTap, child: cardContent);
+    if (useBlur) {
+      content = ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: content,
+        ),
+      );
+    }
+
+    return GestureDetector(onTap: onTap, child: content);
   }
 }
 

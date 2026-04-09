@@ -455,7 +455,7 @@ const List<MBTIQuestion> mbtiQuestions = [
 // ==========================================
 /// Hitung tipe MBTI 4-huruf dari daftar jawaban.
 /// [answers] = list 20 item, tiap item 0 (opsi A) atau 1 (opsi B).
-/// Returns ({String type, Map<String, int> scores}).
+/// Returns `({String type, Map<String, int> scores})`.
 ({String type, Map<String, int> scores}) calculateMBTI(List<int> answers) {
   final scores = <String, int>{
     'E': 0,

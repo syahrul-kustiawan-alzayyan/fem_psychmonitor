@@ -8,10 +8,9 @@ import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AuthScreen — Login / Register UI (Mockup)
+// AuthScreen — Login / Register UI
 //
-// Authentikasi sesungguhnya melalui Firebase akan diimplementasikan kemudian.
-// Saat ini hanya UI + mock login via SharedPreferences.
+// Mengikuti tema utama aplikasi (light/dark mode aware)
 // ─────────────────────────────────────────────────────────────────────────────
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -69,15 +68,24 @@ class _AuthScreenState extends State<AuthScreen>
 
     if (!mounted) return;
 
-    await context.read<AuthProvider>().login(
+    final success = await context.read<AuthProvider>().login(
       email: _loginEmail.text.trim(),
-      username: _loginEmail.text.split('@').first,
+      password: _loginPassword.text,
     );
 
-    if (mounted) {
-      // Ganti AuthScreen dengan MainNavigation
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (success) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const MainNavigation()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Email tidak terdaftar atau password salah'),
+          backgroundColor: AppTheme.secondaryColor,
+        ),
       );
     }
   }
@@ -91,23 +99,31 @@ class _AuthScreenState extends State<AuthScreen>
 
     if (!mounted) return;
 
-    await context.read<AuthProvider>().login(
+    final success = await context.read<AuthProvider>().register(
       email: _regEmail.text.trim(),
+      password: _regPassword.text,
       username: _regUsername.text.trim(),
     );
 
-    if (mounted) {
-      // Ganti AuthScreen dengan MainNavigation
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (success) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const MainNavigation()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Email sudah terdaftar. Silakan login.'),
+          backgroundColor: AppTheme.secondaryColor,
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       backgroundColor: AppTheme.bg(context),
       body: SafeArea(
@@ -115,12 +131,12 @@ class _AuthScreenState extends State<AuthScreen>
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXl),
           child: Column(
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: 48),
 
               // ── Logo ────────────────────────────────────────
               Container(
-                width: 80,
-                height: 80,
+                width: 90,
+                height: 90,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: AppTheme.primaryGradient,
@@ -129,14 +145,14 @@ class _AuthScreenState extends State<AuthScreen>
                 child: const Icon(
                   Icons.psychology_rounded,
                   color: Colors.white,
-                  size: 40,
+                  size: 45,
                 ),
               ),
               const SizedBox(height: 20),
               Text(
                 'Fem-PhysicsMonitor',
                 style: GoogleFonts.poppins(
-                  fontSize: 22,
+                  fontSize: 24,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textP(context),
                   letterSpacing: -0.5,
@@ -151,7 +167,7 @@ class _AuthScreenState extends State<AuthScreen>
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 36),
 
               // ── Tab Bar ─────────────────────────────────────
               Container(
@@ -188,10 +204,10 @@ class _AuthScreenState extends State<AuthScreen>
 
               // ── Tab Content ─────────────────────────────────
               SizedBox(
-                height: 520,
+                height: 540,
                 child: TabBarView(
                   controller: _tabCtrl,
-                  children: [_buildLoginTab(isDark), _buildRegisterTab(isDark)],
+                  children: [_buildLoginTab(), _buildRegisterTab()],
                 ),
               ),
             ],
@@ -204,7 +220,7 @@ class _AuthScreenState extends State<AuthScreen>
   // ───────────────────────────────────────────────────────────────
   // Tab: Login
   // ───────────────────────────────────────────────────────────────
-  Widget _buildLoginTab(bool isDark) {
+  Widget _buildLoginTab() {
     return Form(
       key: _loginFormKey,
       child: Column(
@@ -242,7 +258,7 @@ class _AuthScreenState extends State<AuthScreen>
               return null;
             },
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
           // Password
           _buildTextField(
@@ -337,7 +353,7 @@ class _AuthScreenState extends State<AuthScreen>
   // ───────────────────────────────────────────────────────────────
   // Tab: Register
   // ───────────────────────────────────────────────────────────────
-  Widget _buildRegisterTab(bool isDark) {
+  Widget _buildRegisterTab() {
     return Form(
       key: _registerFormKey,
       child: SingleChildScrollView(
@@ -374,7 +390,7 @@ class _AuthScreenState extends State<AuthScreen>
                 return null;
               },
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             // Email
             _buildTextField(
@@ -389,7 +405,7 @@ class _AuthScreenState extends State<AuthScreen>
                 return null;
               },
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             // Password
             _buildTextField(
@@ -414,7 +430,7 @@ class _AuthScreenState extends State<AuthScreen>
                 return null;
               },
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             // Confirm password
             _buildTextField(

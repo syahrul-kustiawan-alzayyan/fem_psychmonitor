@@ -8,11 +8,13 @@ import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'theme/app_theme.dart';
+import 'services/database_service.dart';
 import 'services/storage_service.dart';
+import 'models/user_model.dart';
 import 'screens/auth_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/voice_detection_screen.dart';
+import 'screens/live_detection_screen.dart';
 import 'screens/history_screen.dart';
 
 void main() async {
@@ -99,14 +101,9 @@ class AppRouter extends StatelessWidget {
           return OnboardingScreen(
             onCompleted: () {
               // Setelah onboarding selesai, arahkan ke AuthScreen
+              // Gunakan MaterialPageRoute untuk menghindari animation curve issues
               Navigator.of(context).pushReplacement(
-                PageRouteBuilder(
-                  pageBuilder: (context, a1, a2) => const AuthScreen(),
-                  transitionsBuilder: (context, anim, a2, child) {
-                    return FadeTransition(opacity: anim, child: child);
-                  },
-                  transitionDuration: const Duration(milliseconds: 600),
-                ),
+                MaterialPageRoute(builder: (context) => const AuthScreen()),
               );
             },
           );
@@ -120,8 +117,34 @@ class AppRouter extends StatelessWidget {
           return const AuthScreen();
         }
 
-        // Jika sudah login dan bukan first launch, langsung ke main navigation
-        return const MainNavigation();
+        // Jika sudah login, cek apakah user sudah ada di database (selesai onboarding)
+        return FutureBuilder<AppUser?>(
+          future: DatabaseService.getUser(),
+          builder: (context, userSnapshot) {
+            if (userSnapshot.connectionState == ConnectionState.waiting) {
+              return const _SplashScreen();
+            }
+
+            // Jika user belum ada di database, arahkan ke OnboardingScreen
+            if (userSnapshot.data == null) {
+              return OnboardingScreen(
+                onCompleted: () {
+                  // Setelah onboarding selesai, trigger AppRouter kembali.
+                  // Karena user sudah login dan ada di DB, dia akan masuk ke MainNavigation.
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const AppRouter()),
+                  );
+                },
+              );
+            }
+
+            // Jika sudah ada data user, langsung ke main navigation
+            // Gunakan key unik berdasarkan username untuk memastikan state direset
+            return MainNavigation(
+              key: ValueKey('main_nav_${authProvider.username}'),
+            );
+          },
+        );
       },
     );
   }
@@ -431,7 +454,7 @@ class _MainNavigationState extends State<MainNavigation>
         index: _currentIndex,
         children: [
           HomeScreen(onStartRecording: _navigateToRecording),
-          const VoiceDetectionScreen(),
+          const LiveDetectionScreen(),
           const HistoryScreen(),
         ],
       ),

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:path/path.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/emotion_model.dart';
 import '../models/user_model.dart';
 
@@ -28,7 +30,7 @@ void _initDatabaseFactory() {
 class DatabaseService {
   static Database? _db;
   static const String _dbName = 'fem_physics.db';
-  static const int _dbVersion = 2; // Naik ke versi 2 untuk migrasi psych_score
+  static const int _dbVersion = 3; // Naik ke versi 3 untuk multi-account support
 
   /// Singleton database instance
   static Future<Database> get database async {
@@ -71,6 +73,7 @@ class DatabaseService {
     await db.execute('''
       CREATE TABLE users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL DEFAULT '',
         name TEXT NOT NULL,
         mbti_type TEXT NOT NULL DEFAULT '',
         mbti_scores TEXT NOT NULL DEFAULT '{}',
@@ -124,7 +127,15 @@ class DatabaseService {
         );
       } catch (e) {
         // Abaikan error jika kolom sudah ada
-        print('Migration warning: $e');
+        debugPrint('Migration warning: $e');
+      }
+    }
+    
+    if (oldVersion < 3) {
+      try {
+        await db.execute('ALTER TABLE users ADD COLUMN email TEXT DEFAULT ""');
+      } catch (e) {
+        debugPrint('Migration warning email: $e');
       }
     }
   }
@@ -135,8 +146,12 @@ class DatabaseService {
 
   /// Simpan user baru, return user id
   static Future<int> insertUser(AppUser user) async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentEmail = prefs.getString('auth_email') ?? '';
+
     final db = await database;
     return db.insert('users', {
+      'email': currentEmail,
       'name': user.name,
       'mbti_type': user.mbtiType,
       'mbti_scores': jsonEncode(user.mbtiScores),
@@ -147,8 +162,11 @@ class DatabaseService {
 
   /// Ambil user pertama (single-user app)
   static Future<AppUser?> getUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentEmail = prefs.getString('auth_email') ?? '';
+
     final db = await database;
-    final result = await db.query('users', limit: 1, orderBy: 'id DESC');
+    final result = await db.query('users', where: 'email = ?', whereArgs: [currentEmail], limit: 1, orderBy: 'id DESC');
     if (result.isEmpty) return null;
 
     final row = result.first;
@@ -166,12 +184,21 @@ class DatabaseService {
 
   /// Update user data
   static Future<void> updateUser(AppUser user) async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentEmail = prefs.getString('auth_email') ?? '';
+
     final db = await database;
     await db.update('users', {
       'name': user.name,
       'mbti_type': user.mbtiType,
       'mbti_scores': jsonEncode(user.mbtiScores),
-    }, where: 'id = (SELECT MAX(id) FROM users)');
+    }, where: 'email = ? AND id = (SELECT MAX(id) FROM users WHERE email = ?)', whereArgs: [currentEmail, currentEmail]);
+  }
+
+  /// Tautkan user baru yang telah melewati sesi onboarding dengan ID ke email
+  static Future<void> updateUserEmail(int id, String email) async {
+    final db = await database;
+    await db.update('users', {'email': email}, where: 'id = ?', whereArgs: [id]);
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -201,10 +228,21 @@ class DatabaseService {
   /// Ambil semua recordings
   static Future<List<RecordingData>> getRecordings({int? userId}) async {
     final db = await database;
+    int? targetUserId = userId;
+    
+    if (targetUserId == null) {
+      final user = await getUser();
+      if (user != null) {
+        targetUserId = user.id;
+      } else {
+        return [];
+      }
+    }
+    
     final result = await db.query(
       'recordings',
-      where: userId != null ? 'user_id = ?' : null,
-      whereArgs: userId != null ? [userId] : null,
+      where: 'user_id = ?',
+      whereArgs: [targetUserId],
       orderBy: 'date DESC',
     );
 
@@ -273,6 +311,11 @@ class DatabaseService {
     } else {
       await databaseFactory.deleteDatabase(path);
     }
+    _db = null;
+  }
+
+  /// Reset singleton instance (untuk logout - tidak menghapus file database)
+  static void resetInstance() {
     _db = null;
   }
 }

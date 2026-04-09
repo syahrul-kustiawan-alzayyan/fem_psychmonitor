@@ -7,6 +7,7 @@ import '../main.dart'; // For MainNavigation & AppRouter
 import '../providers/locale_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/database_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import 'onboarding_screen.dart';
@@ -196,7 +197,6 @@ class SettingsScreen extends StatelessWidget {
                     onTap: () => _handleResetOnboarding(context),
                   ),
                   _buildDivider(context),
-                  // Logout
                   _buildSettingsTile(
                     context,
                     icon: Icons.logout_rounded,
@@ -204,6 +204,17 @@ class SettingsScreen extends StatelessWidget {
                     title: AppLocalizations.tr('logout'),
                     titleColor: const Color(0xFFF87171),
                     onTap: () => _handleLogout(context),
+                  ),
+                  _buildDivider(context),
+                  // Delete Account
+                  _buildSettingsTile(
+                    context,
+                    icon: Icons.delete_forever_rounded,
+                    iconColor: const Color(0xFFEF4444),
+                    title: 'Hapus Akun & Data',
+                    subtitle: 'Menghapus data rekaman & profil secara permanen',
+                    titleColor: const Color(0xFFEF4444),
+                    onTap: () => _handleDeleteAccount(context),
                   ),
                 ],
               ),
@@ -595,32 +606,18 @@ class SettingsScreen extends StatelessWidget {
               if (ctx.mounted) {
                 Navigator.pop(ctx); // tutup dialog
 
-                // Navigasi ke onboarding dengan animasi
+                // Navigasi ke onboarding dengan MaterialPageRoute
                 Navigator.of(context).pushAndRemoveUntil(
-                  PageRouteBuilder(
-                    pageBuilder: (context, a1, a2) => OnboardingScreen(
+                  MaterialPageRoute(
+                    builder: (context) => OnboardingScreen(
                       onCompleted: () {
                         Navigator.of(context).pushReplacement(
-                          PageRouteBuilder(
-                            pageBuilder: (context, b1, b2) =>
-                                const MainNavigation(),
-                            transitionsBuilder: (context, anim, b2, child) {
-                              return FadeTransition(
-                                opacity: anim,
-                                child: child,
-                              );
-                            },
-                            transitionDuration: const Duration(
-                              milliseconds: 600,
-                            ),
+                          MaterialPageRoute(
+                            builder: (context) => const MainNavigation(),
                           ),
                         );
                       },
                     ),
-                    transitionsBuilder: (context, anim, a2, child) {
-                      return FadeTransition(opacity: anim, child: child);
-                    },
-                    transitionDuration: const Duration(milliseconds: 600),
                   ),
                   (route) => false, // Hapus semua route sebelumnya
                 );
@@ -675,26 +672,93 @@ class SettingsScreen extends StatelessWidget {
               backgroundColor: const Color(0xFFF87171),
             ),
             onPressed: () async {
+              // Reset database singleton to clear cached data
+              DatabaseService.resetInstance();
+
+              // Logout user
               await ctx.read<AuthProvider>().logout();
 
               if (ctx.mounted) {
                 Navigator.pop(ctx); // tutup dialog
 
-                // Kembali ke AppRouter (splash screen akan muncul)
+                // Gunakan MaterialPageRoute untuk menghindari animasi curve issues
                 Navigator.of(context).pushAndRemoveUntil(
-                  PageRouteBuilder(
-                    pageBuilder: (context, a1, a2) => const AppRouter(),
-                    transitionsBuilder: (context, anim, a2, child) {
-                      return FadeTransition(opacity: anim, child: child);
-                    },
-                    transitionDuration: const Duration(milliseconds: 600),
-                  ),
-                  (route) => false, // Hapus semua route sebelumnya
+                  MaterialPageRoute(builder: (context) => const AppRouter()),
+                  (route) => false,
                 );
               }
             },
             child: Text(
               AppLocalizations.tr('logout'),
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleDeleteAccount(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        ),
+        title: Text(
+          'Hapus Akun & Data?',
+          style: GoogleFonts.poppins(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textP(context),
+          ),
+        ),
+        content: Text(
+          'Seluruh data Anda termasuk profil, hasil MBTI, dan rekaman emosi akan dihapus secara permanen dari perangkat ini. Lanjutkan?',
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: AppTheme.textS(context),
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              AppLocalizations.tr('cancel'),
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textS(context),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+            ),
+            onPressed: () async {
+              // Hapus database lokal
+              await DatabaseService.deleteDatabase();
+
+              // Bersihkan token auth & shared prefs (misal status onboarding pertama)
+              if (ctx.mounted) {
+                await ctx.read<AuthProvider>().logout();
+              }
+              await StorageService.resetOnboarding();
+
+              if (ctx.mounted) {
+                Navigator.pop(ctx); // tutup dialog
+
+                // Kembali ke start
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const AppRouter()),
+                  (route) => false,
+                );
+              }
+            },
+            child: Text(
+              'Ya, Hapus',
               style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
             ),
           ),

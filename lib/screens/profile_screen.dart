@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
@@ -10,10 +11,7 @@ import '../theme/app_theme.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 // ProfileScreen — Edit Profil User
 //
-// Fitur:
-//   • Foto profil (placeholder — belum pakai ImagePicker)
-//   • Edit username
-//   • Edit email
+// Mengikuti tema utama aplikasi (light/dark mode aware)
 // ─────────────────────────────────────────────────────────────────────────────
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -27,6 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late TextEditingController _usernameCtrl;
   late TextEditingController _emailCtrl;
   bool _isSaving = false;
+  AppUser? _user;
 
   @override
   void initState() {
@@ -34,6 +33,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final auth = context.read<AuthProvider>();
     _usernameCtrl = TextEditingController(text: auth.username);
     _emailCtrl = TextEditingController(text: auth.email);
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = await DatabaseService.getUser();
+    if (mounted) {
+      setState(() => _user = user);
+    }
   }
 
   @override
@@ -55,9 +62,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Juga update username ke DatabaseService (SQLite)
     final user = await DatabaseService.getUser();
     if (user != null) {
-      await DatabaseService.updateUser(user.copyWith(
-        name: _usernameCtrl.text.trim(),
-      ));
+      await DatabaseService.updateUser(
+        user.copyWith(name: _usernameCtrl.text.trim()),
+      );
     }
 
     if (!mounted) return;
@@ -109,272 +116,492 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              // ── Header Banner ──────────────────────────────
-              Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.bottomCenter,
-                children: [
-                  Container(
-                    height: 140,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppTheme.primaryColor.withValues(alpha: 0.7),
-                          AppTheme.primaryColor,
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
+        child: Column(
+          children: [
+            // ── Header Banner ──────────────────────────────
+            Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.bottomCenter,
+              children: [
+                Container(
+                  height: 140,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.primaryColor.withValues(alpha: 0.7),
+                        AppTheme.primaryColor,
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                   ),
-                  Positioned(
-                    bottom: -50,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Stack(
-                        children: [
-                      // Avatar
-                      Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: AppTheme.primaryGradient,
-                          boxShadow: AppTheme.primaryShadow,
-                        ),
-                        child: Container(
-                          width: 100,
-                          height: 100,
+                ),
+                Positioned(
+                  bottom: -50,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Stack(
+                      children: [
+                        // Avatar
+                        Container(
+                          padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppTheme.surface(context),
+                            gradient: AppTheme.primaryGradient,
+                            boxShadow: AppTheme.primaryShadow,
                           ),
-                          child: Center(
-                            child: Text(
-                              initial,
-                              style: GoogleFonts.poppins(
-                                fontSize: 40,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.primaryColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Camera badge
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: () {
-                            // Placeholder: ImagePicker akan ditambahkan
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Fitur foto profil akan segera hadir',
-                                  style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                backgroundColor: AppTheme.primaryColor,
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppTheme.radiusSm),
-                                ),
-                              ),
-                            );
-                          },
                           child: Container(
-                            padding: const EdgeInsets.all(8),
+                            width: 100,
+                            height: 100,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppTheme.primaryColor,
-                              border: Border.all(
-                                color: AppTheme.surface(context),
-                                width: 2.5,
-                              ),
+                              color: AppTheme.surface(context),
                             ),
-                            child: const Icon(
-                              Icons.camera_alt_rounded,
-                              color: Colors.white,
-                              size: 16,
+                            child: Center(
+                              child: Text(
+                                initial,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-              
-              const SizedBox(height: 56),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXl),
-                child: Column(
-                  children: [
-                    Text(
-                      AppLocalizations.tr('tap_to_change_photo'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: AppTheme.textS(context),
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                // ── Form Fields ────────────────────────────────
-                Container(
-                  padding: const EdgeInsets.all(AppTheme.spaceLg),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface(context),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                    boxShadow: AppTheme.cardShadow,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Username
-                      _buildFieldLabel(
-                          context, AppLocalizations.tr('username')),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _usernameCtrl,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: AppTheme.textP(context),
-                        ),
-                        decoration: _inputDecoration(
-                          context,
-                          hint: AppLocalizations.tr('username_hint'),
-                          icon: Icons.person_outlined,
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Username wajib diisi';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 18),
-
-                      // Email
-                      _buildFieldLabel(
-                          context, AppLocalizations.tr('email')),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _emailCtrl,
-                        keyboardType: TextInputType.emailAddress,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: AppTheme.textP(context),
-                        ),
-                        decoration: _inputDecoration(
-                          context,
-                          hint: AppLocalizations.tr('email_hint'),
-                          icon: Icons.email_outlined,
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Email wajib diisi';
-                          }
-                          if (!v.contains('@')) return 'Format email tidak valid';
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 14),
-
-                // Member since
-                if (auth.isLoggedIn)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                      border: Border.all(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.verified_user_rounded,
-                          color: AppTheme.primaryColor,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          '${AppLocalizations.tr('member_since')}: ${_formatDate(DateTime.now())}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12.5,
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.w500,
+                        // Camera badge
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Fitur foto profil akan segera hadir',
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  backgroundColor: AppTheme.primaryColor,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      AppTheme.radiusSm,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppTheme.primaryColor,
+                                border: Border.all(
+                                  color: AppTheme.surface(context),
+                                  width: 2.5,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt_rounded,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                const SizedBox(height: 28),
-
-                // ── Tombol Simpan ──────────────────────────────
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _isSaving ? null : _saveProfile,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusMd),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          )
-                        : Text(
-                            AppLocalizations.tr('save_profile'),
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
                 ),
               ],
+            ),
+
+            const SizedBox(height: 56),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXl),
+              child: Column(
+                children: [
+                  Text(
+                    AppLocalizations.tr('tap_to_change_photo'),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: AppTheme.textS(context),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // ── Form Card ──────────────────────────────
+                  Container(
+                    padding: const EdgeInsets.all(AppTheme.spaceLg),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface(context),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                      boxShadow: AppTheme.cardShadow,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Username
+                          _buildFieldLabel(AppLocalizations.tr('username')),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _usernameCtrl,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: AppTheme.textP(context),
+                            ),
+                            decoration: _inputDecoration(
+                              hint: AppLocalizations.tr('username_hint'),
+                              icon: Icons.person_outlined,
+                            ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Username wajib diisi';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 18),
+
+                          // Email
+                          _buildFieldLabel(AppLocalizations.tr('email')),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _emailCtrl,
+                            keyboardType: TextInputType.emailAddress,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: AppTheme.textP(context),
+                            ),
+                            decoration: _inputDecoration(
+                              hint: AppLocalizations.tr('email_hint'),
+                              icon: Icons.email_outlined,
+                            ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Email wajib diisi';
+                              }
+                              if (!v.contains('@')) {
+                                return 'Format email tidak valid';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ── MBTI Section ─────────────────────────────
+                  if (_user != null) _buildMBTICard(context, _user!),
+
+                  const SizedBox(height: 16),
+
+                  // Member since
+                  if (auth.isLoggedIn)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.verified_user_rounded,
+                            color: AppTheme.primaryColor,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            '${AppLocalizations.tr('member_since')}: ${_formatDate(DateTime.now())}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  const SizedBox(height: 28),
+
+                  // ── Tombol Simpan ──────────────────────────────
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : _saveProfile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusMd,
+                          ),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : Text(
+                              AppLocalizations.tr('save_profile'),
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // MBTI Card Widget
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildMBTICard(BuildContext context, AppUser user) {
+    final mbtiType = user.mbtiType;
+    final hasMBTI = mbtiType.isNotEmpty;
+
+    return GestureDetector(
+      onTap: () => _showMBTIEditDialog(context, user),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: hasMBTI
+                ? [const Color(0xFF3B82F6), const Color(0xFFEC4899)]
+                : [const Color(0xFF64748B), const Color(0xFF94A3B8)],
+          ),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          boxShadow: [
+            BoxShadow(
+              color:
+                  (hasMBTI ? const Color(0xFF3B82F6) : const Color(0xFF64748B))
+                      .withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Icon
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                hasMBTI ? Icons.psychology_rounded : Icons.help_outline_rounded,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hasMBTI ? 'Tipe MBTI Anda' : 'Belum Ada MBTI',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    hasMBTI
+                        ? '$mbtiType - ${user.mbtiNickname}'
+                        : 'Tap untuk menambahkan',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Edit icon
+            Icon(
+              Icons.edit_rounded,
+              color: Colors.white.withValues(alpha: 0.8),
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // MBTI Edit Dialog
+  // ─────────────────────────────────────────────────────────────
+  Future<void> _showMBTIEditDialog(BuildContext context, AppUser user) async {
+    final mbtiTypes = [
+      'INTJ',
+      'INTP',
+      'ENTJ',
+      'ENTP',
+      'INFJ',
+      'INFP',
+      'ENFJ',
+      'ENFP',
+      'ISTJ',
+      'ISFJ',
+      'ESTJ',
+      'ESFJ',
+      'ISTP',
+      'ISFP',
+      'ESTP',
+      'ESFP',
+    ];
+
+    String? selectedType = user.mbtiType.isNotEmpty ? user.mbtiType : null;
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.psychology_rounded, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            Text(
+              'Pilih Tipe MBTI',
+              style: GoogleFonts.poppins(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textP(context),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: mbtiTypes.map((type) {
+                final isSelected = selectedType == type;
+                return ChoiceChip(
+                  label: Text(
+                    type,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  selected: isSelected,
+                  selectedColor: AppTheme.primaryColor,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : AppTheme.textP(context),
+                  ),
+                  onSelected: (value) {
+                    setState(() => selectedType = type);
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              AppLocalizations.tr('cancel'),
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textS(context),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+            ),
+            onPressed: selectedType == null
+                ? null
+                : () async {
+                    await DatabaseService.updateUser(
+                      user.copyWith(mbtiType: selectedType!),
+                    );
+                    await _loadUserData();
+                    if (ctx.mounted) {
+                      Navigator.pop(ctx);
+                    }
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'MBTI berhasil diubah menjadi $selectedType!',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        backgroundColor: AppTheme.primaryColor,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusSm,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+            child: Text(
+              'Simpan',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
             ),
           ),
         ],
       ),
-    ),
-  ),
-);
+    );
   }
 
-  Widget _buildFieldLabel(BuildContext context, String label) {
+  Widget _buildFieldLabel(String label) {
     return Text(
       label,
       style: GoogleFonts.poppins(
@@ -385,8 +612,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  InputDecoration _inputDecoration(
-    BuildContext context, {
+  InputDecoration _inputDecoration({
     required String hint,
     required IconData icon,
   }) {
@@ -405,34 +631,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        borderSide: const BorderSide(
-          color: AppTheme.primaryColor,
-          width: 1.5,
-        ),
+        borderSide: const BorderSide(color: AppTheme.primaryColor, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        borderSide: const BorderSide(
-          color: Color(0xFFF87171),
-          width: 1.5,
-        ),
+        borderSide: const BorderSide(color: Color(0xFFF87171), width: 1.5),
       ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 14,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
   String _formatDate(DateTime dt) {
     final months = AppLocalizations.currentLocale == 'id'
         ? [
-            'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-            'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'Mei',
+            'Jun',
+            'Jul',
+            'Agu',
+            'Sep',
+            'Okt',
+            'Nov',
+            'Des',
           ]
         : [
-            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec',
           ];
     return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
   }
