@@ -51,7 +51,7 @@ class AudioEmotionDetector extends ChangeNotifier {
 
   /// Muat model TFLite
   Future<void> loadModel({
-    String modelPath = 'lib/src/model_female.tflite',
+    String modelPath = 'assets/model_female.tflite',
   }) async {
     if (_isModelLoaded) return;
 

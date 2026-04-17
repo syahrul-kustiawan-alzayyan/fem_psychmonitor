@@ -74,6 +74,25 @@ extension EmotionTypeExtension on EmotionType {
     }
   }
 
+  /// Nilai numerik emosi untuk mempengaruhi skor kesehatan mental
+  /// Positif = baik, Negatif = butuh perhatian
+  int get emotionValue {
+    switch (this) {
+      case EmotionType.happy:   return 5;
+      case EmotionType.neutral: return 0;
+      case EmotionType.sad:     return -3;
+      case EmotionType.angry:   return -4;
+      case EmotionType.fear:    return -3;
+      case EmotionType.disgust: return -2;
+    }
+  }
+
+  /// Label singkat untuk nilai emosi
+  String get valueLabel {
+    final v = emotionValue;
+    return v > 0 ? '+$v' : '$v';
+  }
+
   /// Daftar saran spesifik setelah rekaman emosi terdeteksi
   List<String> get recordingSuggestions {
     switch (this) {
@@ -140,6 +159,16 @@ class EmotionRecord {
 
   /// Confidence dalam persen: "87%"
   String get confidencePercent => '${(confidence * 100).toStringAsFixed(0)}%';
+
+  /// Skor emosi berbobot: emotionValue × confidence
+  /// Contoh: Happy 87% → 5 × 0.87 = 4.35
+  double get emotionScore => emotion.emotionValue * confidence;
+
+  /// Label skor emosi: "+4.4" atau "-2.1"
+  String get emotionScoreLabel {
+    final s = emotionScore;
+    return s > 0 ? '+${s.toStringAsFixed(1)}' : s.toStringAsFixed(1);
+  }
 }
 
 // ==========================================

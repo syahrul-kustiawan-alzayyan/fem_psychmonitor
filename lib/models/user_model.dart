@@ -173,299 +173,50 @@ const Map<String, List<String>> _mbtiStrengths = {
 // MODEL: Satu pertanyaan MBTI
 // ==========================================
 class MBTIQuestion {
-  final String questionId; // ID pertanyaan (ID)
-  final String questionEn; // Pertanyaan (EN)
-  final String optionA; // Pilihan A (ID)
-  final String optionAEn; // Pilihan A (EN)
-  final String optionB; // Pilihan B (ID)
-  final String optionBEn; // Pilihan B (EN)
-  final String dimension; // 'EI', 'SN', 'TF', 'JP'
+  final int questionId; // ID pertanyaan
+  final String question; // Pertanyaan
+  final String optionA; // Pilihan A
+  final String optionB; // Pilihan B
+  final String dimension; // 'E_I', 'S_N', 'T_F', 'J_P'
   final String firstType; // Tipe untuk pilihan A ('E', 'S', 'T', 'J')
   final String secondType; // Tipe untuk pilihan B ('I', 'N', 'F', 'P')
 
   const MBTIQuestion({
     required this.questionId,
-    required this.questionEn,
+    required this.question,
     required this.optionA,
-    required this.optionAEn,
     required this.optionB,
-    required this.optionBEn,
     required this.dimension,
     required this.firstType,
     required this.secondType,
   });
 
-  /// Ambil pertanyaan sesuai locale
-  String get question {
-    final locale = AppLocalizations.currentLocale;
-    return locale == 'en' ? questionEn : questionId;
+  factory MBTIQuestion.fromJson(Map<String, dynamic> json) {
+    return MBTIQuestion(
+      questionId: json['id'],
+      dimension: json['dimension'],
+      question: json['question'],
+      optionA: json['options'][0]['answer'],
+      firstType: json['options'][0]['type'],
+      optionB: json['options'][1]['answer'],
+      secondType: json['options'][1]['type'],
+    );
   }
 
-  /// Ambil opsi A sesuai locale
-  String get optionAText {
-    final locale = AppLocalizations.currentLocale;
-    return locale == 'en' ? optionAEn : optionA;
-  }
-
-  /// Ambil opsi B sesuai locale
-  String get optionBText {
-    final locale = AppLocalizations.currentLocale;
-    return locale == 'en' ? optionBEn : optionB;
-  }
+  /// Helper untuk mempertahankan kompatibilitas getter dengan UI sebelumnya
+  String get optionAText => optionA;
+  String get optionBText => optionB;
 }
-
-// ==========================================
-// 20 PERTANYAAN MBTI (Bilingual ID/EN)
-// 5 per dimensi: E/I, S/N, T/F, J/P
-// ==========================================
-const List<MBTIQuestion> mbtiQuestions = [
-  // ── EXTRAVERSION vs INTROVERSION (5 pertanyaan) ──
-  MBTIQuestion(
-    questionId: 'Di acara sosial, kamu lebih suka...',
-    questionEn: 'At social events, you prefer to...',
-    optionA: 'Berinteraksi dengan banyak orang, termasuk yang belum dikenal',
-    optionAEn: 'Interact with many people, including strangers',
-    optionB: 'Mengobrol mendalam dengan satu atau dua orang yang sudah dikenal',
-    optionBEn: 'Have deep conversations with one or two people you know well',
-    dimension: 'EI',
-    firstType: 'E',
-    secondType: 'I',
-  ),
-  MBTIQuestion(
-    questionId:
-        'Setelah seharian beraktivitas, kamu mengisi ulang energi dengan...',
-    questionEn: 'After a long day, you recharge by...',
-    optionA: 'Berkumpul dan bersosialisasi dengan teman-teman',
-    optionAEn: 'Gathering and socializing with friends',
-    optionB: 'Menyendiri di tempat tenang, membaca atau mendengarkan musik',
-    optionBEn: 'Being alone in a quiet place, reading or listening to music',
-    dimension: 'EI',
-    firstType: 'E',
-    secondType: 'I',
-  ),
-  MBTIQuestion(
-    questionId: 'Saat mengerjakan proyek, kamu lebih suka...',
-    questionEn: 'When working on a project, you prefer to...',
-    optionA: 'Berkolaborasi dan brainstorming dengan tim secara langsung',
-    optionAEn: 'Collaborate and brainstorm with the team directly',
-    optionB: 'Bekerja mandiri dulu, lalu sharing hasilnya',
-    optionBEn: 'Work independently first, then share the results',
-    dimension: 'EI',
-    firstType: 'E',
-    secondType: 'I',
-  ),
-  MBTIQuestion(
-    questionId: 'Kamu lebih mudah berpikir jernih saat...',
-    questionEn: 'You think more clearly when...',
-    optionA: 'Berdiskusi dan menyampaikan ide secara verbal',
-    optionAEn: 'Discussing and expressing ideas verbally',
-    optionB: 'Merenungkan dan memproses ide dalam pikiran sendiri',
-    optionBEn: 'Reflecting and processing ideas in your own mind',
-    dimension: 'EI',
-    firstType: 'E',
-    secondType: 'I',
-  ),
-  MBTIQuestion(
-    questionId: 'Teman-temanmu mendeskripsikan kamu sebagai orang yang...',
-    questionEn: 'Your friends describe you as someone who is...',
-    optionA: 'Terbuka, ekspresif, dan mudah bergaul',
-    optionAEn: 'Open, expressive, and easy to get along with',
-    optionB: 'Tenang, penuh pikiran, dan introspektif',
-    optionBEn: 'Calm, thoughtful, and introspective',
-    dimension: 'EI',
-    firstType: 'E',
-    secondType: 'I',
-  ),
-
-  // ── SENSING vs INTUITION (5 pertanyaan) ──
-  MBTIQuestion(
-    questionId: 'Saat mempelajari hal baru, kamu lebih suka...',
-    questionEn: 'When learning something new, you prefer...',
-    optionA: 'Instruksi langkah demi langkah yang jelas dan praktis',
-    optionAEn: 'Clear, step-by-step practical instructions',
-    optionB: 'Memahami konsep besar dan teorinya terlebih dahulu',
-    optionBEn: 'Understanding the big concept and theory first',
-    dimension: 'SN',
-    firstType: 'S',
-    secondType: 'N',
-  ),
-  MBTIQuestion(
-    questionId: 'Kamu lebih memperhatikan...',
-    questionEn: 'You pay more attention to...',
-    optionA: 'Detail dan fakta-fakta konkret di depan mata',
-    optionAEn: 'Details and concrete facts in front of you',
-    optionB: 'Pola, makna tersembunyi, dan kemungkinan masa depan',
-    optionBEn: 'Patterns, hidden meanings, and future possibilities',
-    dimension: 'SN',
-    firstType: 'S',
-    secondType: 'N',
-  ),
-  MBTIQuestion(
-    questionId: 'Dalam menyelesaikan masalah, kamu cenderung...',
-    questionEn: 'When solving problems, you tend to...',
-    optionA: 'Menggunakan metode yang sudah terbukti berhasil',
-    optionAEn: 'Use methods that have been proven to work',
-    optionB: 'Mencari pendekatan baru dan solusi kreatif',
-    optionBEn: 'Seek new approaches and creative solutions',
-    dimension: 'SN',
-    firstType: 'S',
-    secondType: 'N',
-  ),
-  MBTIQuestion(
-    questionId: 'Kamu lebih tertarik pada...',
-    questionEn: 'You are more interested in...',
-    optionA: 'Apa yang sedang terjadi saat ini (realita)',
-    optionAEn: 'What is happening right now (reality)',
-    optionB: 'Apa yang mungkin terjadi di masa depan (potensi)',
-    optionBEn: 'What could happen in the future (potential)',
-    dimension: 'SN',
-    firstType: 'S',
-    secondType: 'N',
-  ),
-  MBTIQuestion(
-    questionId: 'Saat membaca, kamu lebih menikmati...',
-    questionEn: 'When reading, you enjoy more...',
-    optionA: 'Konten yang jelas, faktual, dan langsung ke inti',
-    optionAEn: 'Content that is clear, factual, and straight to the point',
-    optionB: 'Narasi imajinatif yang kaya akan metafora dan simbolisme',
-    optionBEn: 'Imaginative narratives rich in metaphors and symbolism',
-    dimension: 'SN',
-    firstType: 'S',
-    secondType: 'N',
-  ),
-
-  // ── THINKING vs FEELING (5 pertanyaan) ──
-  MBTIQuestion(
-    questionId: 'Saat mengambil keputusan penting, kamu lebih mengandalkan...',
-    questionEn: 'When making important decisions, you rely more on...',
-    optionA: 'Logika, data, dan analisis objektif',
-    optionAEn: 'Logic, data, and objective analysis',
-    optionB: 'Perasaan, nilai personal, dan dampak pada orang lain',
-    optionBEn: 'Feelings, personal values, and impact on others',
-    dimension: 'TF',
-    firstType: 'T',
-    secondType: 'F',
-  ),
-  MBTIQuestion(
-    questionId: 'Saat teman curhat tentang masalahnya, kamu cenderung...',
-    questionEn: 'When a friend shares their problems, you tend to...',
-    optionA: 'Langsung memberikan solusi dan saran praktis',
-    optionAEn: 'Immediately offer solutions and practical advice',
-    optionB: 'Mendengarkan dengan empati dan validasi perasaannya',
-    optionBEn: 'Listen with empathy and validate their feelings',
-    dimension: 'TF',
-    firstType: 'T',
-    secondType: 'F',
-  ),
-  MBTIQuestion(
-    questionId: 'Kamu merasa lebih terganggu oleh...',
-    questionEn: 'You feel more bothered by...',
-    optionA: 'Keputusan yang tidak logis atau tidak konsisten',
-    optionAEn: 'Decisions that are illogical or inconsistent',
-    optionB: 'Perlakuan yang tidak adil atau tidak berempati',
-    optionBEn: 'Treatment that is unfair or lacks empathy',
-    dimension: 'TF',
-    firstType: 'T',
-    secondType: 'F',
-  ),
-  MBTIQuestion(
-    questionId: 'Dalam debat atau diskusi, kamu...',
-    questionEn: 'In debates or discussions, you...',
-    optionA: 'Fokus pada kebenaran dan fakta, meskipun kadang tajam',
-    optionAEn: 'Focus on truth and facts, even if sometimes its blunt',
-    optionB: 'Mempertimbangkan perasaan semua pihak agar tetap harmonis',
-    optionBEn: 'Consider everyone\'s feelings to maintain harmony',
-    dimension: 'TF',
-    firstType: 'T',
-    secondType: 'F',
-  ),
-  MBTIQuestion(
-    questionId: 'Kamu lebih menghargai orang yang...',
-    questionEn: 'You value people who are more...',
-    optionA: 'Kompeten, efisien, dan rasional',
-    optionAEn: 'Competent, efficient, and rational',
-    optionB: 'Penuh kasih, pengertian, dan suportif',
-    optionBEn: 'Compassionate, understanding, and supportive',
-    dimension: 'TF',
-    firstType: 'T',
-    secondType: 'F',
-  ),
-
-  // ── JUDGING vs PERCEIVING (5 pertanyaan) ──
-  MBTIQuestion(
-    questionId: 'Dalam kehidupan sehari-hari, kamu lebih suka...',
-    questionEn: 'In daily life, you prefer...',
-    optionA: 'Jadwal yang terstruktur dan rencana yang jelas',
-    optionAEn: 'Structured schedules and clear plans',
-    optionB: 'Fleksibilitas dan spontanitas, biarkan mengalir',
-    optionBEn: 'Flexibility and spontaneity, just go with the flow',
-    dimension: 'JP',
-    firstType: 'J',
-    secondType: 'P',
-  ),
-  MBTIQuestion(
-    questionId: 'Menghadapi deadline, kamu biasanya...',
-    questionEn: 'Facing deadlines, you usually...',
-    optionA: 'Menyelesaikan jauh sebelum deadline agar tidak terburu-buru',
-    optionAEn: 'Finish well before the deadline to avoid rushing',
-    optionB: 'Bekerja paling produktif mendekati deadline (last minute rush)',
-    optionBEn:
-        'Work most productively close to the deadline (last minute rush)',
-    dimension: 'JP',
-    firstType: 'J',
-    secondType: 'P',
-  ),
-  MBTIQuestion(
-    questionId: 'Lemari dan meja kerjamu biasanya...',
-    questionEn: 'Your closet and desk are usually...',
-    optionA: 'Rapi, terorganisir, setiap barang punya tempatnya',
-    optionAEn: 'Neat, organized, everything has its place',
-    optionB: 'Sedikit berantakan tapi kamu tahu di mana semuanya',
-    optionBEn: 'A bit messy but you know where everything is',
-    dimension: 'JP',
-    firstType: 'J',
-    secondType: 'P',
-  ),
-  MBTIQuestion(
-    questionId: 'Saat berlibur, kamu lebih suka...',
-    questionEn: 'When on vacation, you prefer...',
-    optionA: 'Itinerary yang sudah direncanakan detail dari awal',
-    optionAEn: 'A detailed planned itinerary from the start',
-    optionB: 'Jalan-jalan tanpa rencana, lihat situasi di sana',
-    optionBEn: 'Going without plans, seeing what happens there',
-    dimension: 'JP',
-    firstType: 'J',
-    secondType: 'P',
-  ),
-  MBTIQuestion(
-    questionId: 'Kamu merasa lebih nyaman ketika...',
-    questionEn: 'You feel more comfortable when...',
-    optionA: 'Keputusan sudah final dan semuanya sudah diatur',
-    optionAEn: 'Decisions are final and everything is arranged',
-    optionB: 'Opsi masih terbuka dan bisa berubah kapan saja',
-    optionBEn: 'Options are still open and can change anytime',
-    dimension: 'JP',
-    firstType: 'J',
-    secondType: 'P',
-  ),
-];
 
 // ==========================================
 // Helper: Hitung tipe MBTI dari jawaban
 // ==========================================
 /// Hitung tipe MBTI 4-huruf dari daftar jawaban.
-/// [answers] = list 20 item, tiap item 0 (opsi A) atau 1 (opsi B).
+/// [answers] = list pilihan jawaban, 0 (opsi A) atau 1 (opsi B).
 /// Returns `({String type, Map<String, int> scores})`.
-({String type, Map<String, int> scores}) calculateMBTI(List<int> answers) {
+({String type, Map<String, int> scores}) calculateMBTI(List<int> answers, List<MBTIQuestion> mbtiQuestions) {
   final scores = <String, int>{
-    'E': 0,
-    'I': 0,
-    'S': 0,
-    'N': 0,
-    'T': 0,
-    'F': 0,
-    'J': 0,
-    'P': 0,
+    'E': 0, 'I': 0, 'S': 0, 'N': 0, 'T': 0, 'F': 0, 'J': 0, 'P': 0,
   };
 
   for (int i = 0; i < mbtiQuestions.length && i < answers.length; i++) {

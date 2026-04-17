@@ -1,0 +1,498 @@
+{
+    "womens_mental_health_assessment": {
+        "title": "Instrumen Penilaian Kesehatan Mental Perempuan",
+        "description": "Kuesioner ini dirancang dengan pendekatan psikologis untuk mengukur tingkat kesejahteraan mental perempuan, mencakup aspek beban ganda, regulasi emosi, citra tubuh, hingga pengaruh hormonal. Skala penilaian menggunakan rentang 0 (paling positif/jarang) hingga 3 (paling negatif/sering).",
+        "questions": [
+            {
+                "id": 1,
+                "category": "Beban Peran & Stres",
+                "question": "Seberapa sering Anda merasa kewalahan dengan ekspektasi atau peran ganda (sebagai pekerja, ibu, istri, atau anak perempuan)?",
+                "options": [
+                    {
+                        "answer": "Tidak pernah / Sangat jarang",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Kadang-kadang",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Hampir setiap saat",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "category": "Regulasi Emosi & Hormonal",
+                "question": "Apakah Anda mengalami perubahan suasana hati (mood swings) yang ekstrem atau perasaan depresi yang signifikan menjelang atau selama siklus menstruasi?",
+                "options": [
+                    {
+                        "answer": "Tidak pernah",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Terkadang, namun mudah diatasi",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering, dan cukup mengganggu aktivitas",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Selalu, dan sangat melumpuhkan keseharian",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 3,
+                "category": "Citra Tubuh (Body Image)",
+                "question": "Seberapa sering Anda merasa tidak berharga atau membenci diri sendiri karena merasa tidak memenuhi standar kecantikan sosial?",
+                "options": [
+                    {
+                        "answer": "Tidak pernah, saya menerima diri apa adanya",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Kadang-kadang merasa kurang percaya diri",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering membandingkan dan merasa buruk",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Sangat sering hingga membatasi interaksi sosial",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 4,
+                "category": "Batas Personal (Boundaries)",
+                "question": "Seberapa sulit bagi Anda untuk berkata 'tidak' kepada permintaan orang lain tanpa merasa bersalah yang berlebihan?",
+                "options": [
+                    {
+                        "answer": "Sangat mudah, saya tahu batasan saya",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Kadang sulit, tapi saya bisa melakukannya",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering merasa bersalah setelah menolak",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Sangat sulit, saya mengorbankan diri sendiri",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 5,
+                "category": "Gejala Depresif",
+                "question": "Seberapa sering Anda kehilangan minat atau kesenangan pada aktivitas yang biasanya Anda nikmati?",
+                "options": [
+                    {
+                        "answer": "Tidak pernah",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Beberapa hari dalam sebulan",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Lebih dari separuh waktu dalam sebulan",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Hampir setiap hari",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 6,
+                "category": "Kecemasan",
+                "question": "Seberapa sering Anda merasa tegang, gelisah, atau kesulitan menghentikan pikiran yang mengkhawatirkan masa depan?",
+                "options": [
+                    {
+                        "answer": "Tidak pernah",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Beberapa hari",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sebagian besar hari",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Setiap hari",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 7,
+                "category": "Kelelahan & Tidur",
+                "question": "Bagaimana kualitas tidur Anda dalam sebulan terakhir (sulit tidur, sering terbangun, atau tidur berlebihan)?",
+                "options": [
+                    {
+                        "answer": "Sangat baik dan nyenyak",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Sesekali mengalami gangguan",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering kesulitan tidur dengan baik",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Tidur sangat terganggu setiap malam",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 8,
+                "category": "Perawatan Diri (Self-Care)",
+                "question": "Apakah Anda merasa bersalah atau egois ketika meluangkan waktu murni untuk merawat diri sendiri (me-time)?",
+                "options": [
+                    {
+                        "answer": "Tidak, saya sadar itu penting",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Kadang sedikit bersalah",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering merasa bersalah",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Selalu merasa egois dan akhirnya tidak melakukannya",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 9,
+                "category": "Isolasi Sosial",
+                "question": "Seberapa sering Anda merasa kesepian atau merasa tidak ada seorang pun yang benar-benar memahami beban Anda?",
+                "options": [
+                    {
+                        "answer": "Tidak pernah",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Kadang-kadang",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Hampir setiap saat",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 10,
+                "category": "Gejala Fisik (Psikosomatis)",
+                "question": "Seberapa sering Anda mengalami keluhan fisik tanpa penyebab medis yang jelas saat stres (misal: sakit kepala, asam lambung, nyeri otot)?",
+                "options": [
+                    {
+                        "answer": "Tidak pernah",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Jarang",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Sangat sering",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 11,
+                "category": "Kestabilan Emosi",
+                "question": "Dalam situasi yang menekan, seberapa sering Anda menangis secara tiba-tiba tanpa alasan yang spesifik?",
+                "options": [
+                    {
+                        "answer": "Tidak pernah",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Jarang",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Hampir setiap hari",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 12,
+                "category": "Koping Mekanisme",
+                "question": "Saat menghadapi masalah berat, apakah Anda menggunakan pelarian yang berisiko (seperti emotional eating, belanja impulsif, atau zat adiktif)?",
+                "options": [
+                    {
+                        "answer": "Tidak, saya menghadapinya dengan sehat",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Sesekali",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Cukup sering sebagai jalan keluar cepat",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Ya, saya sangat bergantung pada hal tersebut",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 13,
+                "category": "Hubungan Interpersonal",
+                "question": "Apakah Anda memiliki sistem dukungan (support system) yang membuat Anda merasa aman menceritakan masalah Anda tanpa dihakimi?",
+                "options": [
+                    {
+                        "answer": "Ya, sangat kuat",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Ada, namun terbatas",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Hanya sedikit dan jarang bisa diandalkan",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Tidak ada sama sekali",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 14,
+                "category": "Fokus & Konsentrasi",
+                "question": "Seberapa sering masalah emosional membuat Anda kehilangan fokus atau kesulitan mengambil keputusan sehari-hari?",
+                "options": [
+                    {
+                        "answer": "Tidak pernah mengganggu",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Kadang membuat lambat berpikir",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering membuat pekerjaan terbengkalai",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Sangat sering hingga tidak bisa berfungsi normal",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 15,
+                "category": "Validasi Sosial",
+                "question": "Seberapa besar komentar, opini, atau kritik masyarakat tentang hidup Anda (misal: pilihan karir, pernikahan, anak) memengaruhi kesehatan mental Anda?",
+                "options": [
+                    {
+                        "answer": "Sangat kecil, saya memegang kendali hidup saya",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Cukup memengaruhi sementara waktu",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sangat memengaruhi dan membuat cemas",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Mendominasi seluruh keputusan dan pikiran saya",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 16,
+                "category": "Trauma & Masa Lalu",
+                "question": "Seberapa sering memori buruk atau pengalaman traumatis di masa lalu muncul tiba-tiba dan mengganggu ketenangan Anda saat ini?",
+                "options": [
+                    {
+                        "answer": "Tidak pernah",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Jarang dan bisa segera dikendalikan",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering dan memicu rasa panik",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Sangat sering (flashbacks) yang melumpuhkan",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 17,
+                "category": "Rasa Lelah (Burnout)",
+                "question": "Apakah Anda merasa kelelahan secara emosional dan fisik hingga merasa 'kosong' saat memulai hari?",
+                "options": [
+                    {
+                        "answer": "Tidak, saya bersemangat",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Hanya saat jadwal sedang sangat padat",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering merasa lelah bahkan setelah istirahat",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Hampir setiap hari merasa kosong (burnout)",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 18,
+                "category": "Kemarahan",
+                "question": "Seberapa mudah Anda merasa tersinggung, mudah marah, atau meledak-ledak pada hal-hal kecil di sekitar Anda?",
+                "options": [
+                    {
+                        "answer": "Saya sangat sabar dan tenang",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Kadang terpancing jika sudah sangat lelah",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering merespons dengan amarah",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Sangat reaktif dan sulit mengendalikan emosi",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 19,
+                "category": "Insecurity Media Sosial",
+                "question": "Saat melihat pencapaian atau kehidupan perempuan lain di media sosial, apa yang paling sering Anda rasakan?",
+                "options": [
+                    {
+                        "answer": "Biasa saja atau merasa terinspirasi",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Kadang membandingkan sesaat",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Sering merasa tertinggal dan cemas",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Selalu merasa hidup saya gagal dan tidak berharga",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 20,
+                "category": "Harapan Hidup",
+                "question": "Secara umum, bagaimana pandangan Anda terhadap masa depan Anda sendiri?",
+                "options": [
+                    {
+                        "answer": "Penuh harapan dan optimis",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Cukup realistis namun ada sedikit kekhawatiran",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Pesimis dan merasa tidak ada yang akan membaik",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Sangat putus asa (hopeless)",
+                        "score": 3
+                    }
+                ]
+            }
+        ],
+        "scoring_system": {
+            "total_max_score": 60,
+            "calculation": "Jumlahkan seluruh skor dari 20 pertanyaan untuk menentukan kelas kesehatan mental.",
+            "classes": [
+                {
+                    "class_level": 1,
+                    "class_name": "Sehat Optimal (Baik Sekali)",
+                    "score_range": "0 - 15",
+                    "description": "Kondisi kesehatan mental Anda sangat baik. Anda memiliki mekanisme koping yang tangguh, batasan personal yang sehat, dan mampu mengelola stres serta tuntutan sosial dengan sangat efektif. Tetap pertahankan gaya hidup sehat dan dukungan sosial Anda."
+                },
+                {
+                    "class_level": 2,
+                    "class_name": "Cukup Sehat (Ringan)",
+                    "score_range": "16 - 30",
+                    "description": "Kesehatan mental Anda secara umum stabil, namun ada beberapa pemicu stres (seperti beban ganda atau fluktuasi hormonal) yang mulai memengaruhi rutinitas. Ini adalah fase wajar. Sangat disarankan untuk meningkatkan waktu istirahat dan self-care."
+                },
+                {
+                    "class_level": 3,
+                    "class_name": "Rentan (Sedang)",
+                    "score_range": "31 - 45",
+                    "description": "Anda sedang menghadapi tantangan emosional yang signifikan. Terdapat gejala kelelahan mental (burnout), kecemasan, atau masalah citra diri yang mulai mengganggu fungsi harian. Mulailah berbicara dengan orang terpercaya atau pertimbangkan sesi konseling awal."
+                },
+                {
+                    "class_level": 4,
+                    "class_name": "Butuh Perhatian Klinis (Berat / Sangat Rentan)",
+                    "score_range": "46 - 60",
+                    "description": "Skor ini mengindikasikan distres psikologis yang tinggi. Anda mungkin merasa kewalahan, putus asa, atau mengalami gejala psikosomatis yang mengganggu kesehatan fisik. Sangat disarankan untuk segera mencari bantuan profesional (psikolog klinis/psikiater) untuk mendapatkan intervensi yang tepat."
+                }
+            ]
+        }
+    }
+}

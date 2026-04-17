@@ -198,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           1,
                           0.15,
                         ),
-                        child: _buildPsychCard(context, latest),
+                        child: _buildPsychCard(context, latest, historyList),
                       ),
                     ),
 
@@ -493,13 +493,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Widget: Kartu Status Psikis dengan Gradien
   // Menampilkan hasil asesmen kesehatan mental dari onboarding
   // ─────────────────────────────────────────────────────────────
-  Widget _buildPsychCard(BuildContext context, EmotionRecord? latest) {
+  Widget _buildPsychCard(BuildContext context, EmotionRecord? latest, List<EmotionRecord> history) {
     // Ambil data user dari database
     return FutureBuilder<AppUser?>(
       future: DatabaseService.getUser(),
       builder: (context, snapshot) {
         final user = snapshot.data;
-        final psychScore = user?.psychologicalScore;
+        final basePsychScore = user?.psychologicalScore;
+
+        // Hitung skor emosi dari deteksi terbaru (max 10 sesi terakhir)
+        double emotionAdjustment = 0;
+        if (history.isNotEmpty) {
+          final recentSessions = history.take(10).toList();
+          final avgEmotionScore = recentSessions.fold<double>(
+            0, (sum, r) => sum + r.emotionScore,
+          ) / recentSessions.length;
+          // Normalisasi: avgEmotionScore range -5..+5 → adjustment -5..+5
+          emotionAdjustment = avgEmotionScore;
+        }
+
+        // Skor akhir = skor dasar kuesioner - penyesuaian emosi
+        // (skor kuesioner tinggi = buruk, emosi positif mengurangi skor)
+        int? adjustedScore;
+        if (basePsychScore != null) {
+          adjustedScore = (basePsychScore - emotionAdjustment.round()).clamp(0, 30);
+        }
 
         // Tentukan warna dan info berdasarkan skor
         Color primaryColor;
@@ -509,7 +527,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         String emoji;
         String description;
 
-        if (psychScore == null) {
+        if (adjustedScore == null) {
           primaryColor = const Color(0xFF64748B);
           secondaryColor = const Color(0xFF94A3B8);
           statusLabel = 'Belum Dinilai';
@@ -517,7 +535,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           emoji = '📋';
           description =
               'Isi kuesioner kesehatan mental untuk melihat skor Anda';
-        } else if (psychScore <= 10) {
+        } else if (adjustedScore <= 10) {
           primaryColor = const Color(0xFF10B981); // Green - Baik
           secondaryColor = const Color(0xFF34D399);
           statusLabel = 'Kondisi Stabil';
@@ -526,7 +544,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           description =
               user?.mentalHealthAdvice.split('.').first ??
               'Kondisi psikis Anda terpelihara dengan baik';
-        } else if (psychScore <= 20) {
+        } else if (adjustedScore <= 20) {
           primaryColor = const Color(0xFFF59E0B); // Amber - Cukup
           secondaryColor = const Color(0xFFFBBF24);
           statusLabel = 'Perlu Istirahat';
@@ -545,6 +563,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               user?.mentalHealthAdvice.split('.').first ??
               'Beban emosional yang cukup berat';
         }
+
+        // Label skor yang ditampilkan
+        final displayScore = adjustedScore ?? basePsychScore;
 
         return Container(
           width: double.infinity,
@@ -707,8 +728,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              psychScore != null
-                                  ? '$psychScore / 30'
+                              displayScore != null
+                                  ? '$displayScore / 30'
                                   : '--- / 30',
                               style: GoogleFonts.poppins(
                                 fontSize: 36,
@@ -720,8 +741,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              psychScore != null
-                                  ? _getScoreCategory(psychScore)
+                              displayScore != null
+                                  ? _getScoreCategory(displayScore)
                                   : 'Skor Kesehatan Mental',
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
@@ -769,6 +790,61 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ],
                       ),
                     ),
+
+                    // Indikator dampak emosi terbaru
+                    if (history.isNotEmpty && adjustedScore != null) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              emotionAdjustment >= 0
+                                  ? Icons.trending_up_rounded
+                                  : Icons.trending_down_rounded,
+                              color: Colors.white.withValues(alpha: 0.85),
+                              size: 14,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                emotionAdjustment >= 0
+                                    ? 'Emosi positif mempengaruhi skor Anda'
+                                    : 'Emosi negatif mempengaruhi skor Anda',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10.5,
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                emotionAdjustment >= 0
+                                    ? '+${emotionAdjustment.abs().toStringAsFixed(1)}'
+                                    : '-${emotionAdjustment.abs().toStringAsFixed(1)}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
 
                     // Deteksi terakhir (jika ada)
                     if (latest != null) ...[

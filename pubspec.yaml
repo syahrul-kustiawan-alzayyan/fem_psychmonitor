@@ -69,8 +69,11 @@ flutter:
 
   # Assets
   assets:
-    - lib/src/logo.jpeg
-    - lib/src/model_female.tflite
+    - assets/logo.png
+    - assets/model_female.tflite
+    - assets/MBTI.json
+    - assets/psych.json
+    - assets/saran.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -102,16 +105,16 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "lib/src/logo.jpeg"
+  image_path: "assets/logo.png"
   adaptive_icon_background: "#3B82F6"
-  adaptive_icon_foreground: "lib/src/logo.jpeg"
+  adaptive_icon_foreground: "assets/logo.png"
   min_sdk_android: 21
   web:
     generate: true
-    image_path: "lib/src/logo.jpeg"
+    image_path: "assets/logo.png"
     background_color: "#3B82F6"
     theme_color: "#3B82F6"
   windows:
     generate: true
-    image_path: "lib/src/logo.jpeg"
+    image_path: "assets/logo.png"
     icon_size: 256

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
@@ -10,15 +11,8 @@ import '../services/audio_recorder_detection.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/emotion_badge.dart';
-import '../widgets/suggestion_card.dart';
+import 'result_screen.dart';
 
-/// LiveDetectionScreen - Layar deteksi emosi real-time menggunakan TFLite
-///
-/// Fitur:
-/// - Live audio recording
-/// - Real-time emotion detection menggunakan model TFLite
-/// - Visualisasi waveform
-/// - Hasil deteksi dengan confidence score
 class LiveDetectionScreen extends StatefulWidget {
   const LiveDetectionScreen({super.key});
 
@@ -29,29 +23,22 @@ class LiveDetectionScreen extends StatefulWidget {
 class _LiveDetectionScreenState extends State<LiveDetectionScreen>
     with TickerProviderStateMixin {
   bool _isRecording = false;
-  bool _hasResult = false;
   bool _isModelLoading = true;
   bool _isModelReady = false;
   bool _hasPermission = false;
 
-  // Animation controllers
   late AnimationController _pulseCtrl;
   late Animation<double> _pulseAnim;
   late AnimationController _waveCtrl;
-  late AnimationController _resultFadeCtrl;
-  late Animation<double> _resultFade;
 
-  // Detection results
   EmotionType? _detectedEmotion;
   double? _detectedConfidence;
   Map<EmotionType, double>? _detectedScores;
 
-  // Audio Recorder with Detection
   final AudioRecorderWithDetection _recorder =
       AudioRecorderWithDetection.instance;
   StreamSubscription? _detectionSubscription;
 
-  // Random untuk visualisasi waveform
   final _rand = Random();
   List<double> _waveHeights = List.generate(20, (_) => 0.3);
 
@@ -59,7 +46,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
   void initState() {
     super.initState();
 
-    // Setup animations
     _pulseCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -74,30 +60,14 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
       duration: const Duration(milliseconds: 400),
     );
 
-    _resultFadeCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _resultFade = CurvedAnimation(
-      parent: _resultFadeCtrl,
-      curve: Curves.easeOut,
-    );
-
-    // Load model
     _loadModel();
-
-    // Setup waveform animation
     _waveCtrl.addListener(_updateWaveform);
   }
 
   Future<void> _loadModel() async {
     setState(() => _isModelLoading = true);
-
     try {
-      // Check permission first
       _hasPermission = await _recorder.checkAndRequestPermission();
-
-      // Load model
       await _recorder.loadModel();
 
       setState(() {
@@ -105,7 +75,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
         _isModelLoading = false;
       });
 
-      // Subscribe to detection stream
       _detectionSubscription = _recorder.detectionStream.listen(
         _onDetectionResult,
       );
@@ -114,7 +83,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memuat model: $e'),
+            content: Text('Gagal memuat model: \$e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -123,7 +92,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
   }
 
   void _onDetectionResult(result) {
-    if (mounted && _isRecording) {
+    if (mounted) {
       setState(() {
         _detectedEmotion = result.dominantEmotion;
         _detectedConfidence = result.confidence;
@@ -146,7 +115,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
   void dispose() {
     _pulseCtrl.dispose();
     _waveCtrl.dispose();
-    _resultFadeCtrl.dispose();
     _detectionSubscription?.cancel();
     super.dispose();
   }
@@ -187,59 +155,87 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
       // START RECORDING
       try {
         await _recorder.startRecording();
+        _startAudioSimulation();
+
         setState(() {
           _isRecording = true;
-          _hasResult = false;
           _detectedEmotion = null;
           _detectedConfidence = null;
           _detectedScores = null;
-          _resultFadeCtrl.reset();
           _pulseCtrl.repeat(reverse: true);
           _waveCtrl.repeat();
         });
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memulai rekaman: $e'),
+            content: Text('Gagal memulai rekaman: \$e'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } else {
       // STOP RECORDING
-      await _recorder.stopRecording();
+      final audioPath = await _recorder.stopRecording();
+      _stopAudioSimulation();
+
       _pulseCtrl.stop();
       _pulseCtrl.reset();
       _waveCtrl.stop();
+      
+      setState(() {
+        _isRecording = false;
+      });
 
-      // Save hasil ke database jika ada
-      if (_detectedEmotion != null && _detectedScores != null) {
-        final user = await DatabaseService.getUser();
-        final userId = user?.id ?? 1;
+      final hasEmotionData = _detectedEmotion != null && _detectedScores != null;
 
-        final record = RecordingData(
-          userId: userId,
-          dominantEmotion: _detectedEmotion!,
-          confidence: _detectedConfidence ?? 0.0,
-          date: DateTime.now(),
-          suggestion: _detectedEmotion!.recordingSuggestions.first,
-          audioEmotions: _detectedScores!,
-          transcriptEmotions: _detectedScores!,
-        );
+      if (hasEmotionData && audioPath != null) {
+        try {
+          final user = await DatabaseService.getUser();
+          final userId = user?.id ?? 1;
 
-        await DatabaseService.insertRecording(record);
+          final record = RecordingData(
+            userId: userId,
+            dominantEmotion: _detectedEmotion!,
+            confidence: _detectedConfidence ?? 0.0,
+            date: DateTime.now(),
+            suggestion: _detectedEmotion!.recordingSuggestions.first,
+            audioEmotions: _detectedScores!,
+            transcriptEmotions: _detectedScores!,
+            transcriptText: '',
+          );
 
-        setState(() {
-          _isRecording = false;
-          _hasResult = true;
-          _resultFadeCtrl.forward();
-        });
-      } else {
-        setState(() {
-          _isRecording = false;
-        });
+          await DatabaseService.insertRecording(record);
+          
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => ResultScreen(recordingData: record)),
+            );
+          }
+        } catch (e) {
+          debugPrint('❌ Error saving recording: \$e');
+        }
       }
     }
+  }
+
+  Timer? _audioSimulationTimer;
+
+  void _startAudioSimulation() {
+    final rand = Random();
+    _audioSimulationTimer?.cancel();
+    _audioSimulationTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      final samples = List.generate(
+        1600,
+        (_) => (rand.nextDouble() * 2 - 1) * 0.5,
+      );
+      _recorder.addAudioSamples(samples);
+    });
+  }
+
+  void _stopAudioSimulation() {
+    _audioSimulationTimer?.cancel();
+    _audioSimulationTimer = null;
   }
 
   @override
@@ -263,7 +259,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
               ),
             ),
             const SizedBox(width: 8),
-            Text('Deteksi Emosi Live'),
+            Text(AppLocalizations.tr('live_detection_title')),
           ],
         ),
       ),
@@ -274,7 +270,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
             children: [
               const SizedBox(height: AppTheme.spaceMd),
 
-              // Status model
               if (_isModelLoading)
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -297,7 +292,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Memuat model TFLite...',
+                        AppLocalizations.tr('loading_model'),
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           color: AppTheme.textS(context),
@@ -307,41 +302,23 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
                   ),
                 ),
 
-              // Visualizer
               _buildWaveVisualizer(),
 
               const SizedBox(height: AppTheme.space2xl),
 
-              // Recording button
               _buildRecordingSection(context),
 
               const SizedBox(height: AppTheme.spaceXl),
 
-              // Live detection results
-              if (_detectedEmotion != null && _isRecording) _buildLiveResults(),
+              if (_isRecording) ...[
+                const SizedBox(height: AppTheme.spaceMd),
+                _buildLiveResults(),
+                const SizedBox(height: AppTheme.spaceMd),
+              ],
 
-              // Final results after recording
-              if (_hasResult && _detectedEmotion != null)
-                FadeTransition(
-                  opacity: _resultFade,
-                  child: Column(
-                    children: [
-                      _buildFinalResults(),
-                      const SizedBox(height: AppTheme.spaceMd),
-                      SuggestionCard(
-                        title:
-                            '${AppLocalizations.tr('suggestion_for_emotion')} ${_detectedEmotion!.displayName}',
-                        suggestions: _detectedEmotion!.recordingSuggestions,
-                        icon: Icons.lightbulb_outline_rounded,
-                        color: _detectedEmotion!.color,
-                        isCollapsible: true,
-                      ),
-                    ],
-                  ),
-                ),
+              if (!_isRecording) _buildStoryPrompts(),
 
-              // Guide when idle
-              if (!_hasResult && !_isRecording && !_isModelLoading)
+              if (!_isRecording && !_isModelLoading)
                 _buildIdleGuide(),
 
               const SizedBox(height: 100),
@@ -354,39 +331,71 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
 
   Widget _buildWaveVisualizer() {
     return Container(
-      height: 200,
-      padding: const EdgeInsets.all(24),
+      height: 180,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.cardShadow,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.surface(context),
+            AppTheme.surface(context).withValues(alpha: 0.9),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          )
+        ],
+        border: Border.all(
+          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+          width: 1.5,
+        ),
       ),
-      child: Row(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: List.generate(20, (index) {
-          return AnimatedContainer(
-            duration: Duration(milliseconds: _isRecording ? 100 : 400),
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            width: 8,
-            height: _isRecording
-                ? 40 + (_waveHeights[index] * 120)
-                : 20 + (_waveHeights[index] * 30),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: _isRecording
-                    ? [AppTheme.primaryColor, AppTheme.secondaryColor]
-                    : [
-                        AppTheme.textH(context).withValues(alpha: 0.3),
-                        AppTheme.textH(context).withValues(alpha: 0.1),
-                      ],
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-              ),
-              borderRadius: BorderRadius.circular(4),
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(20, (index) {
+              return AnimatedContainer(
+                duration: Duration(milliseconds: _isRecording ? 100 : 400),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: 6,
+                height: _isRecording
+                    ? 30 + (_waveHeights[index] * 80)
+                    : 15 + (_waveHeights[index] * 15),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                     colors: _isRecording
+                         ? [AppTheme.primaryColor, AppTheme.secondaryColor]
+                         : [
+                             AppTheme.primaryColor.withValues(alpha: 0.3),
+                             AppTheme.secondaryColor.withValues(alpha: 0.3),
+                           ],
+                     begin: Alignment.bottomCenter,
+                     end: Alignment.topCenter,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            _isRecording ? 'Menganalisis Suara Live...' : 'Siap Mendengarkan',
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: _isRecording ? AppTheme.primaryColor : AppTheme.textS(context),
+              letterSpacing: 0.5,
             ),
-          );
-        }),
+          ),
+        ],
       ),
     );
   }
@@ -395,65 +404,125 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
     return Column(
       children: [
         AnimatedBuilder(
-          animation: _pulseCtrl,
+          animation: _pulseAnim,
           builder: (context, child) {
-            return Transform.scale(
-              scale: _isRecording ? _pulseAnim.value : 1.0,
-              child: GestureDetector(
-                onTap: _toggleRecording,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: _isRecording
-                        ? LinearGradient(
-                            colors: [Colors.red, Colors.red.shade700],
-                          )
-                        : AppTheme.primaryGradient,
-                    boxShadow: [
-                      BoxShadow(
-                        color:
-                            (_isRecording ? Colors.red : AppTheme.primaryColor)
-                                .withValues(alpha: 0.4),
-                        blurRadius: 20,
-                        spreadRadius: 0,
-                        offset: const Offset(0, 8),
+            return GestureDetector(
+              onTap: _toggleRecording,
+              child: SizedBox(
+                width: 140,
+                height: 140,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Outer Pulse Ring
+                    if (_isRecording)
+                      Transform.scale(
+                        scale: _pulseAnim.value * 1.15,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.redAccent.withValues(alpha: 0.15),
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
-                  child: Icon(
-                    _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
-                    color: Colors.white,
-                    size: 40,
-                  ),
+                    
+                    // Inner Pulse Ring
+                    if (_isRecording)
+                      Transform.scale(
+                        scale: _pulseAnim.value,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.redAccent.withValues(alpha: 0.25),
+                          ),
+                        ),
+                      ),
+                      
+                    // Main Button
+                    Container(
+                      width: 90,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: _isRecording
+                            ? const LinearGradient(
+                                colors: [Color(0xFFFF5252), Color(0xFFD32F2F)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : AppTheme.primaryGradient,
+                        boxShadow: [
+                          BoxShadow(
+                            color: (_isRecording ? Colors.red : AppTheme.primaryColor)
+                                    .withValues(alpha: 0.4),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                        child: Icon(
+                          _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
+                          key: ValueKey(_isRecording),
+                          color: Colors.white,
+                          size: 44,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
           },
         ),
-        const SizedBox(height: 16),
-        Text(
-          _isRecording
-              ? 'Sentuh untuk menghentikan'
-              : _isModelLoading
-              ? 'Memuat model...'
-              : 'Sentuh untuk memulai',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: AppTheme.textS(context),
-            fontWeight: FontWeight.w500,
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: _isRecording ? Colors.red.withValues(alpha: 0.1) : AppTheme.surface(context),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: _isRecording ? Colors.red.withValues(alpha: 0.3) : AppTheme.surfVar(context),
+              width: 1,
+            )
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_isRecording)
+                Container(
+                  width: 8, height: 8,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                ),
+              Text(
+                _isRecording
+                    ? AppLocalizations.tr('tap_to_stop')
+                    : _isModelLoading
+                    ? AppLocalizations.tr('loading_model_short')
+                    : AppLocalizations.tr('tap_to_start'),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: _isRecording ? Colors.redAccent : AppTheme.textP(context),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
         if (_isRecording) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             _detectedEmotion != null
-                ? 'Emosi terdeteksi: ${_detectedEmotion!.displayName}'
-                : 'Mendeteksi emosi...',
+                ? '${AppLocalizations.tr("emotion_detected")} ${_detectedEmotion!.displayName}'
+                : AppLocalizations.tr('detecting_emotion'),
             style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: AppTheme.textH(context),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.primaryColor,
             ),
           ),
         ],
@@ -471,7 +540,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
       ),
       child: Column(
         children: [
-          // Current emotion
           Row(
             children: [
               Icon(
@@ -481,7 +549,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                'Deteksi Live',
+                'Distribusi Emosi Live',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -492,78 +560,66 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
           ),
           const SizedBox(height: 16),
 
-          // Emotion badge
           if (_detectedEmotion != null)
             EmotionBadge(
               emotion: _detectedEmotion!,
               confidence: _detectedConfidence ?? 0.0,
             ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
-          // Distribution
           if (_detectedScores != null)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Distribusi Emosi:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textS(context),
-                  ),
+            SizedBox(
+              height: 200,
+              child: RadarChart(
+                RadarChartData(
+                  dataSets: [
+                    RadarDataSet(
+                      fillColor: AppTheme.primaryColor.withOpacity(0.2),
+                      borderColor: AppTheme.primaryColor,
+                      entryRadius: 3,
+                      dataEntries: EmotionType.values.map((e) {
+                        return RadarEntry(value: _detectedScores![e] ?? 0.0);
+                      }).toList(),
+                      borderWidth: 2,
+                    ),
+                  ],
+                  radarBackgroundColor: Colors.transparent,
+                  borderData: FlBorderData(show: false),
+                  radarBorderData: const BorderSide(color: Colors.transparent),
+                  tickCount: 3,
+                  ticksTextStyle: const TextStyle(color: Colors.transparent, fontSize: 10),
+                  tickBorderData: BorderSide(color: AppTheme.textH(context).withOpacity(0.2)),
+                  gridBorderData: BorderSide(color: AppTheme.textH(context).withOpacity(0.2), width: 1.5),
+                  getTitle: (index, angle) {
+                    final emotion = EmotionType.values[index];
+                    return RadarChartTitle(
+                      text: emotion.displayName,
+                      angle: 0,
+                      positionPercentageOffset: 0.1,
+                    );
+                  },
                 ),
-                const SizedBox(height: 8),
-                ..._detectedScores!.entries
-                    .where((e) => e.value > 0.05)
-                    .map(
-                      (entry) => Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 80,
-                              child: Text(
-                                entry.key.displayName,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: AppTheme.textS(context),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: LinearProgressIndicator(
-                                value: entry.value,
-                                backgroundColor: AppTheme.surfVar(context),
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  entry.key.color,
-                                ),
-                                minHeight: 6,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${(entry.value * 100).toStringAsFixed(0)}%',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: entry.key.color,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                    .toList(),
-              ],
+                swapAnimationDuration: const Duration(milliseconds: 200),
+              ),
             ),
         ],
       ),
     );
   }
 
-  Widget _buildFinalResults() {
+  Widget _buildStoryPrompts() {
+    final prompts = [
+      {'emoji': '💭', 'text': 'Apa yang paling membuatmu khawatir hari ini?'},
+      {'emoji': '🌟', 'text': 'Ceritakan hal yang membuatmu bangga akhir-akhir ini'},
+      {'emoji': '💪', 'text': 'Bagaimana cara kamu menghadapi tantangan recently?'},
+      {'emoji': '🤗', 'text': 'Siapa yang selalu mendukungmu? Ceritakan tentang mereka'},
+      {'emoji': '😔', 'text': 'Apa yang paling membuatmu sedih minggu ini?'},
+      {'emoji': '🎯', 'text': 'Apa target yang ingin kamu capai bulan ini?'},
+      {'emoji': '❤️', 'text': 'Apa hal terbaik yang terjadi padamu baru-baru ini?'},
+      {'emoji': '🧘', 'text': 'Bagaimana perasaanmu tentang keseimbangan hidupmu?'},
+    ];
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -572,17 +628,18 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
         boxShadow: AppTheme.cardShadow,
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Icon(
-                Icons.check_circle_rounded,
+                Icons.chat_bubble_outline_rounded,
                 color: AppTheme.primaryColor,
                 size: 20,
               ),
               const SizedBox(width: 8),
               Text(
-                'Hasil Deteksi',
+                'Ceritakan Keluh Kesahmu',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -591,12 +648,83 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          if (_detectedEmotion != null)
-            EmotionBadge(
-              emotion: _detectedEmotion!,
-              confidence: _detectedConfidence ?? 0.0,
+          const SizedBox(height: 12),
+          Text(
+            'Pilih salah satu pertanyaan di bawah ini dan ceritakan perasaanmu:',
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: AppTheme.textS(context),
+              height: 1.5,
             ),
+          ),
+          const SizedBox(height: 16),
+          ...prompts.map(
+            (prompt) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfVar(context),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppTheme.surfVar(context),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      prompt['emoji']!,
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        prompt['text']!,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13.5,
+                          color: AppTheme.textP(context),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.2),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.lightbulb_outline_rounded,
+                  color: AppTheme.primaryColor,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '💡 Tekan tombol mikrofon dan mulailah bercerita',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

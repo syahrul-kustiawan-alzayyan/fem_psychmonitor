@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, Directory;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
@@ -81,7 +81,7 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
   /// Muat model TFLite
   Future<void> loadModel({
-    String modelPath = 'lib/src/model_female.tflite',
+    String modelPath = 'assets/model_female.tflite',
   }) async {
     if (_isModelLoaded) return;
 
@@ -157,7 +157,8 @@ class AudioRecorderWithDetection extends ChangeNotifier {
       );
 
       // Start recording dengan path
-      final tempPath = '${DateTime.now().millisecondsSinceEpoch}.wav';
+      final tempDir = Directory.systemTemp;
+      final tempPath = '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.wav';
       await _recorder.start(config, path: tempPath);
       _isRecording = true;
 
@@ -173,7 +174,7 @@ class AudioRecorderWithDetection extends ChangeNotifier {
   }
 
   /// Hentikan rekaman audio
-  Future<void> stopRecording() async {
+  Future<String?> stopRecording() async {
     try {
       debugPrint('⏹️ Stopping recording...');
 
@@ -189,6 +190,7 @@ class AudioRecorderWithDetection extends ChangeNotifier {
       debugPrint('✅ Recording stopped. Saved to: $path');
 
       notifyListeners();
+      return path;
     } catch (e) {
       debugPrint('❌ Error stopping recording: $e');
       rethrow;

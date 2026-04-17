@@ -189,15 +189,15 @@ class _HistoryScreenState extends State<HistoryScreen>
 
                   const SizedBox(height: AppTheme.spaceXl),
 
-                  // ── Section Header: Weekly Chart ─────────────────
+                  // ── Section Header: Emotion Value Chart ──────────
                   _buildSectionHeader(
                     context,
                     icon: Icons.show_chart_rounded,
-                    title: AppLocalizations.tr('confidence_trend'),
+                    title: 'Tren Nilai Emosi',
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    AppLocalizations.tr('confidence_trend_sub'),
+                    'Perkembangan skor emosi dari waktu ke waktu',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppTheme.textS(context),
                     ),
@@ -245,53 +245,33 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   // ─────────────────────────────────────────────────────────────
-  // Widget: AppBar Custom
+  // Widget: AppBar Custom - Sama dengan Record Screen
   // ─────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: AppTheme.primaryGradient,
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.primaryColor.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+      child: AppBar(
+        backgroundColor: AppTheme.bg(context),
+        elevation: 0,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.bar_chart_rounded,
+                color: AppTheme.primaryColor,
+                size: 16,
+              ),
             ),
+            const SizedBox(width: 8),
+            Text(AppLocalizations.tr('nav_history')),
           ],
         ),
-        child: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.bar_chart_rounded,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                AppLocalizations.tr('nav_history'),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
-                  letterSpacing: -0.3,
-                ),
-              ),
-            ],
-          ),
-          iconTheme: const IconThemeData(color: Colors.white),
-        ),
+        iconTheme: IconThemeData(color: AppTheme.textP(context)),
       ),
     );
   }
@@ -499,183 +479,286 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   // ─────────────────────────────────────────────────────────────
-  // Widget: Per-Recording Confidence Line Chart (fl_chart)
+  // Widget: Emotion Value Line Chart (fl_chart)
   //
   // X-axis : urutan sesi rekaman (#1 terlama → #N terbaru)
-  // Y-axis : confidence score 0–100%
+  // Y-axis : nilai emosi berbobot (-5 s/d +5)
   // Dot    : berwarna sesuai EmotionType yang terdeteksi
-  // Tooltip: tampilkan emoji, nama emosi, dan persentase confidence
+  // Tooltip: emoji + nama + nilai emosi + confidence
+  // Area   : hijau di atas 0, merah di bawah 0
   // ─────────────────────────────────────────────────────────────
   Widget _buildWeeklyLineChart() {
     // Urutkan history dari sesi terlama ke terbaru
     final history = List<EmotionRecord>.from(_filteredHistory)
       ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-    // Tiap FlSpot: x = indeks sesi, y = confidence dlm persen (0–100)
+    if (history.isEmpty) {
+      return Container(
+        width: double.infinity,
+        height: 180,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.surface(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.show_chart_rounded, size: 40, color: AppTheme.textH(context)),
+              const SizedBox(height: 8),
+              Text(
+                'Belum ada data emosi',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: AppTheme.textS(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Tiap FlSpot: x = indeks sesi, y = emotionScore (-5 s/d +5)
     final spots = List.generate(
       history.length,
-      (i) => FlSpot(i.toDouble(), history[i].confidence * 100),
+      (i) => FlSpot(i.toDouble(), history[i].emotionScore),
     );
 
-    // Warna per titik sesuai emosi rekaman tersebut
+    // Warna per titik sesuai emosi rekaman
     final emotionColors = history.map((r) => r.emotion.color).toList();
 
-    return Container(
-      width: double.infinity,
-      height: 230,
-      padding: const EdgeInsets.fromLTRB(8, 20, 16, 8),
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-        boxShadow: AppTheme.cardShadow,
-      ),
-      child: LineChart(
-        LineChartData(
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            getDrawingHorizontalLine: (v) =>
-                FlLine(color: const Color(0xFFE2E8F0), strokeWidth: 1),
+    // Rata-rata skor emosi untuk label
+    final avgScore = history.fold<double>(0, (sum, r) => sum + r.emotionScore) / history.length;
+
+    return Column(
+      children: [
+        // Rata-rata skor
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: (avgScore >= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444)).withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: (avgScore >= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444)).withValues(alpha: 0.2),
+            ),
           ),
-          borderData: FlBorderData(show: false),
-          minX: 0,
-          maxX: (history.length - 1).toDouble(),
-          minY: 0,
-          maxY: 100,
-          titlesData: FlTitlesData(
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            // X-axis: #1, #2, #3, ...
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                interval: 1,
-                getTitlesWidget: (v, _) {
-                  final i = v.toInt();
-                  if (i < 0 || i >= history.length) return const SizedBox();
-                  final rec = history[i];
-                  final dayStr = '${rec.timestamp.day}/${rec.timestamp.month}';
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '#${i + 1}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textS(context),
-                            height: 1.1,
-                          ),
-                        ),
-                        Text(
-                          dayStr,
-                          style: GoogleFonts.poppins(
-                            fontSize: 8,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.textH(context),
-                            height: 1.1,
-                          ),
-                        ),
-                      ],
-                    ),
+          child: Row(
+            children: [
+              Icon(
+                avgScore >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                color: avgScore >= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Rata-rata: ${avgScore > 0 ? "+" : ""}${avgScore.toStringAsFixed(1)}',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: avgScore >= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${history.length} sesi',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: AppTheme.textS(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          width: double.infinity,
+          height: 260,
+          padding: const EdgeInsets.fromLTRB(8, 20, 16, 8),
+          decoration: BoxDecoration(
+            color: AppTheme.surface(context),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            boxShadow: AppTheme.cardShadow,
+          ),
+          child: LineChart(
+            LineChartData(
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                getDrawingHorizontalLine: (v) {
+                  if (v == 0) {
+                    return FlLine(
+                      color: AppTheme.textH(context).withValues(alpha: 0.5),
+                      strokeWidth: 1.5,
+                      dashArray: [4, 4],
+                    );
+                  }
+                  return FlLine(
+                    color: AppTheme.textH(context).withValues(alpha: 0.1),
+                    strokeWidth: 0.8,
                   );
                 },
-                reservedSize: 36,
               ),
-            ),
-            // Y-axis: 0%, 25%, 50%, 75%, 100%
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                interval: 25,
-                getTitlesWidget: (v, _) => Text(
-                  '${v.toInt()}%',
-                  style: GoogleFonts.poppins(
-                    fontSize: 9,
-                    color: AppTheme.textH(context),
+              borderData: FlBorderData(show: false),
+              minX: 0,
+              maxX: (history.length - 1).toDouble().clamp(0, double.infinity),
+              minY: -5.5,
+              maxY: 5.5,
+              titlesData: FlTitlesData(
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 1,
+                    getTitlesWidget: (v, _) {
+                      final i = v.toInt();
+                      if (i < 0 || i >= history.length) return const SizedBox();
+                      final rec = history[i];
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              rec.emotion.emoji,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            Text(
+                              '${rec.timestamp.day}/${rec.timestamp.month}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.textH(context),
+                                height: 1.1,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    reservedSize: 36,
                   ),
                 ),
-                reservedSize: 32,
-              ),
-            ),
-          ),
-          lineBarsData: [
-            LineChartBarData(
-              spots: spots,
-              isCurved: true,
-              curveSmoothness: 0.25,
-              // Garis penghubung abu-abu tipis
-              color: AppTheme.primaryColor.withValues(alpha: 0.3),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              // Dot berwarna sesuai emosi masing-masing rekaman
-              dotData: FlDotData(
-                show: true,
-                getDotPainter: (spot, pct, bar, idx) {
-                  final dotColor = idx < emotionColors.length
-                      ? emotionColors[idx]
-                      : AppTheme.primaryColor;
-                  return FlDotCirclePainter(
-                    radius: 6,
-                    color: dotColor,
-                    strokeWidth: 2,
-                    strokeColor: Colors.white,
-                  );
-                },
-              ),
-              belowBarData: BarAreaData(
-                show: true,
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppTheme.primaryColor.withValues(alpha: 0.08),
-                    AppTheme.primaryColor.withValues(alpha: 0.0),
-                  ],
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 2.5,
+                    getTitlesWidget: (v, _) {
+                      final label = v > 0 ? '+${v.toStringAsFixed(0)}' : v.toStringAsFixed(0);
+                      return Text(
+                        label,
+                        style: GoogleFonts.poppins(
+                          fontSize: 9,
+                          color: v > 0
+                              ? const Color(0xFF10B981)
+                              : v < 0
+                                  ? const Color(0xFFEF4444)
+                                  : AppTheme.textH(context),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      );
+                    },
+                    reservedSize: 32,
+                  ),
                 ),
               ),
-            ),
-          ],
-          // Tooltip: emoji emosi + nama + confidence%
-          lineTouchData: LineTouchData(
-            touchTooltipData: LineTouchTooltipData(
-              getTooltipColor: (spot) {
-                final i = spot.x.toInt();
-                if (i >= 0 && i < history.length) {
-                  return history[i].emotion.color.withValues(alpha: 0.92);
-                }
-                return AppTheme.textP(context).withValues(alpha: 0.9);
-              },
-              getTooltipItems: (touchedSpots) {
-                return touchedSpots.map((s) {
-                  final i = s.x.toInt();
-                  final rec = (i >= 0 && i < history.length)
-                      ? history[i]
-                      : null;
-                  final label = rec != null
-                      ? '${rec.emotion.emoji} ${rec.emotion.displayName}\n${rec.confidencePercent}'
-                      : '${s.y.toStringAsFixed(0)}%';
-                  return LineTooltipItem(
-                    label,
-                    GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
-                      height: 1.5,
+              lineBarsData: [
+                LineChartBarData(
+                  spots: spots,
+                  isCurved: true,
+                  curveSmoothness: 0.25,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF10B981), Color(0xFF6366F1)],
+                  ),
+                  barWidth: 2.5,
+                  isStrokeCapRound: true,
+                  dotData: FlDotData(
+                    show: true,
+                    getDotPainter: (spot, pct, bar, idx) {
+                      final dotColor = idx < emotionColors.length
+                          ? emotionColors[idx]
+                          : AppTheme.primaryColor;
+                      return FlDotCirclePainter(
+                        radius: 5,
+                        color: dotColor,
+                        strokeWidth: 2.5,
+                        strokeColor: Colors.white,
+                      );
+                    },
+                  ),
+                  // Area hijau di atas garis 0
+                  aboveBarData: BarAreaData(
+                    show: true,
+                    cutOffY: 0,
+                    applyCutOffY: true,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(0xFF10B981).withValues(alpha: 0.15),
+                        const Color(0xFF10B981).withValues(alpha: 0.0),
+                      ],
                     ),
-                  );
-                }).toList();
-              },
+                  ),
+                  // Area merah di bawah garis 0
+                  belowBarData: BarAreaData(
+                    show: true,
+                    cutOffY: 0,
+                    applyCutOffY: true,
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        const Color(0xFFEF4444).withValues(alpha: 0.12),
+                        const Color(0xFFEF4444).withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              lineTouchData: LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipColor: (spot) {
+                    final i = spot.x.toInt();
+                    if (i >= 0 && i < history.length) {
+                      return history[i].emotion.color.withValues(alpha: 0.92);
+                    }
+                    return AppTheme.textP(context).withValues(alpha: 0.9);
+                  },
+                  getTooltipItems: (touchedSpots) {
+                    return touchedSpots.map((s) {
+                      final i = s.x.toInt();
+                      final rec = (i >= 0 && i < history.length)
+                          ? history[i]
+                          : null;
+                      final label = rec != null
+                          ? '${rec.emotion.emoji} ${rec.emotion.displayName}\nSkor: ${rec.emotionScoreLabel} • ${rec.confidencePercent}'
+                          : s.y.toStringAsFixed(1);
+                      return LineTooltipItem(
+                        label,
+                        GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                          height: 1.5,
+                        ),
+                      );
+                    }).toList();
+                  },
+                ),
+              ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -814,133 +897,173 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   // ─────────────────────────────────────────────────────────────
-  // Widget: Item Log Emosi — styled card dengan accent border
+  // Widget: Item Log Emosi — tappable card dengan accent border
   // ─────────────────────────────────────────────────────────────
   Widget _buildLogItem(BuildContext context, EmotionRecord record) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        boxShadow: AppTheme.cardShadow,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
-              // Left accent border
-              Container(
-                width: 4,
-                decoration: BoxDecoration(
-                  color: record.emotion.color,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(AppTheme.radiusMd),
-                    bottomLeft: Radius.circular(AppTheme.radiusMd),
+    return GestureDetector(
+      onTap: () => _showRecordDetail(context, record),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: AppTheme.surface(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                // Left accent border
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: record.emotion.color,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(AppTheme.radiusMd),
+                      bottomLeft: Radius.circular(AppTheme.radiusMd),
+                    ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 13,
-                  ),
-                  child: Row(
-                    children: [
-                      // Icon
-                      Container(
-                        padding: const EdgeInsets.all(9),
-                        decoration: BoxDecoration(
-                          color: record.emotion.color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(
-                            AppTheme.radiusSm,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 13,
+                    ),
+                    child: Row(
+                      children: [
+                        // Icon
+                        Container(
+                          padding: const EdgeInsets.all(9),
+                          decoration: BoxDecoration(
+                            color: record.emotion.color.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusSm,
+                            ),
+                          ),
+                          child: Icon(
+                            record.emotion.icon,
+                            color: record.emotion.color,
+                            size: 22,
                           ),
                         ),
-                        child: Icon(
-                          record.emotion.icon,
-                          color: record.emotion.color,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Name + time
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${record.emotion.emoji} ${record.emotion.displayName}',
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                                color: AppTheme.textP(context),
+                        const SizedBox(width: 12),
+                        // Name + time + score
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${record.emotion.emoji} ${record.emotion.displayName}',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                  color: AppTheme.textP(context),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 3),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.access_time_rounded,
-                                  size: 11,
-                                  color: AppTheme.textH(context),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  record.formattedTime,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11.5,
-                                    color: AppTheme.textS(context),
+                              const SizedBox(height: 3),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.access_time_rounded,
+                                    size: 11,
+                                    color: AppTheme.textH(context),
                                   ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    record.formattedTime,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 11.5,
+                                      color: AppTheme.textS(context),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // Emotion score badge
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: (record.emotionScore >= 0
+                                              ? const Color(0xFF10B981)
+                                              : const Color(0xFFEF4444))
+                                          .withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      record.emotionScoreLabel,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: record.emotionScore >= 0
+                                            ? const Color(0xFF10B981)
+                                            : const Color(0xFFEF4444),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Confidence chip + chevron
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: record.emotion.color.withValues(
+                                  alpha: 0.12,
                                 ),
-                              ],
+                                borderRadius: BorderRadius.circular(
+                                  AppTheme.radiusFull,
+                                ),
+                              ),
+                              child: Text(
+                                record.confidencePercent,
+                                style: GoogleFonts.poppins(
+                                  color: record.emotion.color,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                      // Confidence chip + chevron
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: record.emotion.color.withValues(
-                                alpha: 0.12,
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                AppTheme.radiusFull,
-                              ),
-                            ),
-                            child: Text(
-                              record.confidencePercent,
-                              style: GoogleFonts.poppins(
-                                color: record.emotion.color,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 6),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: AppTheme.textH(context),
-                        size: 18,
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppTheme.textH(context),
+                          size: 18,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Detail Bottom Sheet: data lengkap hasil deteksi
+  // ─────────────────────────────────────────────────────────────
+  void _showRecordDetail(BuildContext context, EmotionRecord record) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _DetailBottomSheet(record: record),
     );
   }
 
@@ -990,6 +1113,313 @@ class _HistoryScreenState extends State<HistoryScreen>
           ),
         ],
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// _DetailBottomSheet — Menampilkan detail lengkap deteksi emosi
+// ─────────────────────────────────────────────────────────────────────────────
+class _DetailBottomSheet extends StatelessWidget {
+  final EmotionRecord record;
+
+  const _DetailBottomSheet({required this.record});
+
+  @override
+  Widget build(BuildContext context) {
+    final emotion = record.emotion;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.65,
+        minChildSize: 0.4,
+        maxChildSize: 0.85,
+        expand: false,
+        builder: (ctx, scrollController) {
+          return SingleChildScrollView(
+            controller: scrollController,
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Drag handle
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: AppTheme.textH(context).withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+
+                // Header: Emoji besar + nama emosi + skor
+                Row(
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: emotion.color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Center(
+                        child: Text(emotion.emoji, style: const TextStyle(fontSize: 32)),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            emotion.displayName,
+                            style: GoogleFonts.poppins(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textP(context),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              _buildTag(
+                                record.confidencePercent,
+                                emotion.color,
+                              ),
+                              const SizedBox(width: 8),
+                              _buildTag(
+                                'Skor: ${record.emotionScoreLabel}',
+                                record.emotionScore >= 0
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFFEF4444),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Waktu deteksi
+                _buildInfoRow(
+                  Icons.access_time_rounded,
+                  'Waktu Deteksi',
+                  record.formattedTime,
+                  context,
+                ),
+                const SizedBox(height: 12),
+
+                // Nilai emosi
+                _buildInfoRow(
+                  Icons.trending_up_rounded,
+                  'Nilai Emosi',
+                  '${emotion.valueLabel} (skala -5 s/d +5)',
+                  context,
+                ),
+                const SizedBox(height: 12),
+
+                // Confidence
+                _buildInfoRow(
+                  Icons.speed_rounded,
+                  'Tingkat Kepercayaan',
+                  '${(record.confidence * 100).toStringAsFixed(1)}%',
+                  context,
+                ),
+                const SizedBox(height: 12),
+
+                // Skor berbobot
+                _buildInfoRow(
+                  Icons.calculate_rounded,
+                  'Skor Berbobot',
+                  '${emotion.valueLabel} × ${record.confidencePercent} = ${record.emotionScoreLabel}',
+                  context,
+                ),
+
+                const SizedBox(height: 24),
+
+                // Divider
+                Container(
+                  height: 1,
+                  color: AppTheme.textH(context).withValues(alpha: 0.1),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Tabel semua emosi
+                Text(
+                  '📊 Skala Nilai Emosi',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textP(context),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...EmotionType.values.map((e) => _buildEmotionRow(context, e, e == emotion)),
+
+                const SizedBox(height: 24),
+
+                // Saran
+                Text(
+                  '💡 Saran Berdasarkan Emosi',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textP(context),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...emotion.recordingSuggestions.take(3).map(
+                  (s) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.only(top: 6),
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: emotion.color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            s,
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: AppTheme.textS(context),
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTag(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value, BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppTheme.primaryColor),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: AppTheme.textH(context),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                value,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textP(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmotionRow(BuildContext context, EmotionType e, bool isActive) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: isActive
+            ? e.color.withValues(alpha: 0.1)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        border: isActive
+            ? Border.all(color: e.color.withValues(alpha: 0.3), width: 1.5)
+            : null,
+      ),
+      child: Row(
+        children: [
+          Text(e.emoji, style: const TextStyle(fontSize: 20)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              e.displayName,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                color: isActive ? e.color : AppTheme.textP(context),
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+            decoration: BoxDecoration(
+              color: (e.emotionValue >= 0
+                      ? const Color(0xFF10B981)
+                      : const Color(0xFFEF4444))
+                  .withValues(alpha: isActive ? 0.15 : 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              e.valueLabel,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: e.emotionValue >= 0
+                    ? const Color(0xFF10B981)
+                    : const Color(0xFFEF4444),
+              ),
+            ),
+          ),
+          if (isActive) ...[
+            const SizedBox(width: 8),
+            Icon(Icons.check_circle_rounded, color: e.color, size: 18),
+          ],
+        ],
+      ),
     );
   }
 }

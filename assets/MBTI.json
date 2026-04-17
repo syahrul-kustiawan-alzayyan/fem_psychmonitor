@@ -1,0 +1,304 @@
+{
+    "mbti_questionnaire": [
+        {
+            "id": 1,
+            "dimension": "E_I",
+            "question": "Setelah hari yang panjang dan melelahkan, bagaimana cara utama Anda memulihkan energi?",
+            "options": [
+                {
+                    "answer": "Berkumpul, keluar rumah, dan bersosialisasi dengan banyak orang.",
+                    "type": "E"
+                },
+                {
+                    "answer": "Menyendiri, bersantai di rumah, atau menghabiskan waktu dengan 1-2 orang terdekat.",
+                    "type": "I"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "dimension": "E_I",
+            "question": "Dalam lingkungan kerja atau akademik, Anda lebih suka...",
+            "options": [
+                {
+                    "answer": "Bekerja dalam tim, melakukan brainstorming, dan berdiskusi secara aktif.",
+                    "type": "E"
+                },
+                {
+                    "answer": "Bekerja secara mandiri di mana Anda bisa fokus penuh pada tugas Anda.",
+                    "type": "I"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "dimension": "E_I",
+            "question": "Saat berada di acara sosial dengan banyak orang baru, Anda biasanya...",
+            "options": [
+                {
+                    "answer": "Berkeliling, memulai percakapan, dan mudah berbaur dengan orang baru.",
+                    "type": "E"
+                },
+                {
+                    "answer": "Berdiam di satu area, mengamati, dan mengobrol dengan orang yang sudah Anda kenal.",
+                    "type": "I"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "dimension": "E_I",
+            "question": "Dalam memproses informasi atau masalah yang rumit, Anda cenderung...",
+            "options": [
+                {
+                    "answer": "Membicarakannya keras-keras dengan orang lain untuk menyusun pikiran Anda.",
+                    "type": "E"
+                },
+                {
+                    "answer": "Memikirkannya secara mendalam di dalam kepala sebelum menyampaikannya keluar.",
+                    "type": "I"
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "dimension": "E_I",
+            "question": "Lingkaran pertemanan Anda paling baik dideskripsikan sebagai...",
+            "options": [
+                {
+                    "answer": "Sangat luas, mencakup banyak kenalan dari berbagai lingkungan dan komunitas.",
+                    "type": "E"
+                },
+                {
+                    "answer": "Kecil dan selektif, namun memiliki ikatan emosional yang sangat dalam.",
+                    "type": "I"
+                }
+            ]
+        },
+        {
+            "id": 6,
+            "dimension": "S_N",
+            "question": "Saat mendengarkan penjelasan dari seseorang, Anda lebih fokus pada...",
+            "options": [
+                {
+                    "answer": "Fakta-fakta, detail spesifik, dan contoh-contoh praktis di dunia nyata.",
+                    "type": "S"
+                },
+                {
+                    "answer": "Makna yang tersirat, pola-pola tersembunyi, dan gambaran besarnya (big picture).",
+                    "type": "N"
+                }
+            ]
+        },
+        {
+            "id": 7,
+            "dimension": "S_N",
+            "question": "Anda menganggap diri Anda lebih sebagai individu yang...",
+            "options": [
+                {
+                    "answer": "Realistis, praktis, dan berpijak pada kenyataan saat ini.",
+                    "type": "S"
+                },
+                {
+                    "answer": "Imajinatif, inovatif, dan senang memikirkan kemungkinan di masa depan.",
+                    "type": "N"
+                }
+            ]
+        },
+        {
+            "id": 8,
+            "dimension": "S_N",
+            "question": "Saat merakit barang atau menggunakan perangkat lunak baru, pendekatan Anda adalah...",
+            "options": [
+                {
+                    "answer": "Membaca buku petunjuk/manual langkah demi langkah terlebih dahulu.",
+                    "type": "S"
+                },
+                {
+                    "answer": "Langsung mencoba-coba secara naluriah dan mencari tahu cara kerjanya sendiri.",
+                    "type": "N"
+                }
+            ]
+        },
+        {
+            "id": 9,
+            "dimension": "S_N",
+            "question": "Dalam percakapan sehari-hari yang santai, Anda paling menikmati pembahasan tentang...",
+            "options": [
+                {
+                    "answer": "Kejadian nyata, aktivitas sehari-hari, atau pengalaman empiris.",
+                    "type": "S"
+                },
+                {
+                    "answer": "Ide-ide filosofis, konsep abstrak, atau teori tentang mengapa sesuatu terjadi.",
+                    "type": "N"
+                }
+            ]
+        },
+        {
+            "id": 10,
+            "dimension": "S_N",
+            "question": "Gaya komunikasi dan cara Anda mendeskripsikan sesuatu cenderung...",
+            "options": [
+                {
+                    "answer": "Harfiah, langsung pada intinya, tanpa banyak basa-basi.",
+                    "type": "S"
+                },
+                {
+                    "answer": "Metaforis, menggunakan perumpamaan, atau kiasan puitis.",
+                    "type": "N"
+                }
+            ]
+        },
+        {
+            "id": 11,
+            "dimension": "T_F",
+            "question": "Saat harus membuat keputusan yang berdampak besar, Anda paling mengutamakan...",
+            "options": [
+                {
+                    "answer": "Analisis logis, efisiensi, dan objektivitas yang masuk akal.",
+                    "type": "T"
+                },
+                {
+                    "answer": "Nilai-nilai personal, empati, dan dampaknya terhadap kesejahteraan orang lain.",
+                    "type": "F"
+                }
+            ]
+        },
+        {
+            "id": 12,
+            "dimension": "T_F",
+            "question": "Dalam sebuah diskusi yang memanas atau perdebatan, prioritas utama Anda adalah...",
+            "options": [
+                {
+                    "answer": "Membuktikan apa yang benar secara faktual, meskipun ada pihak yang tersinggung.",
+                    "type": "T"
+                },
+                {
+                    "answer": "Menjaga harmoni situasi dan memastikan tidak ada perasaan yang terluka.",
+                    "type": "F"
+                }
+            ]
+        },
+        {
+            "id": 13,
+            "dimension": "T_F",
+            "question": "Anda lebih suka dihargai dan dipuji karena Anda adalah orang yang...",
+            "options": [
+                {
+                    "answer": "Adil, kompeten, cerdas, dan memiliki argumen yang kuat.",
+                    "type": "T"
+                },
+                {
+                    "answer": "Hangat, pengertian, welas asih, dan peduli sesama.",
+                    "type": "F"
+                }
+            ]
+        },
+        {
+            "id": 14,
+            "dimension": "T_F",
+            "question": "Saat seorang teman datang menceritakan keluh kesahnya, insting pertama Anda adalah...",
+            "options": [
+                {
+                    "answer": "Menganalisis masalahnya dan langsung menawarkan solusi praktis.",
+                    "type": "T"
+                },
+                {
+                    "answer": "Menyediakan telinga untuk mendengar, memvalidasi emosinya, dan memberi dukungan mental.",
+                    "type": "F"
+                }
+            ]
+        },
+        {
+            "id": 15,
+            "dimension": "T_F",
+            "question": "Menurut Anda, kesalahan atau sifat yang paling mengganggu dalam sebuah tim kerja adalah...",
+            "options": [
+                {
+                    "answer": "Ketidakmampuan teknis, bekerja lambat, atau bersikap tidak rasional.",
+                    "type": "T"
+                },
+                {
+                    "answer": "Bersikap arogan, kasar, atau menciptakan lingkungan yang toksik secara emosional.",
+                    "type": "F"
+                }
+            ]
+        },
+        {
+            "id": 16,
+            "dimension": "J_P",
+            "question": "Bagaimana gaya Anda dalam merencanakan liburan atau perjalanan panjang?",
+            "options": [
+                {
+                    "answer": "Membuat rencana perjalanan (itinerary) yang detail, terstruktur, dan memesan semuanya dari awal.",
+                    "type": "J"
+                },
+                {
+                    "answer": "Memilih destinasi dasar, namun menentukan aktivitas secara spontan saat sudah tiba di sana.",
+                    "type": "P"
+                }
+            ]
+        },
+        {
+            "id": 17,
+            "dimension": "J_P",
+            "question": "Terkait dengan tenggat waktu (deadline) sebuah proyek, Anda biasanya...",
+            "options": [
+                {
+                    "answer": "Mengerjakannya jauh-jauh hari secara bertahap untuk menghindari kepanikan di akhir.",
+                    "type": "J"
+                },
+                {
+                    "answer": "Mendapat dorongan motivasi dan ide terbaik untuk menyelesaikannya di saat-saat terakhir (last-minute).",
+                    "type": "P"
+                }
+            ]
+        },
+        {
+            "id": 18,
+            "dimension": "J_P",
+            "question": "Kondisi ruang kerja, meja, atau kamar tidur Anda biasanya...",
+            "options": [
+                {
+                    "answer": "Sangat rapi, terorganisir, dan barang-barang dikembalikan ke tempat asalnya.",
+                    "type": "J"
+                },
+                {
+                    "answer": "Sedikit berantakan atau acak, tetapi Anda tetap tahu persis di mana barang-barang Anda berada.",
+                    "type": "P"
+                }
+            ]
+        },
+        {
+            "id": 19,
+            "dimension": "J_P",
+            "question": "Bagaimana respons Anda ketika jadwal yang sudah disepakati mendadak berubah?",
+            "options": [
+                {
+                    "answer": "Merasa terganggu, frustrasi, dan membutuhkan waktu untuk menata ulang rencana.",
+                    "type": "J"
+                },
+                {
+                    "answer": "Merasa santai saja, beradaptasi dengan cepat, atau bahkan menyukai kejutan spontan tersebut.",
+                    "type": "P"
+                }
+            ]
+        },
+        {
+            "id": 20,
+            "dimension": "J_P",
+            "question": "Anda merasa lebih nyaman berada dalam situasi yang...",
+            "options": [
+                {
+                    "answer": "Sudah memiliki keputusan final, pasti, dan ada titik penyelesaian (closure).",
+                    "type": "J"
+                },
+                {
+                    "answer": "Masih dibiarkan terbuka, fleksibel, dan memiliki ruang untuk mengeksplorasi opsi lain.",
+                    "type": "P"
+                }
+            ]
+        }
+    ]
+}

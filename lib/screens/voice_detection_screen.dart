@@ -15,6 +15,7 @@ import '../widgets/gradient_background.dart';
 import '../widgets/particle_animation.dart';
 import '../widgets/suggestion_card.dart';
 import 'auth_screen.dart';
+import 'recording_result_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VoiceDetectionScreen — Layar Rekaman & Deteksi Emosi
@@ -36,7 +37,6 @@ class VoiceDetectionScreen extends StatefulWidget {
 class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
     with TickerProviderStateMixin {
   bool _isRecording = false;
-  bool _hasResult = false;
 
   // Controller untuk pulse ring pada mic button
   late AnimationController _pulseCtrl;
@@ -44,15 +44,6 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
 
   // Controller untuk animasi waveform bars
   late AnimationController _waveCtrl;
-
-  // Controller untuk fade-in hasil deteksi
-  late AnimationController _resultFadeCtrl;
-  late Animation<double> _resultFade;
-
-  // Data deteksi
-  EmotionType? _detectedEmotion;
-  double? _detectedConfidence;
-  Map<EmotionType, double>? _detectedScores;
 
   // Random seed tetap agar desain waveform konsisten saat idle
   final _rand = Random();
@@ -74,22 +65,12 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-
-    _resultFadeCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _resultFade = CurvedAnimation(
-      parent: _resultFadeCtrl,
-      curve: Curves.easeOut,
-    );
   }
 
   @override
   void dispose() {
     _pulseCtrl.dispose();
     _waveCtrl.dispose();
-    _resultFadeCtrl.dispose();
     super.dispose();
   }
 
@@ -115,11 +96,6 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
       // START RECORDING
       setState(() {
         _isRecording = true;
-        _hasResult = false;
-        _detectedEmotion = null;
-        _detectedConfidence = null;
-        _detectedScores = null;
-        _resultFadeCtrl.reset();
         _pulseCtrl.repeat(reverse: true);
         _waveCtrl.repeat();
       });
@@ -165,12 +141,20 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
 
       setState(() {
         _isRecording = false;
-        _detectedEmotion = selectedEmotion;
-        _detectedConfidence = confidence;
-        _detectedScores = scores;
-        _hasResult = true;
-        _resultFadeCtrl.forward();
       });
+
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => RecordingResultScreen(
+              detectedEmotion: selectedEmotion,
+              confidence: confidence,
+              scores: scores,
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -202,33 +186,11 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
 
                 const SizedBox(height: AppTheme.space2xl),
 
-                // ── Hasil Deteksi (muncul setelah rekaman) ──────────
-                if (_hasResult)
-                  FadeTransition(
-                    opacity: _resultFade,
-                    child: Column(
-                      children: [
-                        _buildDetectionResults(),
-                        const SizedBox(height: AppTheme.spaceMd),
-                        _buildPsychMessage(),
-                        const SizedBox(height: AppTheme.spaceMd),
-                        SuggestionCard(
-                          title:
-                              '${AppLocalizations.tr('suggestion_for_emotion')} ${_detectedEmotion!.displayName}',
-                          suggestions: _detectedEmotion!.recordingSuggestions,
-                          icon: Icons.lightbulb_outline_rounded,
-                          color: _detectedEmotion!.color,
-                          isCollapsible: true,
-                        ),
-                      ],
-                    ),
-                  ),
-
                 // ── Prompt Kata-kata Pemancing ─────────────────────
-                if (!_hasResult && !_isRecording) _buildStoryPrompts(),
+                if (!_isRecording) _buildStoryPrompts(),
 
                 // ── Panduan saat Idle ───────────────────────────────
-                if (!_hasResult && !_isRecording) _buildIdleGuide(),
+                if (!_isRecording) _buildIdleGuide(),
 
                 const SizedBox(height: 100),
               ],
@@ -348,109 +310,66 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
             return GestureDetector(
               onTap: _toggleRecording,
               child: SizedBox(
-                width: 160,
-                height: 160,
+                width: 140,
+                height: 140,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Particle effect background saat recording
-                    if (_isRecording)
-                      Positioned.fill(
-                        child: ParticleAnimation(
-                          width: 160,
-                          height: 160,
-                          particleCount: 15,
-                          particleColor: AppTheme.secondaryColor,
-                        ),
-                      ),
-
-                    // Ring 3 (terluar, gradient)
+                    // Outer Pulse Ring
                     if (_isRecording)
                       Transform.scale(
-                        scale: _pulseAnim.value * 1.1,
+                        scale: _pulseAnim.value * 1.15,
                         child: Container(
-                          width: 150,
-                          height: 150,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.primaryColor.withValues(alpha: 0.15),
-                                AppTheme.secondaryColor.withValues(alpha: 0.15),
-                              ],
-                            ),
+                            color: Colors.redAccent.withValues(alpha: 0.15),
                           ),
                         ),
                       ),
-
-                    // Ring 2 (gradient)
+                    
+                    // Inner Pulse Ring
                     if (_isRecording)
                       Transform.scale(
-                        scale: _pulseAnim.value * 0.95,
+                        scale: _pulseAnim.value,
                         child: Container(
-                          width: 150,
-                          height: 150,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.primaryColor.withValues(alpha: 0.25),
-                                AppTheme.secondaryColor.withValues(alpha: 0.25),
-                              ],
-                            ),
+                            color: Colors.redAccent.withValues(alpha: 0.25),
                           ),
                         ),
                       ),
-
-                    // Ring 1 (idle state)
-                    if (!_isRecording)
-                      Container(
-                        width: 130,
-                        height: 130,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              AppTheme.primaryColor.withValues(alpha: 0.15),
-                              AppTheme.secondaryColor.withValues(alpha: 0.15),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    // Tombol utama dengan gradient border
+                      
+                    // Main Button
                     Container(
-                      width: 110,
-                      height: 110,
+                      width: 90,
+                      height: 90,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: _isRecording
-                            ? AppTheme.recordingGradient
+                            ? const LinearGradient(
+                                colors: [Color(0xFFFF5252), Color(0xFFD32F2F)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
                             : AppTheme.primaryGradient,
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.5),
-                            blurRadius: 30,
-                            offset: const Offset(0, 12),
-                          ),
-                          BoxShadow(
-                            color: AppTheme.secondaryColor.withValues(
-                              alpha: 0.4,
-                            ),
+                            color: (_isRecording ? Colors.red : AppTheme.primaryColor)
+                                    .withValues(alpha: 0.4),
                             blurRadius: 20,
-                            offset: const Offset(0, 6),
+                            spreadRadius: 2,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
                       child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 250),
-                        transitionBuilder: (child, anim) =>
-                            ScaleTransition(scale: anim, child: child),
+                        duration: const Duration(milliseconds: 300),
+                        transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
                         child: Icon(
                           _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
                           key: ValueKey(_isRecording),
                           color: Colors.white,
-                          size: 50,
+                          size: 44,
                         ),
                       ),
                     ),
@@ -461,72 +380,48 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
           },
         ),
 
-        const SizedBox(height: 18),
+        const SizedBox(height: 24),
 
         // Status label dengan animasi warna
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           child: Column(
             key: ValueKey(
-              _isRecording ? 'rec' : (_hasResult ? 'done' : 'idle'),
+              _isRecording ? 'rec' : 'idle',
             ),
             children: [
-              Text(
-                _isRecording
-                    ? AppLocalizations.tr('recording')
-                    : (_hasResult
-                          ? AppLocalizations.tr('detection_done')
-                          : AppLocalizations.tr('press_to_record')),
-                style: GoogleFonts.poppins(
-                  color: _isRecording
-                      ? const Color(0xFFF87171)
-                      : (_hasResult
-                            ? AppTheme.primaryColor
-                            : AppTheme.textS(context)),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: _isRecording ? Colors.red.withValues(alpha: 0.1) : AppTheme.surface(context),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _isRecording ? Colors.red.withValues(alpha: 0.3) : AppTheme.surfVar(context),
+                    width: 1,
+                  )
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_isRecording)
+                      Container(
+                        width: 8, height: 8,
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                      ),
+                    Text(
+                      _isRecording
+                          ? AppLocalizations.tr('recording')
+                          : AppLocalizations.tr('press_to_record'),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: _isRecording ? Colors.redAccent : AppTheme.textP(context),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              if (_isRecording) ...[
-                const SizedBox(height: 8),
-                // Timer placeholder visual
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEF2F2),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                    border: Border.all(
-                      color: const Color(0xFFF87171).withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFFF87171),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'REC',
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFFF87171),
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -759,216 +654,4 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // Widget: Hasil Deteksi — EmotionResultCard + distribusi bar
-  // ─────────────────────────────────────────────────────────────
-  Widget _buildDetectionResults() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section header
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: _detectedEmotion!.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                _detectedEmotion!.icon,
-                color: _detectedEmotion!.color,
-                size: 16,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              AppLocalizations.tr('detection_result'),
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(color: AppTheme.textP(context)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // Kartu emosi dominan
-        EmotionResultCard(
-          emotion: _detectedEmotion!,
-          confidence: _detectedConfidence!,
-        ),
-
-        const SizedBox(height: 20),
-
-        // Sub-header distribusi
-        Text(
-          AppLocalizations.tr('all_emotion_dist'),
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(color: AppTheme.textS(context)),
-        ),
-        const SizedBox(height: 12),
-
-        // Semua skor dalam styled bar
-        Container(
-          padding: const EdgeInsets.all(AppTheme.spaceLg),
-          decoration: BoxDecoration(
-            color: AppTheme.surface(context),
-            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-            boxShadow: AppTheme.cardShadow,
-          ),
-          child: Column(
-            children: (_detectedScores ?? DummyData.detectionScores).entries
-                .map((e) => _buildEmotionScoreBar(e.key, e.value))
-                .toList(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmotionScoreBar(EmotionType emotion, double score) {
-    final pct = (score * 100).toStringAsFixed(0);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          // Emotion icon
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: emotion.color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(7),
-            ),
-            child: Icon(emotion.icon, color: emotion.color, size: 16),
-          ),
-          const SizedBox(width: 10),
-          // Name label
-          SizedBox(
-            width: 70,
-            child: Text(
-              emotion.displayName,
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                fontSize: 12.5,
-                color: AppTheme.textP(context),
-              ),
-            ),
-          ),
-          // Progress bar
-          Expanded(
-            child: Stack(
-              children: [
-                // Background track
-                Container(
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: emotion.color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                  ),
-                ),
-                // Filled portion
-                FractionallySizedBox(
-                  widthFactor: score.clamp(0.0, 1.0),
-                  child: Container(
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: emotion.color,
-                      borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          // Percentage chip
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: emotion.color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-            ),
-            child: Text(
-              '$pct%',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700,
-                fontSize: 11,
-                color: emotion.color,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // Widget: Pesan Psikologis / Afirmasi Positif
-  // ─────────────────────────────────────────────────────────────
-  Widget _buildPsychMessage() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppTheme.spaceXl),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            _detectedEmotion!.color.withValues(alpha: 0.12),
-            _detectedEmotion!.color.withValues(alpha: 0.04),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(
-          color: _detectedEmotion!.color.withValues(alpha: 0.28),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: _detectedEmotion!.color.withValues(alpha: 0.18),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.favorite_rounded,
-              color: _detectedEmotion!.color,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppLocalizations.tr('psych_message'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _detectedEmotion!.color,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  _detectedEmotion!.psychMessage,
-                  style: GoogleFonts.poppins(
-                    color: AppTheme.textP(context),
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w400,
-                    height: 1.6,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
