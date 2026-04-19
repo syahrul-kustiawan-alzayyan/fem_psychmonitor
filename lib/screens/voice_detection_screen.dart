@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/database_service.dart';
+import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/animations.dart';
 import '../widgets/emotion_badge.dart';
@@ -126,13 +127,21 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
       final user = await DatabaseService.getUser();
       final userId = user?.id ?? 1;
 
+      // Ambil saran dari saran.json berdasarkan MBTI + emosi
+      final suggService = SuggestionService();
+      await suggService.load();
+      final mbtiType = user?.mbtiType ?? '';
+      final firstSugg = (mbtiType.isNotEmpty && mbtiType != 'XXXX')
+          ? suggService.getFirstSuggestion(mbtiType, selectedEmotion)
+          : selectedEmotion.recordingSuggestions.first;
+
       // Simpan ke SQLite
       final record = RecordingData(
         userId: userId,
         dominantEmotion: selectedEmotion,
         confidence: confidence,
         date: DateTime.now(),
-        suggestion: selectedEmotion.recordingSuggestions.first,
+        suggestion: firstSugg,
         audioEmotions: scores,
         transcriptEmotions: scores,
       );

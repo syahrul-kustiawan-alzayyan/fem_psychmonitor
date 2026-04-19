@@ -447,13 +447,25 @@ class _MainNavigationState extends State<MainNavigation>
     setState(() => _currentIndex = 1);
   }
 
+  void _navigateToHistory() {
+    setState(() => _currentIndex = 2);
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Watch locale & theme so IndexedStack rebuilds when settings change
+    final localeName = context.watch<LocaleProvider>().locale;
+    final themeMode = context.watch<ThemeProvider>().themeMode;
+
     return Scaffold(
       body: IndexedStack(
+        key: ValueKey('nav_${localeName}_${themeMode.index}'),
         index: _currentIndex,
         children: [
-          HomeScreen(onStartRecording: _navigateToRecording),
+          HomeScreen(
+            onStartRecording: _navigateToRecording,
+            onNavigateToHistory: _navigateToHistory,
+          ),
           const LiveDetectionScreen(),
           const HistoryScreen(),
         ],

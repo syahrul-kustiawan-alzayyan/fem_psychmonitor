@@ -43,6 +43,7 @@ dependencies:
   sqflite_common_ffi: ^2.4.0+2
   tflite_flutter: ^0.12.1
   record: ^6.2.0
+  image_picker: ^1.2.1
 
 dev_dependencies:
   flutter_test:

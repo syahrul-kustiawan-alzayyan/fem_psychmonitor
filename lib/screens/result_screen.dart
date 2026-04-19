@@ -3,19 +3,61 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/emotion_model.dart';
 import '../services/database_service.dart';
+import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/emotion_badge.dart';
 import '../widgets/suggestion_card.dart';
-import '../l10n/app_localizations.dart';
 
-class ResultScreen extends StatelessWidget {
+class ResultScreen extends StatefulWidget {
   final RecordingData recordingData;
 
   const ResultScreen({Key? key, required this.recordingData}) : super(key: key);
 
   @override
+  State<ResultScreen> createState() => _ResultScreenState();
+}
+
+class _ResultScreenState extends State<ResultScreen> {
+  List<String> _suggestions = [];
+  String _title = '';
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final user = await DatabaseService.getUser();
+    final service = SuggestionService();
+    await service.load();
+
+    final mbtiType = user?.mbtiType ?? '';
+    final emotion = widget.recordingData.dominantEmotion;
+
+    List<String> suggestions;
+    String title;
+
+    if (mbtiType.isNotEmpty && mbtiType != 'XXXX') {
+      suggestions = service.getSuggestions(mbtiType, emotion);
+      title = service.buildTitle(mbtiType, emotion);
+    } else {
+      suggestions = emotion.recordingSuggestions;
+      title = 'Saran untuk Emosi ${emotion.displayName}';
+    }
+
+    if (mounted) {
+      setState(() {
+        _suggestions = suggestions;
+        _title = title;
+        _loaded = true;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final domEmotion = recordingData.dominantEmotion;
+    final domEmotion = widget.recordingData.dominantEmotion;
     return Scaffold(
       backgroundColor: AppTheme.bg(context),
       appBar: AppBar(
@@ -105,7 +147,7 @@ class ResultScreen extends StatelessWidget {
                         const Icon(Icons.analytics_rounded, color: Colors.white, size: 16),
                         const SizedBox(width: 8),
                         Text(
-                          'Akurasi: ${(recordingData.confidence * 100).toStringAsFixed(1)}%',
+                          'Akurasi: ${(widget.recordingData.confidence * 100).toStringAsFixed(1)}%',
                           style: GoogleFonts.poppins(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -162,14 +204,22 @@ class ResultScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // Suggestion Card
-            SuggestionCard(
-              title: AppLocalizations.tr('psych_recommendation'),
-              suggestions: domEmotion.recordingSuggestions,
-              icon: Icons.lightbulb_outline_rounded,
-              color: domEmotion.color,
-              isCollapsible: false,
-            ),
+            // Suggestion Card — dynamic dari saran.json
+            if (_loaded)
+              SuggestionCard(
+                title: _title,
+                suggestions: _suggestions,
+                icon: Icons.lightbulb_outline_rounded,
+                color: domEmotion.color,
+                isCollapsible: false,
+              )
+            else
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
             
             const SizedBox(height: 48),
           ],
@@ -189,7 +239,7 @@ class ResultScreen extends StatelessWidget {
             borderColor: AppTheme.primaryColor,
             entryRadius: 4,
             dataEntries: emotions.map((e) {
-              return RadarEntry(value: recordingData.audioEmotions[e] ?? 0.0);
+              return RadarEntry(value: widget.recordingData.audioEmotions[e] ?? 0.0);
             }).toList(),
             borderWidth: 2.5,
           ),

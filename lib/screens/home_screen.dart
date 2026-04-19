@@ -8,6 +8,7 @@ import '../models/emotion_model.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/database_service.dart';
+import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/animations.dart';
 import '../widgets/gradient_background.dart';
@@ -29,7 +30,8 @@ import 'auth_screen.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
   final VoidCallback onStartRecording;
-  const HomeScreen({super.key, required this.onStartRecording});
+  final VoidCallback? onNavigateToHistory;
+  const HomeScreen({super.key, required this.onStartRecording, this.onNavigateToHistory});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -499,7 +501,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       future: DatabaseService.getUser(),
       builder: (context, snapshot) {
         final user = snapshot.data;
-        final basePsychScore = user?.psychologicalScore;
+        final basePsychScore = user?.psychologicalScore; // 0-30 (tinggi = buruk)
 
         // Hitung skor emosi dari deteksi terbaru (max 10 sesi terakhir)
         double emotionAdjustment = 0;
@@ -508,18 +510,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           final avgEmotionScore = recentSessions.fold<double>(
             0, (sum, r) => sum + r.emotionScore,
           ) / recentSessions.length;
-          // Normalisasi: avgEmotionScore range -5..+5 → adjustment -5..+5
+          // Normalisasi: avgEmotionScore range -5..+5
           emotionAdjustment = avgEmotionScore;
         }
 
-        // Skor akhir = skor dasar kuesioner - penyesuaian emosi
-        // (skor kuesioner tinggi = buruk, emosi positif mengurangi skor)
-        int? adjustedScore;
+        // Konversi ke skala 0-100 (tinggi = sehat)
+        // Skor kuesioner: 0-30 → invert ke 0-100
+        // Base: (30 - psychScore) / 30 * 100
+        // Adjustment: emotionAdjustment range -5..+5 → mapped to ±17 poin
+        int? displayScore100;
         if (basePsychScore != null) {
-          adjustedScore = (basePsychScore - emotionAdjustment.round()).clamp(0, 30);
+          final baseScore100 = ((30 - basePsychScore) / 30 * 100).round();
+          final adjustment100 = (emotionAdjustment / 5 * 17).round();
+          displayScore100 = (baseScore100 + adjustment100).clamp(0, 100);
         }
 
-        // Tentukan warna dan info berdasarkan skor
+        // Tentukan warna dan info berdasarkan skor (0-100, tinggi = baik)
         Color primaryColor;
         Color secondaryColor;
         String statusLabel;
@@ -527,7 +533,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         String emoji;
         String description;
 
-        if (adjustedScore == null) {
+        if (displayScore100 == null) {
           primaryColor = const Color(0xFF64748B);
           secondaryColor = const Color(0xFF94A3B8);
           statusLabel = 'Belum Dinilai';
@@ -535,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           emoji = '📋';
           description =
               'Isi kuesioner kesehatan mental untuk melihat skor Anda';
-        } else if (adjustedScore <= 10) {
+        } else if (displayScore100 >= 70) {
           primaryColor = const Color(0xFF10B981); // Green - Baik
           secondaryColor = const Color(0xFF34D399);
           statusLabel = 'Kondisi Stabil';
@@ -544,7 +550,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           description =
               user?.mentalHealthAdvice.split('.').first ??
               'Kondisi psikis Anda terpelihara dengan baik';
-        } else if (adjustedScore <= 20) {
+        } else if (displayScore100 >= 40) {
           primaryColor = const Color(0xFFF59E0B); // Amber - Cukup
           secondaryColor = const Color(0xFFFBBF24);
           statusLabel = 'Perlu Istirahat';
@@ -563,9 +569,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               user?.mentalHealthAdvice.split('.').first ??
               'Beban emosional yang cukup berat';
         }
-
-        // Label skor yang ditampilkan
-        final displayScore = adjustedScore ?? basePsychScore;
 
         return Container(
           width: double.infinity,
@@ -589,7 +592,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Stack(
             children: [
               // ── Dekorasi background ────────────────────────────
-              // Lingkaran atas kanan
               Positioned(
                 top: -40,
                 right: -30,
@@ -602,7 +604,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-              // Lingkaran bawah kiri
               Positioned(
                 bottom: -50,
                 left: -30,
@@ -615,7 +616,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-              // Pattern dots
               Positioned(
                 top: 20,
                 right: 20,
@@ -653,7 +653,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Label dengan icon
                         Row(
                           children: [
                             Container(
@@ -662,7 +661,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 color: Colors.white.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Icon(
+                              child: const Icon(
                                 Icons.favorite_rounded,
                                 color: Colors.white,
                                 size: 16,
@@ -680,8 +679,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                           ],
                         ),
-
-                        // Status badge
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -719,7 +716,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                     const SizedBox(height: 20),
 
-                    // Skor besar dengan emoji
+                    // Skor besar: 0-100 scale
                     Row(
                       children: [
                         Text(emoji, style: const TextStyle(fontSize: 32)),
@@ -728,9 +725,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              displayScore != null
-                                  ? '$displayScore / 30'
-                                  : '--- / 30',
+                              displayScore100 != null
+                                  ? '$displayScore100 / 100'
+                                  : '--- / 100',
                               style: GoogleFonts.poppins(
                                 fontSize: 36,
                                 fontWeight: FontWeight.w800,
@@ -741,8 +738,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              displayScore != null
-                                  ? _getScoreCategory(displayScore)
+                              displayScore100 != null
+                                  ? _getScoreCategory100(displayScore100)
                                   : 'Skor Kesehatan Mental',
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
@@ -756,6 +753,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
 
                     const SizedBox(height: 16),
+
+                    // Progress bar visual
+                    if (displayScore100 != null) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: LinearProgressIndicator(
+                          value: displayScore100 / 100,
+                          minHeight: 8,
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
 
                     // Deskripsi/saran
                     Container(
@@ -792,7 +803,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
 
                     // Indikator dampak emosi terbaru
-                    if (history.isNotEmpty && adjustedScore != null) ...[
+                    if (history.isNotEmpty && displayScore100 != null) ...[
                       const SizedBox(height: 10),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -816,8 +827,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             Expanded(
                               child: Text(
                                 emotionAdjustment >= 0
-                                    ? 'Emosi positif mempengaruhi skor Anda'
-                                    : 'Emosi negatif mempengaruhi skor Anda',
+                                    ? 'Emosi positif meningkatkan skor Anda'
+                                    : 'Emosi negatif menurunkan skor Anda',
                                 style: GoogleFonts.poppins(
                                   fontSize: 10.5,
                                   color: Colors.white.withValues(alpha: 0.8),
@@ -832,8 +843,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               ),
                               child: Text(
                                 emotionAdjustment >= 0
-                                    ? '+${emotionAdjustment.abs().toStringAsFixed(1)}'
-                                    : '-${emotionAdjustment.abs().toStringAsFixed(1)}',
+                                    ? '+${(emotionAdjustment.abs() / 5 * 17).round()}'
+                                    : '-${(emotionAdjustment.abs() / 5 * 17).round()}',
                                 style: GoogleFonts.poppins(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
@@ -911,10 +922,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // Helper untuk kategori skor
-  String _getScoreCategory(int score) {
-    if (score <= 10) return 'Kondisi Stabil';
-    if (score <= 20) return 'Perlu Istirahat';
+  // Helper untuk kategori skor 0-100 (tinggi = baik)
+  String _getScoreCategory100(int score) {
+    if (score >= 70) return 'Kondisi Stabil';
+    if (score >= 40) return 'Perlu Istirahat';
     return 'Butuh Perhatian';
   }
 
@@ -1193,89 +1204,102 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ? emotionCount.entries.reduce((a, b) => a.value >= b.value ? a : b).key
         : EmotionType.neutral;
 
-    final psychLabel = context.watch<AuthProvider>().isLoggedIn
-        ? 'MBTI'
-        : 'Info';
+    // Gunakan FutureBuilder untuk mengambil MBTI dan saran dari SuggestionService
+    return FutureBuilder<AppUser?>(
+      future: DatabaseService.getUser(),
+      builder: (context, userSnapshot) {
+        final user = userSnapshot.data;
+        final mbtiType = user?.mbtiType ?? 'XXXX';
+        final psychLabel = (mbtiType.isNotEmpty && mbtiType != 'XXXX')
+            ? mbtiType
+            : 'Info';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section Header
-        _buildSectionHeader(
-          context,
-          icon: Icons.auto_awesome_rounded,
-          title: AppLocalizations.tr('psych_recommendation'),
-          trailingLabel: psychLabel,
-          trailingColor: AppTheme.primaryColor,
-        ),
+        return FutureBuilder<void>(
+          future: SuggestionService().load(),
+          builder: (context, _) {
+            final svc = SuggestionService();
+            final suggestions = svc.getSuggestions(mbtiType, dominant);
+            final title = svc.buildTitle(mbtiType, dominant);
 
-        const SizedBox(height: 14),
-
-        // Emosi dominan info banner
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: dominant.color.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            border: Border.all(
-              color: dominant.color.withValues(alpha: 0.22),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: dominant.color.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Section Header
+                _buildSectionHeader(
+                  context,
+                  icon: Icons.auto_awesome_rounded,
+                  title: AppLocalizations.tr('psych_recommendation'),
+                  trailingLabel: psychLabel,
+                  trailingColor: AppTheme.primaryColor,
                 ),
-                child: Icon(dominant.icon, color: dominant.color, size: 18),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
+
+                const SizedBox(height: 14),
+
+                // Emosi dominan info banner
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: dominant.color.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                    border: Border.all(
+                      color: dominant.color.withValues(alpha: 0.22),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
                     children: [
-                      TextSpan(
-                        text: '${AppLocalizations.tr('dominant_emotion')}: ',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w400,
-                          color: AppTheme.textS(context),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: dominant.color.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
                         ),
+                        child: Icon(dominant.icon, color: dominant.color, size: 18),
                       ),
-                      TextSpan(
-                        text: '${dominant.emoji} ${dominant.displayName}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textP(context),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: '${AppLocalizations.tr('dominant_emotion')}: ',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w400,
+                                  color: AppTheme.textS(context),
+                                ),
+                              ),
+                              TextSpan(
+                                text: '${dominant.emoji} ${dominant.displayName}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textP(context),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
 
-        const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-        // Card saran collapsible
-        SuggestionCard(
-          title: '${AppLocalizations.tr('suggestion_for')} Anda',
-          suggestions: const [
-            'Lakukan deteksi emosi secara rutin untuk memahami pola perasaan Anda.',
-            'Gunakan hasil MBTI Anda untuk mendapatkan saran yang lebih personal.',
-            'Cobalah meditasi 5 menit setiap hari untuk keseimbangan emosional.',
-          ],
-          icon: Icons.tips_and_updates_rounded,
-          color: AppTheme.primaryColor,
-          isCollapsible: true,
-        ),
-      ],
+                // Card saran collapsible — dari SuggestionService
+                SuggestionCard(
+                  title: title,
+                  suggestions: suggestions,
+                  icon: Icons.tips_and_updates_rounded,
+                  color: AppTheme.primaryColor,
+                  isCollapsible: true,
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -1299,12 +1323,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               icon: Icons.history_rounded,
               title: AppLocalizations.tr('recent_detections'),
             ),
-            Text(
-              AppLocalizations.tr('see_all'),
-              style: GoogleFonts.poppins(
-                color: AppTheme.primaryColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 12.5,
+            GestureDetector(
+              onTap: () {
+                // Navigate ke tab Riwayat (index 2)
+                widget.onNavigateToHistory?.call();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                ),
+                child: Text(
+                  AppLocalizations.tr('see_all'),
+                  style: GoogleFonts.poppins(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12.5,
+                  ),
+                ),
               ),
             ),
           ],

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../services/database_service.dart';
+import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gradient_background.dart';
 
@@ -221,19 +222,81 @@ class _HistoryScreenState extends State<HistoryScreen>
                   const SizedBox(height: AppTheme.spaceXl),
 
                   // ── Filter Chip ──────────────────────────────────
-                  _buildSectionHeader(
-                    context,
-                    icon: Icons.filter_list_rounded,
-                    title: AppLocalizations.tr('detection_log'),
-                    trailingLabel: '${_filteredHistory.length} entri',
-                    trailingColor: AppTheme.primaryColor,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: _buildSectionHeader(
+                          context,
+                          icon: Icons.filter_list_rounded,
+                          title: AppLocalizations.tr('detection_log'),
+                          trailingLabel: '${_filteredHistory.length} entri',
+                          trailingColor: AppTheme.primaryColor,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => _FullDetectionLogScreen(
+                                allHistory: _dbHistory,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                          ),
+                          child: Text(
+                            AppLocalizations.tr('see_all'),
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   _buildFilterChips(),
                   const SizedBox(height: 14),
 
-                  // ── List Log ─────────────────────────────────────
-                  ..._filteredHistory.map((r) => _buildLogItem(context, r)),
+                  // ── List Log (max 5 ditampilkan) ──────────────────
+                  ..._filteredHistory.take(5).map((r) => _buildLogItem(context, r)),
+                  if (_filteredHistory.length > 5) ...[
+                    const SizedBox(height: 8),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => _FullDetectionLogScreen(
+                                allHistory: _dbHistory,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.expand_more_rounded, size: 18),
+                        label: Text(
+                          'Lihat ${_filteredHistory.length - 5} lainnya',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12.5,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 100),
                 ],
               ),
@@ -1269,45 +1332,59 @@ class _DetailBottomSheet extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // Saran
-                Text(
-                  '💡 Saran Berdasarkan Emosi',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textP(context),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ...emotion.recordingSuggestions.take(3).map(
-                  (s) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
+                // Saran — dynamic dari saran.json
+                FutureBuilder<List<String>>(
+                  future: _loadSuggestions(emotion),
+                  builder: (ctx, snap) {
+                    final title = snap.hasData && snap.data!.isNotEmpty
+                        ? '💡 Saran Berdasarkan MBTI & Emosi'
+                        : '💡 Saran Berdasarkan Emosi';
+                    final suggestions = snap.data ?? emotion.recordingSuggestions;
+                    return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          margin: const EdgeInsets.only(top: 6),
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: emotion.color,
-                            shape: BoxShape.circle,
+                        Text(
+                          title,
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textP(context),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            s,
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              color: AppTheme.textS(context),
-                              height: 1.5,
+                        const SizedBox(height: 12),
+                        ...suggestions.take(5).map(
+                          (s) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(top: 6),
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color: emotion.color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    s,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      color: AppTheme.textS(context),
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ],
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -1315,6 +1392,19 @@ class _DetailBottomSheet extends StatelessWidget {
         },
       ),
     );
+  }
+
+  /// Memuat saran dinamis dari saran.json berdasarkan MBTI + emosi
+  Future<List<String>> _loadSuggestions(EmotionType emotion) async {
+    final user = await DatabaseService.getUser();
+    final service = SuggestionService();
+    await service.load();
+
+    final mbtiType = user?.mbtiType ?? '';
+    if (mbtiType.isNotEmpty && mbtiType != 'XXXX') {
+      return service.getSuggestions(mbtiType, emotion);
+    }
+    return emotion.recordingSuggestions;
   }
 
   Widget _buildTag(String text, Color color) {
@@ -1419,6 +1509,302 @@ class _DetailBottomSheet extends StatelessWidget {
             Icon(Icons.check_circle_rounded, color: e.color, size: 18),
           ],
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// _FullDetectionLogScreen — Halaman lengkap log deteksi dengan filter
+// ─────────────────────────────────────────────────────────────────────────────
+class _FullDetectionLogScreen extends StatefulWidget {
+  final List<EmotionRecord> allHistory;
+  const _FullDetectionLogScreen({required this.allHistory});
+
+  @override
+  State<_FullDetectionLogScreen> createState() =>
+      _FullDetectionLogScreenState();
+}
+
+class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
+  EmotionType? _filterEmotion;
+  String _sortOrder = 'newest';
+  String _searchQuery = '';
+
+  List<EmotionRecord> get _filtered {
+    List<EmotionRecord> result = widget.allHistory;
+    if (_filterEmotion != null) {
+      result = result.where((r) => r.emotion == _filterEmotion).toList();
+    }
+    if (_searchQuery.isNotEmpty) {
+      result = result
+          .where((r) =>
+              r.emotion.displayName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              r.emotion.emoji.contains(_searchQuery))
+          .toList();
+    }
+    if (_sortOrder == 'oldest') {
+      result = List.from(result)..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    } else {
+      result = List.from(result)..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    }
+    return result;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = _filtered;
+    return Scaffold(
+      backgroundColor: AppTheme.bg(context),
+      appBar: AppBar(
+        backgroundColor: AppTheme.bg(context),
+        elevation: 0,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.list_alt_rounded, color: AppTheme.primaryColor, size: 16),
+            ),
+            const SizedBox(width: 8),
+            Text(AppLocalizations.tr('detection_log'),
+                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+          ],
+        ),
+        iconTheme: IconThemeData(color: AppTheme.textP(context)),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: AppTheme.surface(context),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        boxShadow: AppTheme.cardShadow,
+                      ),
+                      child: TextField(
+                        onChanged: (v) => setState(() => _searchQuery = v),
+                        style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textP(context)),
+                        decoration: InputDecoration(
+                          hintText: 'Cari emosi...',
+                          hintStyle: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textH(context)),
+                          prefixIcon: Icon(Icons.search_rounded, size: 18, color: AppTheme.textH(context)),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => setState(() {
+                      _sortOrder = _sortOrder == 'newest' ? 'oldest' : 'newest';
+                    }),
+                    child: Container(
+                      height: 42,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surface(context),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        boxShadow: AppTheme.cardShadow,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _sortOrder == 'newest' ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                            size: 16, color: AppTheme.primaryColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(_sortOrder == 'newest' ? 'Terbaru' : 'Terlama',
+                              style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.primaryColor)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 40,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
+                children: [
+                  _buildChip(null, 'Semua', widget.allHistory.length),
+                  ...EmotionType.values.map((e) {
+                    final count = widget.allHistory.where((r) => r.emotion == e).length;
+                    return _buildChip(e, '${e.emoji} ${e.displayName}', count);
+                  }),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text('${filtered.length} hasil',
+                        style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primaryColor)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: filtered.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.search_off_rounded, size: 48, color: AppTheme.textH(context)),
+                          const SizedBox(height: 12),
+                          Text('Tidak ada data ditemukan',
+                              style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, color: AppTheme.textS(context))),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) => _buildFullLogItem(context, filtered[index]),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChip(EmotionType? emotion, String label, int count) {
+    final isActive = _filterEmotion == emotion;
+    final chipColor = emotion?.color ?? AppTheme.primaryColor;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: () => setState(() => _filterEmotion = emotion),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: isActive ? chipColor.withValues(alpha: 0.15) : AppTheme.surface(context),
+            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+            border: Border.all(
+              color: isActive ? chipColor.withValues(alpha: 0.5) : AppTheme.textH(context).withValues(alpha: 0.2),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(label, style: GoogleFonts.poppins(fontSize: 12,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: isActive ? chipColor : AppTheme.textS(context))),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  color: isActive ? chipColor.withValues(alpha: 0.2) : AppTheme.textH(context).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text('$count', style: GoogleFonts.poppins(fontSize: 10,
+                    fontWeight: FontWeight.w700, color: isActive ? chipColor : AppTheme.textH(context))),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFullLogItem(BuildContext context, EmotionRecord record) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              Container(width: 4, decoration: BoxDecoration(color: record.emotion.color,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(AppTheme.radiusMd), bottomLeft: Radius.circular(AppTheme.radiusMd)))),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          color: record.emotion.color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                        ),
+                        child: Icon(record.emotion.icon, color: record.emotion.color, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('${record.emotion.emoji} ${record.emotion.displayName}',
+                                style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14, color: AppTheme.textP(context))),
+                            const SizedBox(height: 3),
+                            Row(
+                              children: [
+                                Icon(Icons.access_time_rounded, size: 11, color: AppTheme.textH(context)),
+                                const SizedBox(width: 4),
+                                Text(record.formattedTime,
+                                    style: GoogleFonts.poppins(fontSize: 11.5, color: AppTheme.textS(context))),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: (record.emotionScore >= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444)).withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(record.emotionScoreLabel,
+                                      style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700,
+                                          color: record.emotionScore >= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444))),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: record.emotion.color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                        ),
+                        child: Text(record.confidencePercent,
+                            style: GoogleFonts.poppins(color: record.emotion.color, fontWeight: FontWeight.w700, fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

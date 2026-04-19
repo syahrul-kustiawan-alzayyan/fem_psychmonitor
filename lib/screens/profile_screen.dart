@@ -1,6 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/user_model.dart';
@@ -26,6 +31,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late TextEditingController _emailCtrl;
   bool _isSaving = false;
   AppUser? _user;
+  String? _photoPath;
+  final _picker = ImagePicker();
 
   @override
   void initState() {
@@ -38,8 +45,165 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserData() async {
     final user = await DatabaseService.getUser();
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('auth_email') ?? '';
+    final savedPhoto = prefs.getString('profile_photo_$email');
     if (mounted) {
-      setState(() => _user = user);
+      setState(() {
+        _user = user;
+        _photoPath = savedPhoto;
+      });
+    }
+  }
+
+  Future<void> _pickPhoto() async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surface(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.textH(context).withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Pilih Foto Profil',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textP(context),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded, color: AppTheme.primaryColor),
+                ),
+                title: Text('Kamera', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _getImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurple.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.photo_library_rounded, color: Colors.deepPurple),
+                ),
+                title: Text('Galeri', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _getImage(ImageSource.gallery);
+                },
+              ),
+              if (_photoPath != null)
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.delete_rounded, color: Colors.red),
+                  ),
+                  title: Text('Hapus Foto', style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.red)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _removePhoto();
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _getImage(ImageSource source) async {
+    try {
+      final picked = await _picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+
+      // Copy to app directory for persistence
+      final appDir = await getApplicationDocumentsDirectory();
+      final fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}${p.extension(picked.path)}';
+      final savedFile = await File(picked.path).copy(p.join(appDir.path, fileName));
+
+      // Save path to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final email = prefs.getString('auth_email') ?? '';
+
+      // Delete old photo if exists
+      final oldPath = prefs.getString('profile_photo_$email');
+      if (oldPath != null) {
+        final oldFile = File(oldPath);
+        if (await oldFile.exists()) await oldFile.delete();
+      }
+
+      await prefs.setString('profile_photo_$email', savedFile.path);
+
+      if (mounted) {
+        setState(() => _photoPath = savedFile.path);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Foto profil berhasil diperbarui', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+            backgroundColor: const Color(0xFF10B981),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusSm)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memilih foto: $e', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusSm)),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _removePhoto() async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('auth_email') ?? '';
+    final oldPath = prefs.getString('profile_photo_$email');
+    if (oldPath != null) {
+      final oldFile = File(oldPath);
+      if (await oldFile.exists()) await oldFile.delete();
+      await prefs.remove('profile_photo_$email');
+    }
+    if (mounted) {
+      setState(() => _photoPath = null);
     }
   }
 
@@ -158,17 +322,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: AppTheme.surface(context),
+                              image: _photoPath != null && File(_photoPath!).existsSync()
+                                  ? DecorationImage(
+                                      image: FileImage(File(_photoPath!)),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
                             ),
-                            child: Center(
-                              child: Text(
-                                initial,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.primaryColor,
-                                ),
-                              ),
-                            ),
+                            child: _photoPath == null || !File(_photoPath!).existsSync()
+                                ? Center(
+                                    child: Text(
+                                      initial,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 40,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.primaryColor,
+                                      ),
+                                    ),
+                                  )
+                                : null,
                           ),
                         ),
                         // Camera badge
@@ -176,25 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           bottom: 0,
                           right: 0,
                           child: GestureDetector(
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Fitur foto profil akan segera hadir',
-                                    style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  backgroundColor: AppTheme.primaryColor,
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppTheme.radiusSm,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
+                            onTap: _pickPhoto,
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(

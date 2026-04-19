@@ -9,6 +9,7 @@ import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/audio_recorder_detection.dart';
 import '../services/database_service.dart';
+import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/emotion_badge.dart';
 import 'result_screen.dart';
@@ -193,12 +194,20 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
           final user = await DatabaseService.getUser();
           final userId = user?.id ?? 1;
 
+          // Ambil saran dari saran.json berdasarkan MBTI + emosi
+          final suggService = SuggestionService();
+          await suggService.load();
+          final mbtiType = user?.mbtiType ?? '';
+          final firstSugg = (mbtiType.isNotEmpty && mbtiType != 'XXXX')
+              ? suggService.getFirstSuggestion(mbtiType, _detectedEmotion!)
+              : _detectedEmotion!.recordingSuggestions.first;
+
           final record = RecordingData(
             userId: userId,
             dominantEmotion: _detectedEmotion!,
             confidence: _detectedConfidence ?? 0.0,
             date: DateTime.now(),
-            suggestion: _detectedEmotion!.recordingSuggestions.first,
+            suggestion: firstSugg,
             audioEmotions: _detectedScores!,
             transcriptEmotions: _detectedScores!,
             transcriptText: '',

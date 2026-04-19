@@ -5,6 +5,7 @@ import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../models/user_model.dart';
 import '../services/database_service.dart';
+import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/emotion_badge.dart';
 import '../widgets/gradient_background.dart';
@@ -28,18 +29,41 @@ class RecordingResultScreen extends StatefulWidget {
 
 class _RecordingResultScreenState extends State<RecordingResultScreen> {
   AppUser? _user;
+  List<String> _suggestions = [];
+  String _title = '';
+  bool _loaded = false;
 
   @override
   void initState() {
     super.initState();
-    _loadUser();
+    _loadData();
   }
 
-  Future<void> _loadUser() async {
+  Future<void> _loadData() async {
     final user = await DatabaseService.getUser();
+    final service = SuggestionService();
+    await service.load();
+
+    final mbtiType = user?.mbtiType ?? '';
+    final emotion = widget.detectedEmotion;
+
+    List<String> suggestions;
+    String title;
+
+    if (mbtiType.isNotEmpty && mbtiType != 'XXXX') {
+      suggestions = service.getSuggestions(mbtiType, emotion);
+      title = service.buildTitle(mbtiType, emotion);
+    } else {
+      suggestions = emotion.recordingSuggestions;
+      title = 'Saran untuk Emosi ${emotion.displayName}';
+    }
+
     if (mounted) {
       setState(() {
         _user = user;
+        _suggestions = suggestions;
+        _title = title;
+        _loaded = true;
       });
     }
   }
@@ -67,21 +91,21 @@ class _RecordingResultScreenState extends State<RecordingResultScreen> {
                 ),
                 const SizedBox(height: AppTheme.spaceMd),
 
-                if (_user != null && _user!.mbtiType.isNotEmpty && _user!.mbtiType != 'XXXX')
-                  _buildMbtiSuggestionCard()
+                // Suggestion Card — dynamic dari saran.json
+                if (_loaded)
+                  _buildSuggestionSection()
                 else
-                  SuggestionCard(
-                    title: '${AppLocalizations.tr('suggestion_for_emotion')} ${widget.detectedEmotion.displayName}',
-                    suggestions: widget.detectedEmotion.recordingSuggestions,
-                    icon: Icons.lightbulb_outline_rounded,
-                    color: widget.detectedEmotion.color,
-                    isCollapsible: false,
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(),
+                    ),
                   ),
 
                 const SizedBox(height: AppTheme.space2xl),
                 ElevatedButton.icon(
                   onPressed: () {
-                    Navigator.pop(context); // Kembali ke screen sebelumnya (rekaman)
+                    Navigator.pop(context);
                   },
                   icon: const Icon(Icons.refresh_rounded),
                   label: const Text('Rekam Ulang'),
@@ -94,96 +118,102 @@ class _RecordingResultScreenState extends State<RecordingResultScreen> {
     );
   }
 
-  Widget _buildMbtiSuggestionCard() {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spaceLg),
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-        boxShadow: AppTheme.cardShadow,
-        border: Border.all(
-          color: widget.detectedEmotion.color.withValues(alpha: 0.3),
+  Widget _buildSuggestionSection() {
+    final hasMbti = _user != null &&
+        _user!.mbtiType.isNotEmpty &&
+        _user!.mbtiType != 'XXXX';
+
+    if (hasMbti) {
+      return Container(
+        padding: const EdgeInsets.all(AppTheme.spaceLg),
+        decoration: BoxDecoration(
+          color: AppTheme.surface(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+          boxShadow: AppTheme.cardShadow,
+          border: Border.all(
+            color: widget.detectedEmotion.color.withValues(alpha: 0.3),
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: widget.detectedEmotion.color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.psychology_rounded,
-                  color: widget.detectedEmotion.color,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Saran Berbasis MBTI',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textP(context),
-                      ),
-                    ),
-                    Text(
-                      '${_user!.mbtiNickname} (${_user!.mbtiType})',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.textS(context),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Sebagai seorang ${_user!.mbtiType}, Anda memiliki kekuatan dalam sifat ${_user!.mbtiStrengths.join(', ')}. '
-            'Saat Anda merasa ${widget.detectedEmotion.displayName}, berikut adalah beberapa cara menghadapinya yang cocok dengan kepribadian Anda:',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: AppTheme.textS(context),
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ...widget.detectedEmotion.recordingSuggestions.map((suggestion) => Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Icon(
-                  Icons.check_circle_rounded,
-                  size: 18,
-                  color: widget.detectedEmotion.color,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: widget.detectedEmotion.color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.psychology_rounded,
+                    color: widget.detectedEmotion.color,
+                    size: 24,
+                  ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    suggestion,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: AppTheme.textP(context),
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textP(context),
+                        ),
+                      ),
+                      Text(
+                        '${_user!.mbtiNickname} (${_user!.mbtiType})',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.textS(context),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          )),
-        ],
-      ),
+            const SizedBox(height: 16),
+            ..._suggestions.map((suggestion) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.check_circle_rounded,
+                        size: 18,
+                        color: widget.detectedEmotion.color,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          suggestion,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: AppTheme.textP(context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+        ),
+      );
+    }
+
+    // Fallback tanpa MBTI
+    return SuggestionCard(
+      title: _title,
+      suggestions: _suggestions,
+      icon: Icons.lightbulb_outline_rounded,
+      color: widget.detectedEmotion.color,
+      isCollapsible: false,
     );
   }
 }
+
