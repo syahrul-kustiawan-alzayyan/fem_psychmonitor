@@ -368,7 +368,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               boxShadow: AppTheme.cardShadow,
             ),
             child: Text(
-              'Fem-PhysicsMonitor akan membantu kamu memahami emosi melalui analisis suara dan kepribadian.',
+              'Fem-Psych Monitor akan membantu kamu memahami emosi melalui analisis suara dan kepribadian.',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 14.5,

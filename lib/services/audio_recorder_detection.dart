@@ -42,7 +42,8 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
   // Configuration
   static const int sampleRate = 16000; // 16kHz
-  static const int inputSize = 128; // Features count
+  static const int inputSize = 128; // Features count (default)
+  int _modelInputSize = inputSize; // Akan diupdate dari model shape
   static const int bufferSize = 4096; // Buffer size for reading chunks
 
   // Timer untuk periodic detection
@@ -101,12 +102,20 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
       _interpreter = await Interpreter.fromAsset(modelPath);
 
-      final inputShape = _interpreter!.getInputTensor(0).shape;
-      final outputShape = _interpreter!.getOutputTensor(0).shape;
+      final inputTensor = _interpreter!.getInputTensor(0);
+      final outputTensor = _interpreter!.getOutputTensor(0);
 
       debugPrint('✅ Model loaded successfully!');
-      debugPrint('   Input shape: $inputShape');
-      debugPrint('   Output shape: $outputShape');
+      debugPrint('   Input shape: ${inputTensor.shape}');
+      debugPrint('   Input type: ${inputTensor.type}');
+      debugPrint('   Output shape: ${outputTensor.shape}');
+      debugPrint('   Output type: ${outputTensor.type}');
+
+      // Update inputSize berdasarkan shape model yang sebenarnya
+      if (inputTensor.shape.length >= 2) {
+        _modelInputSize = inputTensor.shape.last;
+        debugPrint('   Model input size updated to: $_modelInputSize');
+      }
 
       _isModelLoaded = true;
       _useMockDetection = false;
@@ -238,13 +247,13 @@ class AudioRecorderWithDetection extends ChangeNotifier {
       if (_interpreter == null) return;
 
       // Pastikan buffer cukup besar
-      if (_audioBuffer.length < inputSize) {
+      if (_audioBuffer.length < _modelInputSize) {
         return;
       }
 
       // Ambil segment terbaru
       final segment = _audioBuffer.sublist(
-        _audioBuffer.length - inputSize,
+        _audioBuffer.length - _modelInputSize,
         _audioBuffer.length,
       );
 
@@ -406,11 +415,11 @@ class AudioRecorderWithDetection extends ChangeNotifier {
     }
 
     // Pad jika kurang
-    while (features.length < inputSize) {
+    while (features.length < _modelInputSize) {
       features.add(0.0);
     }
 
-    return features.sublist(0, inputSize);
+    return features.sublist(0, _modelInputSize);
   }
 
   /// Reset semua data

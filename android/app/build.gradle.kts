@@ -28,6 +28,11 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Only include ARM ABIs (TFLite select-tf-ops doesn't ship x86)
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a")
+        }
     }
 
     buildTypes {
@@ -41,4 +46,10 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Support TensorFlow Select ops (Flex delegate) for models
+    // that use ops like FlexTensorListReserve
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1")
 }

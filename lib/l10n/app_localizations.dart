@@ -21,8 +21,8 @@ class AppLocalizations {
     // ════════════════════════════════════════════
     'id': {
       // ── Umum ──
-      'app_name': 'Fem-PhysicsMonitor',
-      'app_subtitle': 'Pemantau Psikis Personal',
+      'app_name': 'Fem-Psych Monitor',
+      'app_subtitle': 'Monitoring Psikologis Cerdas',
       'cancel': 'Batal',
       'save': 'Simpan',
       'ok': 'OK',
@@ -370,8 +370,8 @@ class AppLocalizations {
     // ════════════════════════════════════════════
     'en': {
       // ── General ──
-      'app_name': 'Fem-PhysicsMonitor',
-      'app_subtitle': 'Personal Mental Health Monitor',
+      'app_name': 'Fem-Psych Monitor',
+      'app_subtitle': 'Smart Psychological Monitoring',
       'cancel': 'Cancel',
       'save': 'Save',
       'ok': 'OK',

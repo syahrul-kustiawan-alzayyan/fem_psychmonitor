@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// ─────────────────────────────────────────────────────────────
-/// AppTheme — Sistem Desain Premium Fem-PhysicsMonitor
+/// AppTheme — Sistem Desain Premium Fem-Psych Monitor
 ///
 /// Panduan Warna (Blue-Pink Gradient dari Logo):
 ///   • Background  : Off-white #F8FAFC  → bersih, tidak melelahkan mata

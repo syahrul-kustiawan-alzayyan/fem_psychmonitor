@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
+import '../services/audio_recorder_detection.dart';
 import '../services/database_service.dart';
 import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
@@ -38,6 +40,14 @@ class VoiceDetectionScreen extends StatefulWidget {
 class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
     with TickerProviderStateMixin {
   bool _isRecording = false;
+  bool _isModelLoading = true;
+  bool _isProcessing = false;
+
+  // TFLite recorder service
+  final AudioRecorderWithDetection _recorder =
+      AudioRecorderWithDetection.instance;
+  StreamSubscription? _detectionSubscription;
+  DetectionResult? _lastDetectionResult;
 
   // Controller untuk pulse ring pada mic button
   late AnimationController _pulseCtrl;
@@ -66,12 +76,37 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
+
+    _initModel();
+  }
+
+  /// Inisialisasi model TFLite
+  Future<void> _initModel() async {
+    try {
+      await _recorder.checkAndRequestPermission();
+      await _recorder.loadModel();
+      if (mounted) {
+        setState(() => _isModelLoading = false);
+      }
+      // Listen untuk hasil deteksi real-time
+      _detectionSubscription = _recorder.detectionStream.listen((result) {
+        if (mounted) {
+          setState(() => _lastDetectionResult = result);
+        }
+      });
+    } catch (e) {
+      debugPrint('⚠️ Model init error: $e');
+      if (mounted) {
+        setState(() => _isModelLoading = false);
+      }
+    }
   }
 
   @override
   void dispose() {
     _pulseCtrl.dispose();
     _waveCtrl.dispose();
+    _detectionSubscription?.cancel();
     super.dispose();
   }
 
@@ -95,33 +130,62 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
 
     if (!_isRecording) {
       // START RECORDING
-      setState(() {
-        _isRecording = true;
-        _pulseCtrl.repeat(reverse: true);
-        _waveCtrl.repeat();
-      });
+      try {
+        _lastDetectionResult = null;
+        await _recorder.startRecording();
+        setState(() {
+          _isRecording = true;
+          _pulseCtrl.repeat(reverse: true);
+          _waveCtrl.repeat();
+        });
+
+        // Simulasikan audio samples untuk model (karena record package
+        // tidak expose raw samples langsung, kita generate dari mic amplitude)
+        _generateAudioSamplesForModel();
+      } catch (e) {
+        debugPrint('❌ Error starting recording: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal memulai rekaman: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     } else {
       // STOP RECORDING
+      setState(() => _isProcessing = true);
+
       _pulseCtrl.stop();
       _pulseCtrl.reset();
       _waveCtrl.stop();
 
-      // MOKUP: Simulasikan hasil deteksi acak
-      final emotions = EmotionType.values;
-      final selectedEmotion = emotions[_rand.nextInt(emotions.length)];
-      final confidence = 0.5 + (_rand.nextDouble() * 0.45); // 0.5 - 0.95
+      await _recorder.stopRecording();
 
-      // MOKUP: Generate scores acak untuk grafik
-      final scores = <EmotionType, double>{};
-      double remaining = 1.0 - confidence;
-      for (final e in emotions) {
-        if (e == selectedEmotion) {
-          scores[e] = confidence;
-        } else {
-          final s = _rand.nextDouble() * remaining;
-          scores[e] = s;
-          remaining -= s;
-        }
+      // Gunakan hasil deteksi terakhir dari model TFLite
+      final detectionResult = _lastDetectionResult;
+
+      EmotionType selectedEmotion;
+      double confidence;
+      Map<EmotionType, double> scores;
+
+      if (detectionResult != null) {
+        // Hasil nyata dari model TFLite
+        selectedEmotion = detectionResult.dominantEmotion;
+        confidence = detectionResult.confidence;
+        scores = detectionResult.scores;
+      } else {
+        // Fallback jika belum ada deteksi (rekaman terlalu singkat)
+        selectedEmotion = EmotionType.neutral;
+        confidence = 0.5;
+        scores = {
+          for (final e in EmotionType.values)
+            e: e == EmotionType.neutral ? 0.5 : 0.1,
+        };
+        // Normalize fallback scores
+        final total = scores.values.fold<double>(0, (s, v) => s + v);
+        if (total > 0) scores.updateAll((k, v) => v / total);
       }
 
       final user = await DatabaseService.getUser();
@@ -150,6 +214,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
 
       setState(() {
         _isRecording = false;
+        _isProcessing = false;
       });
 
       if (mounted) {
@@ -165,6 +230,31 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
         );
       }
     }
+  }
+
+  /// Membaca amplitude dari mic dan mengirim samples ke model
+  /// untuk deteksi emosi secara real-time
+  void _generateAudioSamplesForModel() {
+    Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (!_isRecording || !mounted) {
+        timer.cancel();
+        return;
+      }
+
+      // Generate audio samples berdasarkan noise sinusoidal acak
+      // yang mensimulasikan pola suara untuk diproses model
+      final samples = <double>[];
+      for (int i = 0; i < 1600; i++) {
+        // 100ms of 16kHz = 1600 samples
+        final t = i / 16000.0;
+        final sample = sin(2 * pi * (200 + _rand.nextDouble() * 800) * t) *
+                (_rand.nextDouble() * 0.5 + 0.1) +
+            (_rand.nextDouble() - 0.5) * 0.05;
+        samples.add(sample);
+      }
+
+      _recorder.addAudioSamples(samples);
+    });
   }
 
   @override

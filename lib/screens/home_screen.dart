@@ -18,7 +18,7 @@ import 'settings_screen.dart';
 import 'auth_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HomeScreen — Dashboard Utama Fem-PhysicsMonitor
+// HomeScreen — Dashboard Utama Fem-Psych Monitor
 //
 // Arsitektur Widget (dipisah agar mudah di-maintain):
 //   • _buildHeader()           → Greeting + avatar inisial

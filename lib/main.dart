@@ -73,7 +73,7 @@ class FemPhysicsMonitorApp extends StatelessWidget {
     );
 
     return MaterialApp(
-      title: 'Fem-PhysicsMonitor',
+      title: 'Fem-Psych Monitor',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
@@ -262,7 +262,7 @@ class _SplashScreenState extends State<_SplashScreen>
                       ),
                       const SizedBox(height: 32),
                       Text(
-                        'Fem-PhysicsMonitor',
+                        'Fem-Psych Monitor',
                         style: GoogleFonts.poppins(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,

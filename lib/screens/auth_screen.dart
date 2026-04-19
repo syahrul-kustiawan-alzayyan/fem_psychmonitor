@@ -139,18 +139,22 @@ class _AuthScreenState extends State<AuthScreen>
                 height: 90,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: AppTheme.primaryGradient,
-                  boxShadow: AppTheme.primaryShadow,
-                ),
-                child: const Icon(
-                  Icons.psychology_rounded,
                   color: Colors.white,
-                  size: 45,
+                  boxShadow: AppTheme.primaryShadow,
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    width: 1,
+                  ),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Image.asset(
+                  'assets/logo.png',
+                  fit: BoxFit.contain,
                 ),
               ),
               const SizedBox(height: 20),
               Text(
-                'Fem-PhysicsMonitor',
+                'Fem-Psych Monitor',
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,

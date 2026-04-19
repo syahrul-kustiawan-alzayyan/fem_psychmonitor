@@ -154,21 +154,21 @@ class SettingsScreen extends StatelessWidget {
                     onTap: () {
                       showLicensePage(
                         context: context,
-                        applicationName: 'Fem-PhysicsMonitor',
+                        applicationName: 'Fem-Psych Monitor',
                         applicationVersion: '1.0.0',
                         applicationIcon: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Container(
                             width: 64,
                             height: 64,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: AppTheme.primaryGradient,
-                            ),
-                            child: const Icon(
-                              Icons.psychology_rounded,
                               color: Colors.white,
-                              size: 32,
+                            ),
+                            padding: const EdgeInsets.all(8),
+                            child: Image.asset(
+                              'assets/logo.png',
+                              fit: BoxFit.contain,
                             ),
                           ),
                         ),
@@ -224,7 +224,7 @@ class SettingsScreen extends StatelessWidget {
               // Footer: versi app
               Center(
                 child: Text(
-                  'Fem-PhysicsMonitor v1.0.0',
+                  'Fem-Psych Monitor v1.0.0',
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     color: AppTheme.textH(context),

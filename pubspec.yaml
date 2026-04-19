@@ -1,5 +1,5 @@
 name: fem_physicsmonitor
-description: "Fem-PhysicsMonitor - Aplikasi Monitoring Fisika untuk Perempuan"
+description: "Fem-Psych Monitor - Aplikasi Monitoring Psikologi untuk Perempuan"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -107,14 +107,14 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/logo.png"
-  adaptive_icon_background: "#3B82F6"
+  adaptive_icon_background: "#000000"
   adaptive_icon_foreground: "assets/logo.png"
   min_sdk_android: 21
   web:
     generate: true
     image_path: "assets/logo.png"
-    background_color: "#3B82F6"
-    theme_color: "#3B82F6"
+    background_color: "#000000"
+    theme_color: "#000000"
   windows:
     generate: true
     image_path: "assets/logo.png"
