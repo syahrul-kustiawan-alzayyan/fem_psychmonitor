@@ -49,7 +49,8 @@ flutter {
 }
 
 dependencies {
-    // Support TensorFlow Select ops (Flex delegate) for models
-    // that use ops like FlexTensorListReserve
-    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1")
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1") {
+        exclude(group = "org.tensorflow", module = "tensorflow-lite")
+        exclude(group = "org.tensorflow", module = "tensorflow-lite-api")
+    }
 }
