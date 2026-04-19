@@ -1,0 +1,304 @@
+{
+    "mbti_questionnaire": [
+        {
+            "id": 1,
+            "dimension": "E_I",
+            "question": "After a long and exhausting day, what is your main way to restore energy?",
+            "options": [
+                {
+                    "answer": "Socializing, going out, and spending time with many people.",
+                    "type": "E"
+                },
+                {
+                    "answer": "Being alone, relaxing at home, or spending time with 1-2 close people.",
+                    "type": "I"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "dimension": "E_I",
+            "question": "In a work or academic environment, you prefer...",
+            "options": [
+                {
+                    "answer": "Working in teams, brainstorming, and actively discussing.",
+                    "type": "E"
+                },
+                {
+                    "answer": "Working independently where you can fully focus on your tasks.",
+                    "type": "I"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "dimension": "E_I",
+            "question": "At social events with many new people, you usually...",
+            "options": [
+                {
+                    "answer": "Walk around, start conversations, and easily mingle with new people.",
+                    "type": "E"
+                },
+                {
+                    "answer": "Stay in one area, observe, and chat with people you already know.",
+                    "type": "I"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "dimension": "E_I",
+            "question": "When processing complicated information or problems, you tend to...",
+            "options": [
+                {
+                    "answer": "Talk it through with others to organize your thoughts.",
+                    "type": "E"
+                },
+                {
+                    "answer": "Think deeply about it internally before sharing it externally.",
+                    "type": "I"
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "dimension": "E_I",
+            "question": "Your circle of friends is best described as...",
+            "options": [
+                {
+                    "answer": "Very wide, covering many acquaintances from various environments and communities.",
+                    "type": "E"
+                },
+                {
+                    "answer": "Small and selective, but having very deep emotional bonds.",
+                    "type": "I"
+                }
+            ]
+        },
+        {
+            "id": 6,
+            "dimension": "S_N",
+            "question": "When listening to someone's explanation, you focus more on...",
+            "options": [
+                {
+                    "answer": "Facts, specific details, and practical examples in the real world.",
+                    "type": "S"
+                },
+                {
+                    "answer": "Hidden meanings, hidden patterns, and the big picture.",
+                    "type": "N"
+                }
+            ]
+        },
+        {
+            "id": 7,
+            "dimension": "S_N",
+            "question": "You consider yourself more as an individual who is...",
+            "options": [
+                {
+                    "answer": "Realistic, practical, and grounded in current reality.",
+                    "type": "S"
+                },
+                {
+                    "answer": "Imaginative, innovative, and enjoy thinking about future possibilities.",
+                    "type": "N"
+                }
+            ]
+        },
+        {
+            "id": 8,
+            "dimension": "S_N",
+            "question": "When assembling items or trying new software, your approach is...",
+            "options": [
+                {
+                    "answer": "Reading the instruction manual step by step first.",
+                    "type": "S"
+                },
+                {
+                    "answer": "Immediately trying intuitively and finding out how it works yourself.",
+                    "type": "N"
+                }
+            ]
+        },
+        {
+            "id": 9,
+            "dimension": "S_N",
+            "question": "In casual daily conversations, you enjoy discussing most...",
+            "options": [
+                {
+                    "answer": "Real events, daily activities, or empirical experiences.",
+                    "type": "S"
+                },
+                {
+                    "answer": "Philosophical ideas, abstract concepts, or theories about why things happen.",
+                    "type": "N"
+                }
+            ]
+        },
+        {
+            "id": 10,
+            "dimension": "S_N",
+            "question": "Your communication style and way of describing things tends to be...",
+            "options": [
+                {
+                    "answer": "Literal, direct to the point, without much beating around the bush.",
+                    "type": "S"
+                },
+                {
+                    "answer": "Metaphorical, using similes, or poetic imagery.",
+                    "type": "N"
+                }
+            ]
+        },
+        {
+            "id": 11,
+            "dimension": "T_F",
+            "question": "When making major decisions, you prioritize most...",
+            "options": [
+                {
+                    "answer": "Logical analysis, efficiency, and reasonable objectivity.",
+                    "type": "T"
+                },
+                {
+                    "answer": "Personal values, empathy, and its impact on others' well-being.",
+                    "type": "F"
+                }
+            ]
+        },
+        {
+            "id": 12,
+            "dimension": "T_F",
+            "question": "In a heated discussion or debate, your main priority is...",
+            "options": [
+                {
+                    "answer": "Proving what's factually correct, even if someone gets hurt.",
+                    "type": "T"
+                },
+                {
+                    "answer": "Maintaining harmony and ensuring no feelings are hurt.",
+                    "type": "F"
+                }
+            ]
+        },
+        {
+            "id": 13,
+            "dimension": "T_F",
+            "question": "You prefer to be appreciated and praised for being...",
+            "options": [
+                {
+                    "answer": "Fair, competent, intelligent, and having strong arguments.",
+                    "type": "T"
+                },
+                {
+                    "answer": "Warm, understanding, compassionate, and caring.",
+                    "type": "F"
+                }
+            ]
+        },
+        {
+            "id": 14,
+            "dimension": "T_F",
+            "question": "When a friend comes to share their complaints, your first instinct is to...",
+            "options": [
+                {
+                    "answer": "Analyze the problem and immediately offer practical solutions.",
+                    "type": "T"
+                },
+                {
+                    "answer": "Provide an ear to listen, validate their emotions, and give mental support.",
+                    "type": "F"
+                }
+            ]
+        },
+        {
+            "id": 15,
+            "dimension": "T_F",
+            "question": "According to you, the most disturbing flaw or trait in a work team is...",
+            "options": [
+                {
+                    "answer": "Inability to work technically, working slowly, or being irrational.",
+                    "type": "T"
+                },
+                {
+                    "answer": "Being arrogant, rude, or creating an emotionally toxic environment.",
+                    "type": "F"
+                }
+            ]
+        },
+        {
+            "id": 16,
+            "dimension": "J_P",
+            "question": "How is your style in planning a vacation or long trip?",
+            "options": [
+                {
+                    "answer": "Making a detailed, structured itinerary and booking everything in advance.",
+                    "type": "J"
+                },
+                {
+                    "answer": "Choosing a base destination, but deciding activities spontaneously when you arrive.",
+                    "type": "P"
+                }
+            ]
+        },
+        {
+            "id": 17,
+            "dimension": "J_P",
+            "question": "Regarding project deadlines, you usually...",
+            "options": [
+                {
+                    "answer": "Work on it well in advance gradually to avoid panic at the end.",
+                    "type": "J"
+                },
+                {
+                    "answer": "Get motivated and have the best ideas to complete it at the last minute.",
+                    "type": "P"
+                }
+            ]
+        },
+        {
+            "id": 18,
+            "dimension": "J_P",
+            "question": "Your workspace, desk, or bedroom is usually...",
+            "options": [
+                {
+                    "answer": "Very tidy, organized, and items returned to their original places.",
+                    "type": "J"
+                },
+                {
+                    "answer": "Slightly messy or random, but you still know exactly where your items are.",
+                    "type": "P"
+                }
+            ]
+        },
+        {
+            "id": 19,
+            "dimension": "J_P",
+            "question": "How is your response when schedules that have been agreed upon suddenly change?",
+            "options": [
+                {
+                    "answer": "Feel disturbed, frustrated, and need time to reorganize plans.",
+                    "type": "J"
+                },
+                {
+                    "answer": "Feel relaxed, adapt quickly, or even like the spontaneous surprise.",
+                    "type": "P"
+                }
+            ]
+        },
+        {
+            "id": 20,
+            "dimension": "J_P",
+            "question": "You feel more comfortable in situations that are...",
+            "options": [
+                {
+                    "answer": "Already have final decisions, certain, and have a closure point.",
+                    "type": "J"
+                },
+                {
+                    "answer": "Still left open, flexible, and have room to explore other options.",
+                    "type": "P"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,498 @@
+{
+    "womens_mental_health_assessment": {
+        "title": "Women's Mental Health Assessment",
+        "description": "This questionnaire is designed with a psychological approach to measure women's mental well-being levels, covering aspects of dual burden, emotional regulation, body image, to hormonal influence. The rating scale uses range 0 (most positive/rare) to 3 (most negative/often).",
+        "questions": [
+            {
+                "id": 1,
+                "category": "Role Burden & Stress",
+                "question": "How often do you feel overwhelmed by expectations or dual roles (as a worker, mother, wife, or daughter)?",
+                "options": [
+                    {
+                        "answer": "Never / Very rarely",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Sometimes",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Almost all the time",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "category": "Emotional & Hormonal Regulation",
+                "question": "Do you experience extreme mood swings or significant feelings of depression before or during your menstrual cycle?",
+                "options": [
+                    {
+                        "answer": "Never",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Sometimes, but easily managed",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often, and quite disrupts activities",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Always, and very debilitating to daily life",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 3,
+                "category": "Body Image",
+                "question": "How often do you feel worthless or hate yourself because you feel you don't meet social beauty standards?",
+                "options": [
+                    {
+                        "answer": "Never, I accept myself as I am",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Sometimes feel less confident",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often compare and feel bad",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Very often to the point of limiting social interactions",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 4,
+                "category": "Personal Boundaries",
+                "question": "How difficult is it for you to say 'no' to other people's requests without feeling excessive guilt?",
+                "options": [
+                    {
+                        "answer": "Very easy, I know my limits",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Sometimes difficult, but I can do it",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often feel guilty after refusing",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Very difficult, I sacrifice myself",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 5,
+                "category": "Depressive Symptoms",
+                "question": "How often do you lose interest or pleasure in activities you usually enjoy?",
+                "options": [
+                    {
+                        "answer": "Never",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Several days in a month",
+                        "score": 1
+                    },
+                    {
+                        "answer": "More than half the time in a month",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Almost every day",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 6,
+                "category": "Anxiety",
+                "question": "How often do you feel tense, anxious, or have difficulty stopping worrying thoughts about the future?",
+                "options": [
+                    {
+                        "answer": "Never",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Several days",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Most days",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Every day",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 7,
+                "category": "Fatigue & Sleep",
+                "question": "How is your sleep quality in the past month (difficult to sleep, often waking up, or oversleeping)?",
+                "options": [
+                    {
+                        "answer": "Very good and restful",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Occasionally experiencing disturbances",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often have difficulty sleeping well",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Sleep very disturbed every night",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 8,
+                "category": "Self-Care",
+                "question": "Do you feel guilty or selfish when taking time purely for self-care (me-time)?",
+                "options": [
+                    {
+                        "answer": "No, I know it's important",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Sometimes feel a little guilty",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often feel guilty",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Always feel selfish and ultimately don't do it",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 9,
+                "category": "Social Isolation",
+                "question": "How often do you feel lonely or feel like no one truly understands your burden?",
+                "options": [
+                    {
+                        "answer": "Never",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Sometimes",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Almost all the time",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 10,
+                "category": "Physical Symptoms (Psychosomatic)",
+                "question": "How often do you experience physical complaints without clear medical cause when stressed (e.g., headaches, acid reflux, muscle pain)?",
+                "options": [
+                    {
+                        "answer": "Never",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Rarely",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Very often",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 11,
+                "category": "Emotional Stability",
+                "question": "In stressful situations, how often do you cry suddenly without specific reason?",
+                "options": [
+                    {
+                        "answer": "Never",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Rarely",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Almost every day",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 12,
+                "category": "Coping Mechanisms",
+                "question": "When facing serious problems, do you use risky escapes (like emotional eating, impulsive shopping, or addictive substances)?",
+                "options": [
+                    {
+                        "answer": "No, I face it healthily",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Once in a while",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Quite often as a quick escape",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Yes, I rely heavily on these",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 13,
+                "category": "Interpersonal Relationships",
+                "question": "Do you have a support system that makes you feel safe to share your problems without being judged?",
+                "options": [
+                    {
+                        "answer": "Yes, very strong",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Exists, but limited",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Only a few and rarely reliable",
+                        "score": 2
+                    },
+                    {
+                        "answer": "None at all",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 14,
+                "category": "Focus & Concentration",
+                "question": "How often do emotional problems make you lose focus or have difficulty making everyday decisions?",
+                "options": [
+                    {
+                        "answer": "Never interferes",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Sometimes makes thinking slower",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often causes work to pile up",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Very often to the point of not functioning normally",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 15,
+                "category": "Social Validation",
+                "question": "How much do comments, opinions, or criticism from society about your life (e.g., career choices, marriage, children) affect your mental health?",
+                "options": [
+                    {
+                        "answer": "Very little, I have control of my life",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Quite affecting for a while",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Very affecting and making anxious",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Dominates all my decisions and thoughts",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 16,
+                "category": "Trauma & Past",
+                "question": "How often do bad memories or traumatic experiences from the past suddenly appear and disturb your current peace?",
+                "options": [
+                    {
+                        "answer": "Never",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Rarely and can be controlled immediately",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often and triggers panic",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Very often (flashbacks) that are debilitating",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 17,
+                "category": "Burnout",
+                "question": "Do you feel emotionally and physically exhausted to the point of feeling 'empty' when starting your day?",
+                "options": [
+                    {
+                        "answer": "No, I'm energetic",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Only when schedule is very busy",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often feel tired even after rest",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Almost every day feel empty (burnout)",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 18,
+                "category": "Anger",
+                "question": "How easily do you feel offended, get angry, or explode at small things around you?",
+                "options": [
+                    {
+                        "answer": "I'm very patient and calm",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Sometimes provoked when very tired",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often respond with anger",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Very reactive and difficult to control emotions",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 19,
+                "category": "Social Media Insecurity",
+                "question": "When seeing other women's achievements or lives on social media, what do you most often feel?",
+                "options": [
+                    {
+                        "answer": "Normal or feeling inspired",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Sometimes compare briefly",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Often feel behind and anxious",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Always feel my life is failing and worthless",
+                        "score": 3
+                    }
+                ]
+            },
+            {
+                "id": 20,
+                "category": "Life Hope",
+                "question": "In general, how is your view on your own future?",
+                "options": [
+                    {
+                        "answer": "Full of hope and optimistic",
+                        "score": 0
+                    },
+                    {
+                        "answer": "Quite realistic but there's some worry",
+                        "score": 1
+                    },
+                    {
+                        "answer": "Pessimistic and feel nothing will get better",
+                        "score": 2
+                    },
+                    {
+                        "answer": "Very hopeless",
+                        "score": 3
+                    }
+                ]
+            }
+        ],
+        "scoring_system": {
+            "total_max_score": 60,
+            "calculation": "Sum all scores from 20 questions to determine mental health class.",
+            "classes": [
+                {
+                    "class_level": 1,
+                    "class_name": "Optimal Healthy (Excellent)",
+                    "score_range": "0 - 15",
+                    "description": "Your mental health condition is very good. You have strong coping mechanisms, healthy personal boundaries, and are able to manage stress and social demands very effectively. Keep maintaining your healthy lifestyle and social support."
+                },
+                {
+                    "class_level": 2,
+                    "class_name": "Fairly Healthy (Mild)",
+                    "score_range": "16 - 30",
+                    "description": "Your mental health is generally stable, but there are some stress triggers (like dual burden or hormonal fluctuations) starting to affect your routines. This is a normal phase. It is highly recommended to increase rest time and self-care."
+                },
+                {
+                    "class_level": 3,
+                    "class_name": "Vulnerable (Moderate)",
+                    "score_range": "31 - 45",
+                    "description": "You are facing significant emotional challenges. There are symptoms of mental burnout, anxiety, or body image issues starting to interfere with daily functions. Start talking to a trusted person or consider initial counseling sessions."
+                },
+                {
+                    "class_level": 4,
+                    "class_name": "Needs Clinical Attention (Severe / Highly Vulnerable)",
+                    "score_range": "46 - 60",
+                    "description": "This score indicates high psychological distress. You may feel overwhelmed, hopeless, or experience psychosomatic symptoms affecting physical health. It is highly recommended to seek professional help (clinical psychologist/psychiatrist) for appropriate intervention."
+                }
+            ]
+        }
+    }
+}

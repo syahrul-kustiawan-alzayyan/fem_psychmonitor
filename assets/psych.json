@@ -466,31 +466,47 @@
         ],
         "scoring_system": {
             "total_max_score": 60,
-            "calculation": "Jumlahkan seluruh skor dari 20 pertanyaan untuk menentukan kelas kesehatan mental.",
+            "display_max_score": 100,
+            "calculation": "Jumlahkan seluruh skor dari 20 pertanyaan (maks 60), lalu kalikan dengan 100/60 untuk mendapatkan skor 0-100.",
+            "emotion_impact": {
+                "positive_emotions": ["Happy", "Neutral"],
+                "negative_emotions": ["Sad", "Fear", "Angry", "Disgust"],
+                "positive_bonus": "Emosi positif dapat meningkatkan skor kesehatan mental hingga +17 poin",
+                "negative_penalty": "Emosi negatif dapat menurunkan skor kesehatan mental hingga -17 poin",
+                "description": "Setiap deteksi emosi terkini akan menyesuaikan skor kesehatan mental Anda. Emosi positif meningkatkan skor sementara emosi negatif menurunkannya."
+            },
             "classes": [
                 {
                     "class_level": 1,
-                    "class_name": "Sehat Optimal (Baik Sekali)",
+                    "class_name": "Sehat Optimal",
+                    "display_range": "80 - 100",
                     "score_range": "0 - 15",
-                    "description": "Kondisi kesehatan mental Anda sangat baik. Anda memiliki mekanisme koping yang tangguh, batasan personal yang sehat, dan mampu mengelola stres serta tuntutan sosial dengan sangat efektif. Tetap pertahankan gaya hidup sehat dan dukungan sosial Anda."
+                    "description": "Kondisi kesehatan mental Anda sangat baik. Anda memiliki mekanisme koping yang tangguh, batasan personal yang sehat, dan mampu mengelola stres serta tuntutan sosial dengan sangat efektif. Tetap pertahankan gaya hidup sehat dan dukungan sosial Anda.",
+                    "recommendation": "Pertahankan rutinitas sehat dan continue mendukung mereka yang membutuhkan."
                 },
                 {
                     "class_level": 2,
-                    "class_name": "Cukup Sehat (Ringan)",
+                    "class_name": "Cukup Sehat",
+                    "display_range": "60 - 79",
                     "score_range": "16 - 30",
-                    "description": "Kesehatan mental Anda secara umum stabil, namun ada beberapa pemicu stres (seperti beban ganda atau fluktuasi hormonal) yang mulai memengaruhi rutinitas. Ini adalah fase wajar. Sangat disarankan untuk meningkatkan waktu istirahat dan self-care."
+                    "description": "Kesehatan mental Anda secara umum stabil, namun ada beberapa pemicu stres (seperti beban ganda atau fluktuasi hormonal) yang mulai memengaruhi rutinitas. Ini adalah fase wajar. Sangat disarankan untuk meningkatkan waktu istirahat dan self-care.",
+                    "recommendation": "Tambahkan waktu istirahat dan aktivitas self-care."
                 },
                 {
                     "class_level": 3,
-                    "class_name": "Rentan (Sedang)",
+                    "class_name": "Rentan",
+                    "display_range": "40 - 59",
                     "score_range": "31 - 45",
-                    "description": "Anda sedang menghadapi tantangan emosional yang signifikan. Terdapat gejala kelelahan mental (burnout), kecemasan, atau masalah citra diri yang mulai mengganggu fungsi harian. Mulailah berbicara dengan orang terpercaya atau pertimbangkan sesi konseling awal."
+                    "description": "Anda sedang menghadapi tantangan emosional yang signifikan. Terdapat gejala kelelahan mental (burnout), kecemasan, atau masalah citra diri yang mulai mengganggu fungsi harian. Mulailah berbicara dengan orang terpercaya atau pertimbangkan sesi konseling awal.",
+                    "recommendation": "Segera bicarakan dengan orang terpercaya atau konsultan profesional."
                 },
                 {
                     "class_level": 4,
-                    "class_name": "Butuh Perhatian Klinis (Berat / Sangat Rentan)",
+                    "class_name": "Butuh Perhatian Klinis",
+                    "display_range": "0 - 39",
                     "score_range": "46 - 60",
-                    "description": "Skor ini mengindikasikan distres psikologis yang tinggi. Anda mungkin merasa kewalahan, putus asa, atau mengalami gejala psikosomatis yang mengganggu kesehatan fisik. Sangat disarankan untuk segera mencari bantuan profesional (psikolog klinis/psikiater) untuk mendapatkan intervensi yang tepat."
+                    "description": "Skor ini mengindikasikan distres psikologis yang tinggi. Anda mungkin merasa kewalahan, putus asa, atau mengalami gejala psikosomatis yang mengganggu kesehatan fisik. Sangat disarankan untuk segera mencari bantuan profesional (psikolog klinis/psikiater) untuk mendapatkan intervensi yang tepat.",
+                    "recommendation": "Segera cari bantuan profesional (psikolog klinis atau psikiater)."
                 }
             ]
         }

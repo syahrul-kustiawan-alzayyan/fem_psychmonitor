@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/database_service.dart';
@@ -1244,19 +1245,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     Color cardColor;
     IconData categoryIcon;
 
-    if (_psyScore <= 10) {
-      category = 'Baik (Mental Stabil)';
-      advice = 'Kondisi mental Anda saat ini dalam keadaan baik.';
+    if (_psyScore <= 20) {
+      category = AppLocalizations.tr('psych_excellent');
+      advice = AppLocalizations.tr('overall_exc_1');
       cardColor = const Color(0xFF22C55E);
       categoryIcon = Icons.check_circle_rounded;
-    } else if (_psyScore <= 20) {
-      category = 'Cukup (Rentan Stres)';
-      advice = 'Anda menunjukkan beberapa tanda tekanan emosional.';
+    } else if (_psyScore <= 40) {
+      category = AppLocalizations.tr('psych_fair');
+      advice = AppLocalizations.tr('overall_good_2');
       cardColor = const Color(0xFFF59E0B);
       categoryIcon = Icons.warning_amber_rounded;
+    } else if (_psyScore <= 50) {
+      category = AppLocalizations.tr('psych_fair');
+      advice = AppLocalizations.tr('overall_fair_2');
+      cardColor = const Color(0xFFF97316);
+      categoryIcon = Icons.warning_rounded;
     } else {
-      category = 'Perlu Perhatian (Distres)';
-      advice = 'Skor Anda menunjukkan tingkat tekanan emosional yang signifikan.';
+      category = AppLocalizations.tr('psych_needs_attention');
+      advice = AppLocalizations.tr('overall_attn_2');
       cardColor = const Color(0xFFEF4444);
       categoryIcon = Icons.error_rounded;
     }
@@ -1302,7 +1308,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Icon(categoryIcon, size: 56, color: cardColor),
                 const SizedBox(height: 16),
                 Text(
-                  'Skor Anda: $_psyScore / 30',
+                  'Skor Anda: $_psyScore / 60 (${((_psyScore / 60) * 100).round()} / 100)',
                   style: GoogleFonts.poppins(
                     fontSize: 32,
                     fontWeight: FontWeight.w900,

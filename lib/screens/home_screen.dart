@@ -501,7 +501,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       future: DatabaseService.getUser(),
       builder: (context, snapshot) {
         final user = snapshot.data;
-        final basePsychScore = user?.psychologicalScore; // 0-30 (tinggi = buruk)
+        final basePsychScore = user?.psychologicalScore; // 0-60 (tinggi = buruk)
 
         // Hitung skor emosi dari deteksi terbaru (max 10 sesi terakhir)
         double emotionAdjustment = 0;
@@ -515,12 +515,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         }
 
         // Konversi ke skala 0-100 (tinggi = sehat)
-        // Skor kuesioner: 0-30 → invert ke 0-100
-        // Base: (30 - psychScore) / 30 * 100
+        // Skor kuesioner: 0-60 → invert ke 0-100
+        // Base: (60 - psychScore) / 60 * 100
         // Adjustment: emotionAdjustment range -5..+5 → mapped to ±17 poin
         int? displayScore100;
         if (basePsychScore != null) {
-          final baseScore100 = ((30 - basePsychScore) / 30 * 100).round();
+          final baseScore100 = ((60 - basePsychScore) / 60 * 100).round();
           final adjustment100 = (emotionAdjustment / 5 * 17).round();
           displayScore100 = (baseScore100 + adjustment100).clamp(0, 100);
         }
@@ -541,33 +541,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           emoji = '📋';
           description =
               'Isi kuesioner kesehatan mental untuk melihat skor Anda';
-        } else if (displayScore100 >= 70) {
+        } else if (displayScore100 >= 80) {
           primaryColor = const Color(0xFF10B981); // Green - Baik
           secondaryColor = const Color(0xFF34D399);
-          statusLabel = 'Kondisi Stabil';
+          statusLabel = AppLocalizations.tr('psych_excellent');
           statusIcon = Icons.check_circle_rounded;
           emoji = '😊';
-          description =
-              user?.mentalHealthAdvice.split('.').first ??
-              'Kondisi psikis Anda terpelihara dengan baik';
-        } else if (displayScore100 >= 40) {
+          description = _getHealthClassDescription(displayScore100);
+        } else if (displayScore100 >= 60) {
           primaryColor = const Color(0xFFF59E0B); // Amber - Cukup
           secondaryColor = const Color(0xFFFBBF24);
-          statusLabel = 'Perlu Istirahat';
+          statusLabel = AppLocalizations.tr('psych_good');
+          statusIcon = Icons.check_circle_outline_rounded;
+          emoji = '🙂';
+          description = _getHealthClassDescription(displayScore100);
+        } else if (displayScore100 >= 40) {
+          primaryColor = const Color(0xFFF97316); // Orange - Rentan
+          secondaryColor = const Color(0xFFFB923C);
+          statusLabel = AppLocalizations.tr('psych_fair');
           statusIcon = Icons.warning_amber_rounded;
           emoji = '😔';
-          description =
-              user?.mentalHealthAdvice.split('.').first ??
-              'Anda mulai merasakan beban tekanan';
+          description = _getHealthClassDescription(displayScore100);
         } else {
           primaryColor = const Color(0xFFEF4444); // Red - Perlu perhatian
           secondaryColor = const Color(0xFFF87171);
-          statusLabel = 'Butuh Perhatian';
+          statusLabel = AppLocalizations.tr('psych_needs_attention');
           statusIcon = Icons.error_rounded;
           emoji = '😰';
-          description =
-              user?.mentalHealthAdvice.split('.').first ??
-              'Beban emosional yang cukup berat';
+          description = _getHealthClassDescription(displayScore100);
         }
 
         return Container(
@@ -814,43 +815,57 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              emotionAdjustment >= 0
-                                  ? Icons.trending_up_rounded
-                                  : Icons.trending_down_rounded,
-                              color: Colors.white.withValues(alpha: 0.85),
-                              size: 14,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                emotionAdjustment >= 0
-                                    ? 'Emosi positif meningkatkan skor Anda'
-                                    : 'Emosi negatif menurunkan skor Anda',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10.5,
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                ),
+                            Text(
+                              'Dampak Emosi terhadap Skor',
+                              style: GoogleFonts.poppins(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withValues(alpha: 0.7),
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                emotionAdjustment >= 0
-                                    ? '+${(emotionAdjustment.abs() / 5 * 17).round()}'
-                                    : '-${(emotionAdjustment.abs() / 5 * 17).round()}',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  emotionAdjustment >= 0
+                                      ? Icons.trending_up_rounded
+                                      : Icons.trending_down_rounded,
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                  size: 14,
                                 ),
-                              ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    emotionAdjustment >= 0
+                                        ? 'Emosi positif (Happy, Neutral) meningkatkan skor'
+                                        : 'Emosi negatif (Sad, Fear, Angry, Disgust) menurunkannya',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 9.5,
+                                      color: Colors.white.withValues(alpha: 0.8),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    emotionAdjustment >= 0
+                                        ? '+${(emotionAdjustment.abs() / 5 * 17).round()}'
+                                        : '-${(emotionAdjustment.abs() / 5 * 17).round()}',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -924,9 +939,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // Helper untuk kategori skor 0-100 (tinggi = baik)
   String _getScoreCategory100(int score) {
-    if (score >= 70) return 'Kondisi Stabil';
-    if (score >= 40) return 'Perlu Istirahat';
-    return 'Butuh Perhatian';
+    if (score >= 80) return AppLocalizations.tr('psych_excellent');
+    if (score >= 60) return AppLocalizations.tr('psych_good');
+    if (score >= 40) return AppLocalizations.tr('psych_fair');
+    return AppLocalizations.tr('psych_needs_attention');
+  }
+
+  // Helper untuk get description kelas kesehatan mental
+  String _getHealthClassDescription(int score) {
+    if (score >= 80) return AppLocalizations.tr('overall_exc_1');
+    if (score >= 60) return AppLocalizations.tr('overall_good_1');
+    if (score >= 40) return AppLocalizations.tr('overall_fair_1');
+    return AppLocalizations.tr('overall_attn_1');
   }
 
   // ─────────────────────────────────────────────────────────────

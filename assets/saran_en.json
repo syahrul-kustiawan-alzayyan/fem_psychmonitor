@@ -1,0 +1,788 @@
+{
+    "mbti_recommendations": [
+        {
+            "mbti_type": "INTJ",
+            "alias": "The Architect",
+            "group": "Analyst",
+            "emotions": {
+                "Happy": [
+                    "Start exploring complex projects.",
+                    "Design long-term strategies.",
+                    "Share your vision with trusted colleagues.",
+                    "Optimize existing work systems.",
+                    "Enjoy in-depth reading time."
+                ],
+                "Fear": [
+                    "Logically analyze the probability of threats.",
+                    "Create contingency plans (Plan B/C).",
+                    "Gather data to reduce uncertainty.",
+                    "Focus on controllable variables.",
+                    "Engage in physical activity to calm overthinking."
+                ],
+                "Angry": [
+                    "Temporarily distance yourself from triggers.",
+                    "Write down grievances in a structured way.",
+                    "Channel energy into problem-solving.",
+                    "Avoid impulsive confrontation.",
+                    "Evaluate expectations against the environment."
+                ],
+                "Sad": [
+                    "Allow yourself introspection without seeking instant solutions.",
+                    "Stick to familiar routines.",
+                    "Reduce analytical workload.",
+                    "Listen to instrumental music.",
+                    "Find logical patterns from experiences for learning."
+                ],
+                "Disgust": [
+                    "Maintain distance from toxic environments.",
+                    "Identify violated boundaries.",
+                    "Design avoidance strategies for the future.",
+                    "Remain professional in interactions.",
+                    "Focus on system improvements."
+                ],
+                "Neutral": [
+                    "Conduct audits of daily routines.",
+                    "Learn new technical skills.",
+                    "Observe data trends in areas of interest.",
+                    "Rearrange workspace.",
+                    "Practice mindfulness meditation."
+                ]
+            }
+        },
+        {
+            "mbti_type": "INTP",
+            "alias": "The Logician",
+            "group": "Analyst",
+            "emotions": {
+                "Happy": [
+                    "Explore new theories or concepts.",
+                    "Conduct independent experiments.",
+                    "Play strategy games.",
+                    "Join intellectual discussions.",
+                    "Write down random thoughts that emerge."
+                ],
+                "Fear": [
+                    "Map out worst-case scenarios logically.",
+                    "Seek objective information about triggers.",
+                    "Discuss anxiety with a mentor.",
+                    "Break large problems into smaller components.",
+                    "Watch educational content as distraction."
+                ],
+                "Angry": [
+                    "Step back from the situation to cool down.",
+                    "Write arguments (without sharing).",
+                    "Analyze the root cause of anger.",
+                    "Channel energy into coding or research.",
+                    "Present objections using facts."
+                ],
+                "Sad": [
+                    "Give space for solitude.",
+                    "Engage in low-effort activities.",
+                    "Listen to podcasts on favorite topics.",
+                    "Reduce social stimulation temporarily.",
+                    "Validate feelings without rationalizing them."
+                ],
+                "Disgust": [
+                    "Avoid subjects that trigger disgust.",
+                    "Re-evaluate opposing principles.",
+                    "Establish clear communication boundaries.",
+                    "Shift focus to independent research.",
+                    "Express criticism through analytical writing."
+                ],
+                "Neutral": [
+                    "Rearrange personal folders or databases.",
+                    "Read scientific articles.",
+                    "Practice problem-solving skills (e.g., sudoku).",
+                    "Take a walk alone.",
+                    "Let your mind wander freely."
+                ]
+            }
+        },
+        {
+            "mbti_type": "ENTJ",
+            "alias": "The Commander",
+            "group": "Analyst",
+            "emotions": {
+                "Happy": [
+                    "Take initiative for new leadership.",
+                    "Execute pending plans.",
+                    "Celebrate achievements with the team.",
+                    "Delegate tasks for efficiency.",
+                    "Set next quarter targets."
+                ],
+                "Fear": [
+                    "Turn fear into action plans.",
+                    "Identify available resources.",
+                    "Consult with field experts.",
+                    "Take control of one small aspect.",
+                    "Evaluate risks pragmatically."
+                ],
+                "Angry": [
+                    "Channel energy into intense exercise.",
+                    "Write a draft of grievances.",
+                    "Refocus on main goals.",
+                    "Engage in firm but measured negotiation.",
+                    "Address inefficiencies that trigger anger."
+                ],
+                "Sad": [
+                    "Stay productive with light tasks.",
+                    "Discuss problems with solution-oriented individuals.",
+                    "Schedule structured break times.",
+                    "Analyze losses from the situation objectively.",
+                    "Plan quick recovery steps."
+                ],
+                "Disgust": [
+                    "Quickly remove sources of dislike.",
+                    "Overhaul non-functioning systems.",
+                    "Give corrective feedback directly.",
+                    "Shift focus to competitive projects.",
+                    "Maintain high professional standards."
+                ],
+                "Neutral": [
+                    "Conduct personal performance audits.",
+                    "Expand professional networking.",
+                    "Organize weekly schedules.",
+                    "Read books on leadership.",
+                    "Analyze competitors or industry trends."
+                ]
+            }
+        },
+        {
+            "mbti_type": "ENTP",
+            "alias": "The Debater",
+            "group": "Analyst",
+            "emotions": {
+                "Happy": [
+                    "Brainstorm wild ideas.",
+                    "Start friendly discussions/debates.",
+                    "Try a completely new hobby.",
+                    "Improvise at work.",
+                    "Share innovative ideas on public platforms."
+                ],
+                "Fear": [
+                    "Discuss probability solutions with others.",
+                    "Use humor to reduce tension.",
+                    "Seek alternative perspectives.",
+                    "Conduct in-depth research on threats.",
+                    "Stay flexible and avoid hasty final decisions."
+                ],
+                "Angry": [
+                    " Debate constructively to release burden.",
+                    "Write sharp criticism as catharsis.",
+                    "Transform anger into creative energy.",
+                    "Engage in spontaneous physical activity.",
+                    "Find logical flaws in the frustrating situation."
+                ],
+                "Sad": [
+                    "Surround yourself with stimulating friends.",
+                    "Watch documentaries or comedies.",
+                    "Explore new places for a change of scenery.",
+                    "Allow yourself to feel stuck temporarily.",
+                    "Discuss feelings openly and philosophically."
+                ],
+                "Disgust": [
+                    "Use sarcasm as a coping mechanism.",
+                    "Leave the situation and seek new stimulation.",
+                    "Make arguments about why it doesn't make sense.",
+                    "Shift attention to logic puzzles.",
+                    "Challenge norms that trigger disgust."
+                ],
+                "Neutral": [
+                    "Listen to podcasts on random topics.",
+                    "Impulsively tidy workspace.",
+                    "Casually chat with new acquaintances.",
+                    "Review old ideas that haven't been executed.",
+                    "Play strategy-building games."
+                ]
+            }
+        },
+        {
+            "mbti_type": "INFJ",
+            "alias": "The Advocate",
+            "group": "Diplomat",
+            "emotions": {
+                "Happy": [
+                    "Write gratitude journals.",
+                    "Help others solve problems.",
+                    "Have in-depth 1-on-1 conversations.",
+                    "Create meaningful art.",
+                    "Envision an ideal future."
+                ],
+                "Fear": [
+                    "Practice breathing meditation.",
+                    "Validate your own feelings without judgment.",
+                    "Withdraw from excess sensory stimulation.",
+                    "Find a quiet, safe space.",
+                    "Write down fears to visualize them."
+                ],
+                "Angry": [
+                    "Set firm personal boundaries.",
+                    "Vent frustrations in a personal journal.",
+                    "Walk alone in nature.",
+                    "Release yourself from individuals who trigger anger.",
+                    "Channel emotions into advocacy or writing."
+                ],
+                "Sad": [
+                    "Listen to music that resonates with emotions.",
+                    "Allow yourself to cry as emotional release.",
+                    "Read poetry or philosophical literature.",
+                    "Gently isolate yourself.",
+                    "Seek support from one closest friend."
+                ],
+                "Disgust": [
+                    "Clean the environment from negative energy.",
+                    "Reaffirm personal moral values.",
+                    "Block sources of toxicity.",
+                    "Maintain polite but firm distance.",
+                    "Focus on your ideal self-vision."
+                ],
+                "Neutral": [
+                    "Practice mindfulness.",
+                    "Rearrange bedroom decor.",
+                    "Read psychology or self-development books.",
+                    "Observe surroundings.",
+                    "Plan weekly emotional goals."
+                ]
+            }
+        },
+        {
+            "mbti_type": "INFP",
+            "alias": "The Mediator",
+            "group": "Diplomat",
+            "emotions": {
+                "Happy": [
+                    "Creative writing (poetry/short stories).",
+                    "Daydream and imagine.",
+                    "Share happiness with pets.",
+                    "Buy small comfort items.",
+                    "Explore nature's beauty."
+                ],
+                "Fear": [
+                    "Seek emotional comfort (blanket, warm tea).",
+                    "Hug a pillow or pet.",
+                    "Listen to calming acoustic music.",
+                    "Express fear through abstract art.",
+                    "Remind yourself of core values you believe in."
+                ],
+                "Angry": [
+                    "Draw frustration on paper.",
+                    "Listen to fast-tempo music.",
+                    "Write an anger letter then destroy/discard it.",
+                    "Scream in a soundproof place (like a pillow).",
+                    "Go on a solo hike."
+                ],
+                "Sad": [
+                    "Allow melancholy to be present for a while.",
+                    "Watch emotionally draining films for catharsis.",
+                    "Wrap yourself in thick blankets.",
+                    "Write feelings in detail in a diary.",
+                    "Practice self-compassion."
+                ],
+                "Disgust": [
+                    "Retreat to a personal hideout.",
+                    "Strengthen moral compass internally.",
+                    "Avoid triggers completely.",
+                    "Consume wholesome media.",
+                    "Talk with very empathetic friends."
+                ],
+                "Neutral": [
+                    "Listen to indie music.",
+                    "Window shop aesthetic items.",
+                    "Doodle in a sketchbook.",
+                    "Rearrange photo galleries.",
+                    "Visualization meditation."
+                ]
+            }
+        },
+        {
+            "mbti_type": "ENFJ",
+            "alias": "The Protagonist",
+            "group": "Diplomat",
+            "emotions": {
+                "Happy": [
+                    "Organize social gatherings.",
+                    "Give sincere praise to those around.",
+                    "Do volunteer activities.",
+                    "Share enthusiasm through storytelling.",
+                    "Start community-based group projects."
+                ],
+                "Fear": [
+                    "Seek positive affirmation from close ones.",
+                    "Discuss anxiety openly.",
+                    "Help others as healthy distraction.",
+                    "Ask advice from a trusted mentor.",
+                    "Join support group sessions."
+                ],
+                "Angry": [
+                    "Express feelings assertively but calmly.",
+                    "Mediate conflict if third parties are involved.",
+                    "Exercise in group classes (e.g., zumba/aerobics).",
+                    "Journal to clarify thoughts.",
+                    "Seek closure from the issue."
+                ],
+                "Sad": [
+                    "Seek hugs or physical affection.",
+                    "Cry with a close friend.",
+                    "Watch inspirational movies.",
+                    "Cook or make something for others.",
+                    "Discuss feelings with supportive authority figures."
+                ],
+                "Disgust": [
+                    "Set healthier group norms.",
+                    "Educate offenders persuasively.",
+                    "Keep the group away from toxic influences.",
+                    "Focus on restoring harmony together.",
+                    "Reaffirm positive shared values."
+                ],
+                "Neutral": [
+                    "Reconnect with old friends to catch up.",
+                    "Plan small events.",
+                    "Read books about empathetic communication.",
+                    "Tidy communal areas.",
+                    "Listen to music with strong vocals."
+                ]
+            }
+        },
+        {
+            "mbti_type": "ENFP",
+            "alias": "The Campaigner",
+            "group": "Diplomat",
+            "emotions": {
+                "Happy": [
+                    "Do spontaneous adventures.",
+                    "Dance to favorite music.",
+                    "Call several friends to share energy.",
+                    "Start a new passion project.",
+                    "Try food or routes you've never taken."
+                ],
+                "Fear": [
+                    "Say fears out loud to reduce them.",
+                    "Seek distractions involving many people.",
+                    "Gather with calming people.",
+                    "Brainstorm positive outcomes from the situation.",
+                    "Move to bright, open environments."
+                ],
+                "Angry": [
+                    "Rant to understanding friends.",
+                    "Go running or jogging.",
+                    "Channel energy into creative activism.",
+                    "Confront issues playfully but firmly.",
+                    "Change atmosphere as quickly as possible."
+                ],
+                "Sad": [
+                    "Express sadness through art or fashion.",
+                    "Chat with strangers at a cafe.",
+                    "Drive without a specific destination.",
+                    "Listen to sad songs to process emotions thoroughly.",
+                    "Seek new perspectives from books or podcasts."
+                ],
+                "Disgust": [
+                    "Leave the situation immediately.",
+                    "Complain using theatrical humor.",
+                    "Engage in completely different hobbies.",
+                    "Focus on interacting with authentic people.",
+                    "Advocate for better alternatives."
+                ],
+                "Neutral": [
+                    "Browse random topics on the internet.",
+                    "Re arrange room furniture.",
+                    "Go to busy coffee shops.",
+                    "Record business ideas that suddenly appear.",
+                    "People-watch at parks."
+                ]
+            }
+        },
+        {
+            "mbti_type": "ISTJ",
+            "alias": "The Logistician",
+            "group": "Sentinel",
+            "emotions": {
+                "Happy": [
+                    "Cross completed tasks off the to-do list.",
+                    "Organize personal financial records.",
+                    "Enjoy quiet hobbies alone.",
+                    "Execute daily routines with precision.",
+                    "Share practical successes with immediate family."
+                ],
+                "Fear": [
+                    "Review relevant past data and experiences.",
+                    "Create step-by-step mitigation plans.",
+                    "Verify facts about the threat.",
+                    "Prepare emergency funds or supplies.",
+                    "Stick firmly to daily schedules."
+                ],
+                "Angry": [
+                    "Step away briefly to calm physical emotions.",
+                    "Write chronological facts of the issue.",
+                    "Clean the house (stress cleaning).",
+                    "Fix broken items.",
+                    "Address issues directly without emotional drama."
+                ],
+                "Sad": [
+                    "Keep busy with household chores.",
+                    "Reflect on obligations and responsibilities.",
+                    "Spend time caring for pets.",
+                    "Watch classic movies.",
+                    "Give yourself time to be alone in a closed room."
+                ],
+                "Disgust": [
+                    "Sanitize environment or workspace.",
+                    "Apply strict rules regarding triggers.",
+                    "Report violations to authorities (if any).",
+                    "Remove yourself from the disorder.",
+                    "Focus on traditions that prove correct."
+                ],
+                "Neutral": [
+                    "Review next week's schedule.",
+                    "Organize tools, apps, or physical documents.",
+                    "Read nonfiction history books.",
+                    "Do light physical stretching.",
+                    "Perform routine maintenance on vehicles/equipment."
+                ]
+            }
+        },
+        {
+            "mbti_type": "ISFJ",
+            "alias": "The Defender",
+            "group": "Sentinel",
+            "emotions": {
+                "Happy": [
+                    "Cook or bake for family.",
+                    "Look through old photo albums.",
+                    "Give practical help to neighbors.",
+                    "Enjoy a cozy night at home.",
+                    "Do handicrafts (crafting)."
+                ],
+                "Fear": [
+                    "Seek comfort from family members.",
+                    "Stick to familiar routines.",
+                    "Prepare comfort food.",
+                    "Ask for practical certainty from competent people.",
+                    "Create a safe zone in a corner of your room."
+                ],
+                "Angry": [
+                    "Clean the house with high intensity.",
+                    "Express disappointment in a gentle but clear tone.",
+                    "Temporarily withdraw to avoid outbursts.",
+                    "Tell trusted family members.",
+                    "Focus on repetitive tasks (like ironing)."
+                ],
+                "Sad": [
+                    "Cry in private space.",
+                    "Accept practical help from loved ones.",
+                    "Do caring actions for others to shift from sadness.",
+                    "Look at items with nostalgic value.",
+                    "Rest in warm environments."
+                ],
+                "Disgust": [
+                    "Avoid triggers so as not to disturb peace.",
+                    "Clean room until hygienic.",
+                    "Lean on traditional values.",
+                    "Protect close ones from similar exposure.",
+                    "Seek comfort from well-known things."
+                ],
+                "Neutral": [
+                    "Do daily household chores.",
+                    "Garden or tend to plants.",
+                    "Listen to radio broadcasts or gentle instruments.",
+                    "Knit or sew.",
+                    "Review family calendars."
+                ]
+            }
+        },
+        {
+            "mbti_type": "ESTJ",
+            "alias": "The Executive",
+            "group": "Sentinel",
+            "emotions": {
+                "Happy": [
+                    "Lead projects to achieve targets.",
+                    "Organize community events structurally.",
+                    "Give physical/practical rewards to yourself.",
+                    "Successfully delegate tasks.",
+                    "Review achievements list."
+                ],
+                "Fear": [
+                    "Compile emergency standard operating procedures.",
+                    "Consult with those in authority.",
+                    "Gather concrete physical evidence or data.",
+                    "Secure material/financial resources.",
+                    "Take decisive precautionary actions."
+                ],
+                "Angry": [
+                    "Confront issues directly and factually.",
+                    "Heavy exercise (weightlifting).",
+                    "Demand accountability from involved parties.",
+                    "Restructure chaotic environments.",
+                    "Release physical emotions in enclosed spaces if needed."
+                ],
+                "Sad": [
+                    "Shift focus to urgent administrative tasks.",
+                    "Ask senior coworkers for strategic advice.",
+                    "Allow scheduled short break periods.",
+                    "Fix something that appears physically broken.",
+                    "Analyze causes of failure with a cool mind."
+                ],
+                "Disgust": [
+                    "Implement new rules to prevent repetition.",
+                    "Keep distance from inefficient/immoral individuals.",
+                    "Give sharp constructive criticism.",
+                    "Focus on hard work.",
+                    "Maintain order in the surrounding environment."
+                ],
+                "Neutral": [
+                    "Audit personal/company cash flow.",
+                    "Plan logistics for this week.",
+                    "Read economic or industry news.",
+                    "Check house/vehicle conditions.",
+                    "Attend formal networking events."
+                ]
+            }
+        },
+        {
+            "mbti_type": "ESFJ",
+            "alias": "The Consul",
+            "group": "Sentinel",
+            "emotions": {
+                "Happy": [
+                    "Hold dinner gatherings.",
+                    "Give surprise gifts to friends.",
+                    "Participate in charity activities in the neighborhood.",
+                    "Plan big family recreation.",
+                    "Praise others' performance or appearance."
+                ],
+                "Fear": [
+                    "Discuss with peer groups.",
+                    "Seek communal consensus or agreement.",
+                    "Gather close ones as support system.",
+                    "Prepare physical security steps for family.",
+                    "Lean on habits that prove safe."
+                ],
+                "Angry": [
+                    "Vent to close friends.",
+                    "Be a mediator if conflicts involve friends.",
+                    "Clean living room or communal areas.",
+                    "Confront others based on applicable social norms.",
+                    "Seek emotional validation from the group."
+                ],
+                "Sad": [
+                    "Ask for emotional support from the community.",
+                    "Watch calming TV shows.",
+                    "Make food to share.",
+                    "Cry with trusted people.",
+                    "Focus on daily social obligations as an anchor."
+                ],
+                "Disgust": [
+                    "Discuss dislikes in trusted circles.",
+                    "Keep distance from offending parties.",
+                    "Strengthen social rules within the group.",
+                    "Focus on healthy and positive activities.",
+                    "Protect the group from bad influences."
+                ],
+                "Neutral": [
+                    "Casually chat with neighbors.",
+                    "Shop for necessities.",
+                    "Organize social activity calendars.",
+                    "Redecorate living room.",
+                    "Update local or neighborhood news."
+                ]
+            }
+        },
+        {
+            "mbti_type": "ISTP",
+            "alias": "The Virtuoso",
+            "group": "Explorer",
+            "emotions": {
+                "Happy": [
+                    "Work on mechanical/technical modification projects.",
+                    "Do extreme sports.",
+                    "Test new gadgets.",
+                    "Go for a drive (motorcycle/car) alone.",
+                    "Practice physical skills to high precision."
+                ],
+                "Fear": [
+                    "Analyze physical threats in front of you.",
+                    "Prepare protective equipment/survival gear.",
+                    "Gather specific field data.",
+                    "Increase sensory alertness.",
+                    "Test equipment to ensure functionality."
+                ],
+                "Angry": [
+                    "Box or engage in contact sports.",
+                    "Disassemble mechanical equipment.",
+                    "Drive at high speeds (in safe circuits).",
+                    "Isolate completely to cool down.",
+                    "Handle the cause physically directly."
+                ],
+                "Sad": [
+                    "Engage in hands-on hobbies.",
+                    "Play single-player action video games.",
+                    "Spend time outdoors without interaction.",
+                    "Fix items in the workshop.",
+                    "Distract mind with intense visual stimulation."
+                ],
+                "Disgust": [
+                    "Physically move the object.",
+                    "Use sharp dark humor or sarcasm.",
+                    "Shift attention to pragmatic tasks.",
+                    "Ignore emotionally and just walk away.",
+                    "Create physical barriers between yourself and trigger objects."
+                ],
+                "Neutral": [
+                    "Tinker with unused electronic devices.",
+                    "Explore technology/mechanics forums.",
+                    "Watch sports or action movies.",
+                    "Practice magic tricks or hand dexterity.",
+                    "Organize tool racks."
+                ]
+            }
+        },
+        {
+            "mbti_type": "ISFP",
+            "alias": "The Adventurer",
+            "group": "Explorer",
+            "emotions": {
+                "Happy": [
+                    "Create visual art (painting/design).",
+                    "Listen to high-aesthetic music.",
+                    "Spend time soaking in nature's atmosphere.",
+                    "Buy items that beautify yourself or room.",
+                    "Enjoy food with rich flavors."
+                ],
+                "Fear": [
+                    "Retreat to a comfortable private space.",
+                    "Hug pets tightly.",
+                    "Engage in grounding physical activities (e.g., barefoot on grass).",
+                    "Create art describing those fears.",
+                    "Seek comfort from favorite blankets or clothes."
+                ],
+                "Angry": [
+                    "Do splatter painting (aggressive painting).",
+                    "Listen to loud music through earphones.",
+                    "Fast walk in open nature.",
+                    "Physically withdraw from conflict sources.",
+                    "Write emotions, tear paper, then discard."
+                ],
+                "Sad": [
+                    "Cry under trees or in quiet gardens.",
+                    "Create art reflecting melancholy.",
+                    "Oversleep to restore physical energy.",
+                    "Listen to ballads or acoustic songs.",
+                    "Physically treat yourself (spa/massage)."
+                ],
+                "Disgust": [
+                    "Turn face away and leave immediately.",
+                    "Quickly find visually beautiful environments.",
+                    "Focus on aesthetic self-care.",
+                    "Use aromatherapy to mask disgusting things.",
+                    "Ignore the trigger one hundred percent."
+                ],
+                "Neutral": [
+                    "Doodle with pastel colors.",
+                    "Window shop clothes.",
+                    "Try new food recipes without high expectations.",
+                    "Move posters or desk decorations.",
+                    "Observe people's or clouds' movements."
+                ]
+            }
+        },
+        {
+            "mbti_type": "ESTP",
+            "alias": "The Entrepreneur",
+            "group": "Explorer",
+            "emotions": {
+                "Happy": [
+                    "Join physical sports competitions.",
+                    "Attend or throw parties.",
+                    "Do spontaneous actions.",
+                    "Take measured risks for entertainment.",
+                    "Make physical jokes to friends."
+                ],
+                "Fear": [
+                    "Take immediate physical action against threats.",
+                    "Do quick environmental assessment (situational awareness).",
+                    "Use adrenaline to sharpen focus.",
+                    "Discuss tactical plans with brave friends.",
+                    "Face the source of fear confrontationally."
+                ],
+                "Angry": [
+                    "Exercise with very high intensity.",
+                    "Confront opposing parties directly.",
+                    "Play competitive games aggressively.",
+                    "Express emotions loudly then immediately forget.",
+                    "Destroy items that have no value (in safe places)."
+                ],
+                "Sad": [
+                    "Seek sensory distraction by going outside.",
+                    "Late-night gatherings with friends.",
+                    "Do physically draining activities.",
+                    "Try adrenaline-pumping rides.",
+                    "Pull focus back to the present moment."
+                ],
+                "Disgust": [
+                    "Mock directly the disgusting thing.",
+                    "Leave location physically.",
+                    "Do intense physical activities to shift thoughts.",
+                    "Focus on sensory pleasures (good food, visual gratification).",
+                    "Challenge authorities causing the sick feeling."
+                ],
+                "Neutral": [
+                    "Play mobile games that test reflexes.",
+                    "Casually chat with any coworkers.",
+                    "Try new physical tricks (e.g., juggling).",
+                    "Walk around looking for nearest recreation opportunities.",
+                    "Monitor current physical product trends."
+                ]
+            }
+        },
+        {
+            "mbti_type": "ESFP",
+            "alias": "The Entertainer",
+            "group": "Explorer",
+            "emotions": {
+                "Happy": [
+                    "Perform singing or dancing.",
+                    "Make yourself the center of positive attention.",
+                    "Throw spontaneous gathering parties.",
+                    "Buy bright-colored outfits.",
+                    "Cheer up sad friends."
+                ],
+                "Fear": [
+                    "Immediately seek crowds to remove loneliness.",
+                    "Talk about fears quickly with many people.",
+                    "Find pleasant visual/audio distractions.",
+                    "Depend on friends for safety.",
+                    "Do light, fun tasks."
+                ],
+                "Angry": [
+                    "Express vocally and expressively.",
+                    "Vent to listening audience.",
+                    "Do high-energy activities (karaoke, zumba).",
+                    "Change surrounding environment instantly.",
+                    "Distract anger with comedy."
+                ],
+                "Sad": [
+                    "Ask for comfort hugs from friends.",
+                    "Cry openly without restraint.",
+                    "Buy and eat junk food / comfort food.",
+                    "Watch comedy movies that make you laugh.",
+                    "Go to mall for shopping therapy."
+                ],
+                "Disgust": [
+                    "Show disgust openly from facial gestures.",
+                    "Complain enthusiastically to close friends.",
+                    "Move to more aesthetic and fragrant places.",
+                    "Distract mind by turning on upbeat music.",
+                    "Shift focus to purely enjoyable things."
+                ],
+                "Neutral": [
+                    "Randomly scroll social media.",
+                    "Chat with anyone around.",
+                    "Mix & match clothes in closet.",
+                    "Try new flavor snacks.",
+                    "Listen to currently trending music playlists."
+                ]
+            }
+        }
+    ]
+}
