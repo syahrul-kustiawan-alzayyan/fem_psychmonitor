@@ -42,9 +42,8 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
   // Configuration
   static const int sampleRate = 16000; // 16kHz
-  static const int inputSize = 128; // Features count (default)
-  int _modelInputSize = inputSize; // Akan diupdate dari model shape
-  static const int bufferSize = 4096; // Buffer size for reading chunks
+  static const int _targetAudioLength = 16000 * 3; // 3 seconds at 16kHz
+  int _modelInputSize = 128 * 121; // 128 frames * 121 features
 
   // Timer untuk periodic detection
   Timer? _detectionTimer;
@@ -89,17 +88,6 @@ class AudioRecorderWithDetection extends ChangeNotifier {
     try {
       debugPrint('🔄 Loading TFLite model: $modelPath');
 
-      // Check if running on Windows/desktop (TFLite native libs needed)
-      if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        debugPrint(
-          '⚠️ Desktop platform detected. Using simulated detection for development.',
-        );
-        _isModelLoaded = true;
-        _useMockDetection = true;
-        notifyListeners();
-        return;
-      }
-
       _interpreter = await Interpreter.fromAsset(modelPath);
 
       final inputTensor = _interpreter!.getInputTensor(0);
@@ -122,12 +110,7 @@ class AudioRecorderWithDetection extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Failed to load model: $e');
-      debugPrint('⚠️ Falling back to simulated detection for development.');
-
-      // Fallback to mock detection for development
-      _isModelLoaded = true;
-      _useMockDetection = true;
-      notifyListeners();
+      rethrow;
     }
   }
 
@@ -238,7 +221,6 @@ class AudioRecorderWithDetection extends ChangeNotifier {
     _isDetecting = true;
 
     try {
-      // Use mock detection if on desktop platform
       if (_useMockDetection) {
         _runMockDetection();
         return;
@@ -246,27 +228,22 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
       if (_interpreter == null) return;
 
-      // Pastikan buffer cukup besar
-      if (_audioBuffer.length < _modelInputSize) {
+      if (_audioBuffer.length < _targetAudioLength) {
         return;
       }
 
-      // Ambil segment terbaru
       final segment = _audioBuffer.sublist(
-        _audioBuffer.length - _modelInputSize,
+        _audioBuffer.length - _targetAudioLength,
         _audioBuffer.length,
       );
 
-      // Ekstrak fitur
       final features = extractAudioFeatures(segment);
 
-      // Siapkan input/output
       final input = [features];
       final outputShape = _interpreter!.getOutputTensor(0).shape;
       final outputLength = outputShape.reduce((a, b) => a * b);
       final output = List.filled(outputLength, 0.0);
 
-      // Run inference
       _interpreter!.run(input, [output]);
 
       // Parse hasil
@@ -317,109 +294,258 @@ class AudioRecorderWithDetection extends ChangeNotifier {
     }
   }
 
-  /// Tambahkan samples ke buffer (dipanggil dari stream audio)
   void addAudioSamples(List<double> samples) {
     _audioBuffer.addAll(samples);
 
-    // Batasi ukuran buffer agar tidak terlalu besar
-    const maxBufferSize = sampleRate * 10; // Max 10 detik
+    const maxBufferSize = sampleRate * 10;
     if (_audioBuffer.length > maxBufferSize) {
       _audioBuffer = _audioBuffer.sublist(_audioBuffer.length - maxBufferSize);
     }
   }
 
-  /// Ekstrak fitur audio untuk model
-  List<double> extractAudioFeatures(List<double> audio) {
-    final features = <double>[];
+  static const int _nMfcc = 40;
+  static const int _maxFrames = 128;
+  static const int _nFFT = 2048;
+  static const int _hopLength = 512;
 
-    // 1. Zero Crossing Rate
-    double zeroCrossings = 0;
-    for (int i = 1; i < audio.length; i++) {
-      if ((audio[i] >= 0 && audio[i - 1] < 0) ||
-          (audio[i] < 0 && audio[i - 1] >= 0)) {
-        zeroCrossings++;
+  static final List<double> _melBins = _generateMelFilters();
+
+  static List<double> _generateMelFilters() {
+    final bins = <double>[];
+    for (int i = 0; i < _nMfcc + 2; i++) {
+      final mel = 2595 * _log10(1 + (i * sampleRate / 2) / (_nMfcc + 1));
+      bins.add(mel);
+    }
+    return bins;
+  }
+
+  static double _log10(double x) => log(x) / ln10;
+
+  List<double> extractAudioFeatures(List<double> audio) {
+    if (audio.isEmpty) {
+      return List.filled(_maxFrames * _nMfcc * 3 + _maxFrames, 0.0);
+    }
+
+    final targetLength = _targetAudioLength;
+    List<double> paddedAudio;
+    if (audio.length > targetLength) {
+      paddedAudio = audio.sublist(0, targetLength);
+    } else {
+      paddedAudio = List.filled(targetLength, 0.0);
+      for (int i = 0; i < audio.length; i++) {
+        paddedAudio[i] = audio[i];
       }
     }
-    features.add(zeroCrossings / audio.length);
 
-    // 2. Energy (RMS)
-    double energy = 0;
-    for (final sample in audio) {
-      energy += sample * sample;
+    final maxAbs = paddedAudio.map((x) => x.abs()).reduce(max);
+    if (maxAbs > 0) {
+      for (int i = 0; i < paddedAudio.length; i++) {
+        paddedAudio[i] = paddedAudio[i] / maxAbs;
+      }
     }
-    energy = sqrt(energy / audio.length);
-    features.add(energy);
 
-    // 3. Mean amplitude
-    double mean = 0;
-    for (final sample in audio) {
-      mean += sample;
+    paddedAudio = _applyPreEmphasis(paddedAudio, 0.97);
+
+    final spectrogram = _computeSpectrogram(paddedAudio);
+    final melSpectrogram = _applyMelFilterbank(spectrogram);
+    final mfcc = _computeDCT(melSpectrogram);
+
+    final mfccDelta = _computeDelta(mfcc);
+    final mfccDelta2 = _computeDelta(mfccDelta);
+    final zcrFrames = _computeZCR(paddedAudio);
+
+    var allFeatures = <double>[];
+
+    for (int t = 0; t < _maxFrames && t < mfcc.length; t++) {
+      allFeatures.addAll(mfcc[t]);
     }
-    mean /= audio.length;
-    features.add(mean);
-
-    // 4. Standard deviation
-    double variance = 0;
-    for (final sample in audio) {
-      variance += pow(sample - mean, 2);
+    for (int t = 0; t < _maxFrames && t < mfccDelta.length; t++) {
+      allFeatures.addAll(mfccDelta[t]);
     }
-    variance /= audio.length;
-    features.add(sqrt(variance));
-
-    // 5. Max amplitude
-    double maxAmp = 0;
-    for (final sample in audio) {
-      maxAmp = max(maxAmp, sample.abs());
+    for (int t = 0; t < _maxFrames && t < mfccDelta2.length; t++) {
+      allFeatures.addAll(mfccDelta2[t]);
     }
-    features.add(maxAmp);
+    for (int t = 0; t < _maxFrames && t < zcrFrames.length; t++) {
+      allFeatures.add(zcrFrames[t]);
+    }
 
-    // 6-128. Spectral features (simplified)
-    final frameSize = audio.length ~/ 16;
-    for (int i = 0; i < 16 && frameSize > 0; i++) {
-      final start = i * frameSize;
-      final end = start + frameSize;
-      if (end <= audio.length) {
-        final frame = audio.sublist(start, end);
+    while (allFeatures.length < _maxFrames * _nMfcc * 3 + _maxFrames) {
+      allFeatures.add(0.0);
+    }
 
-        // Energy per frame
-        double frameEnergy = 0;
-        for (final sample in frame) {
-          frameEnergy += sample * sample;
+    allFeatures = allFeatures.sublist(0, _maxFrames * _nMfcc * 3 + _maxFrames);
+
+    for (int i = 0; i < allFeatures.length; i++) {
+      if (!allFeatures[i].isFinite) {
+        allFeatures[i] = 0.0;
+      }
+    }
+
+    return allFeatures;
+  }
+
+  List<double> _applyPreEmphasis(List<double> audio, double alpha) {
+    final result = List<double>.filled(audio.length, 0.0);
+    result[0] = audio[0];
+    for (int i = 1; i < audio.length; i++) {
+      result[i] = audio[i] - alpha * audio[i - 1];
+    }
+    return result;
+  }
+
+  List<List<double>> _computeSpectrogram(List<double> audio) {
+    final frames = <List<double>>[];
+    final numFrames = ((audio.length - _nFFT) ~/ _hopLength) + 1;
+
+    for (int i = 0; i < numFrames; i++) {
+      final start = i * _hopLength;
+      if (start + _nFFT > audio.length) break;
+
+      final frame = audio.sublist(start, min(start + _nFFT, audio.length));
+      while (frame.length < _nFFT) {
+        frame.add(0.0);
+      }
+
+      final windowed = <double>[];
+      for (int j = 0; j < _nFFT; j++) {
+        final w = 0.5 * (1 - cos(2 * pi * j / (_nFFT - 1)));
+        windowed.add(frame[j] * w);
+      }
+
+      final fft = _simpleFFT(windowed);
+      final power = <double>[];
+      for (int j = 0; j < fft.length ~/ 2; j++) {
+        power.add(fft[j] * fft[j] + fft[fft.length - 1 - j] * fft[fft.length - 1 - j]);
+      }
+      frames.add(power);
+    }
+
+    return frames;
+  }
+
+  List<double> _simpleFFT(List<double> real) {
+    final n = real.length;
+    final re = List<double>.from(real);
+    final im = List<double>.filled(n, 0.0);
+
+    for (int len = 1; len < n; len *= 2) {
+      final angleStep = -pi / len;
+      for (int i = 0; i < n; i += len * 2) {
+        for (int k = 0; k < len; k++) {
+          final angle = k * angleStep;
+          final cosA = cos(angle);
+          final sinA = sin(angle);
+          final evenIdx = i + k;
+          final oddIdx = i + k + len;
+          if (oddIdx >= n) continue;
+
+          final tRe = cosA * re[oddIdx] - sinA * im[oddIdx];
+          final tIm = sinA * re[oddIdx] + cosA * im[oddIdx];
+
+          re[oddIdx] = re[evenIdx] - tRe;
+          im[oddIdx] = im[evenIdx] - tIm;
+          re[evenIdx] = re[evenIdx] + tRe;
+          im[evenIdx] = im[evenIdx] + tIm;
         }
-        features.add(sqrt(frameEnergy / frame.length));
+      }
+    }
 
-        // Zero crossings per frame
-        double frameZCR = 0;
-        for (int j = 1; j < frame.length; j++) {
-          if ((frame[j] >= 0 && frame[j - 1] < 0) ||
-              (frame[j] < 0 && frame[j - 1] >= 0)) {
-            frameZCR++;
+    return re;
+  }
+
+  List<List<double>> _applyMelFilterbank(List<List<double>> spectrogram) {
+    final result = <List<double>>[];
+    final numBins = _melBins.length - 2;
+
+    for (final frame in spectrogram) {
+      final mel = List<double>.filled(numBins, 0.0);
+      for (int i = 0; i < numBins; i++) {
+        final left = _melBins[i].toInt();
+        final center = _melBins[i + 1].toInt();
+        final right = _melBins[i + 2].toInt();
+
+        double sum = 0.0;
+        for (int j = left; j < center && j < frame.length; j++) {
+          sum += frame[j] * (j - left + 1) / (center - left + 1);
+        }
+        for (int j = center; j < right && j < frame.length; j++) {
+          sum += frame[j] * (right - j) / (right - center + 1);
+        }
+        mel[i] = sum;
+      }
+      result.add(mel);
+    }
+
+    return result;
+  }
+
+  List<List<double>> _computeDCT(List<List<double>> melSpectrogram) {
+    final result = <List<double>>[];
+    for (final mel in melSpectrogram) {
+      final dct = List<double>.filled(_nMfcc, 0.0);
+      for (int k = 0; k < _nMfcc; k++) {
+        double sum = 0.0;
+        for (int n = 0; n < mel.length; n++) {
+          sum += mel[n] * cos(pi / mel.length * (n + 0.5) * k);
+        }
+        dct[k] = sum;
+      }
+      result.add(dct);
+    }
+    return result;
+  }
+
+  List<List<double>> _computeDelta(List<List<double>> features) {
+    if (features.isEmpty) return [];
+    final numFrames = features.length;
+    final numCoeffs = features[0].length;
+    final result = List.generate(numFrames, (_) => List.filled(numCoeffs, 0.0));
+
+    for (int t = 0; t < numFrames; t++) {
+      double denominator = 0.0;
+      for (int k = 1; k <= 2; k++) {
+        denominator += k * k;
+      }
+      denominator *= 2;
+
+      for (int n = 0; n < numCoeffs; n++) {
+        double sum = 0.0;
+        for (int k = 1; k <= 2; k++) {
+          final prev = t - k;
+          final next = t + k;
+          if (prev >= 0 && prev < numFrames) {
+            sum += k * (features[prev][n] - features[t][n]);
+          }
+          if (next >= 0 && next < numFrames) {
+            sum += k * (features[t][n] - features[next][n]);
           }
         }
-        features.add(frameZCR / frame.length);
-
-        // Mean per frame
-        double frameMean = 0;
-        for (final sample in frame) {
-          frameMean += sample;
-        }
-        features.add(frameMean / frame.length);
-
-        // Std per frame
-        double frameVar = 0;
-        for (final sample in frame) {
-          frameVar += pow(sample - frameMean, 2);
-        }
-        features.add(sqrt(frameVar / frame.length));
+        result[t][n] = sum / denominator;
       }
     }
+    return result;
+  }
 
-    // Pad jika kurang
-    while (features.length < _modelInputSize) {
-      features.add(0.0);
+  List<double> _computeZCR(List<double> audio) {
+    final numFrames = ((audio.length - _nFFT) ~/ _hopLength) + 1;
+    final zcr = <double>[];
+
+    for (int i = 0; i < numFrames; i++) {
+      double zeroCrossings = 0;
+      final start = i * _hopLength;
+      for (int j = start; j < start + _nFFT - 1 && j < audio.length - 1; j++) {
+        if ((audio[j] >= 0 && audio[j + 1] < 0) ||
+            (audio[j] < 0 && audio[j + 1] >= 0)) {
+          zeroCrossings++;
+        }
+      }
+      zcr.add(zeroCrossings / _nFFT);
     }
 
-    return features.sublist(0, _modelInputSize);
+    while (zcr.length < _maxFrames) {
+      zcr.add(0.0);
+    }
+    return zcr.sublist(0, _maxFrames);
   }
 
   /// Reset semua data
