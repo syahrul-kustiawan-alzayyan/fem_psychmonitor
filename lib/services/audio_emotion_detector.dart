@@ -114,23 +114,24 @@ class AudioEmotionDetector extends ChangeNotifier {
       final timeSteps = 128;
       final nFeatures = 121;
 
-      final reshapedInput = List.filled(
+      final reshapedInput = List.generate(
         1,
-        List.filled(
+        (_) => List.generate(
           timeSteps,
-          List.filled(nFeatures, 0.0),
+          (t) => features.sublist(t * nFeatures, (t + 1) * nFeatures),
         ),
       );
-      for (int t = 0; t < timeSteps; t++) {
-        for (int f = 0; f < nFeatures; f++) {
-          reshapedInput[0][t][f] = features[t * nFeatures + f];
-        }
-      }
 
-      final outputLength = outputShape.reduce((a, b) => a * b);
-      final output = List.filled(outputLength, 0.0);
+      final outputBatchSize = outputShape.isNotEmpty ? outputShape[0] : 1;
+      final outputFeaturesSize = outputShape.length > 1 
+          ? outputShape.sublist(1).reduce((a, b) => a * b)
+          : 1;
+      final output = List.generate(
+        outputBatchSize,
+        (_) => List.filled(outputFeaturesSize, 0.0),
+      );
 
-      _interpreter!.run(reshapedInput.cast<List<double>>(), [output]);
+      _interpreter!.run(reshapedInput, output);
 
       final scores = <EmotionType, double>{};
       final emotionLabels = [
@@ -142,8 +143,9 @@ class AudioEmotionDetector extends ChangeNotifier {
         EmotionType.fear,
       ];
 
-      for (int i = 0; i < emotionLabels.length && i < output.length; i++) {
-        scores[emotionLabels[i]] = (output[i] as num).toDouble();
+      for (int i = 0; i < emotionLabels.length && i < output[0].length; i++) {
+        final val = output[0][i];
+        scores[emotionLabels[i]] = val is num ? (val as num).toDouble() : 0.0;
       }
 
       // Normalisasi skor agar total = 1.0

@@ -90,7 +90,9 @@ class AudioRecorderWithDetection extends ChangeNotifier {
       debugPrint('🔄 Loading TFLite model: $modelPath');
       
       final flexDelegate = await FlexDelegate.create();
-      final interpreterOptions = InterpreterOptions()..addDelegate(flexDelegate);
+      final interpreterOptions = InterpreterOptions()
+        ..addDelegate(flexDelegate)
+        ..threads = 2;
       _interpreter = await Interpreter.fromAsset(
         modelPath,
         options: interpreterOptions,
@@ -161,9 +163,6 @@ class AudioRecorderWithDetection extends ChangeNotifier {
       await _recorder.start(config, path: tempPath);
       _isRecording = true;
 
-      // Start periodic detection
-      _startPeriodicDetection();
-
       notifyListeners();
       debugPrint('✅ Recording started');
     } catch (e) {
@@ -172,7 +171,7 @@ class AudioRecorderWithDetection extends ChangeNotifier {
     }
   }
 
-  /// Hentikan rekaman audio
+  /// Hentikan rekaman audio dan proses emosi
   Future<String?> stopRecording() async {
     try {
       debugPrint('⏹️ Stopping recording...');
@@ -183,8 +182,14 @@ class AudioRecorderWithDetection extends ChangeNotifier {
       _detectionTimer?.cancel();
       _detectionTimer = null;
 
-      // Stop recorder - path tidak digunakan secara eksplisit
+      // Stop recorder
       final path = await _recorder.stop();
+
+      // Proses audio setelah recording berhenti
+      if (path != null && _audioBuffer.length >= _targetAudioLength) {
+        debugPrint('🔄 Processing final audio...');
+        await _processAudioFinal();
+      }
 
       debugPrint('✅ Recording stopped. Saved to: $path');
 
@@ -193,6 +198,115 @@ class AudioRecorderWithDetection extends ChangeNotifier {
     } catch (e) {
       debugPrint('❌ Error stopping recording: $e');
       rethrow;
+    }
+  }
+  
+  /// Proses audio setelah recording selesai
+  Future<void> _processAudioFinal() async {
+    if (!_isModelLoaded || _audioBuffer.isEmpty) return;
+
+    try {
+      final segment = _audioBuffer.sublist(
+        _audioBuffer.length - _targetAudioLength,
+        _audioBuffer.length,
+      );
+
+      final features = extractAudioFeatures(segment);
+      
+      if (features.length != 128 * 121) {
+        debugPrint('⚠️ Invalid feature length: ${features.length}');
+        return;
+      }
+
+      final inputTensor = _interpreter!.getInputTensor(0);
+      final outputTensor = _interpreter!.getOutputTensor(0);
+      
+      final inputShape = inputTensor.shape;
+      final outputShape = outputTensor.shape;
+      
+      debugPrint('   Input shape: $inputShape');
+      debugPrint('   Output shape: $outputShape');
+
+      final modelBatch = inputShape[0];
+      final modelTime = inputShape[1];
+      final modelFeat = inputShape[2];
+
+      final reshapedInput = List.generate(
+        modelBatch,
+        (_) => List.generate(
+          modelTime,
+          (t) {
+            final start = t * modelFeat;
+            final end = start + modelFeat;
+            if (end > features.length) {
+              return List.filled(modelFeat, 0.0);
+            }
+            return features.sublist(start, end);
+          },
+        ),
+      );
+
+      final outputBatchSize = outputShape.isNotEmpty ? outputShape[0] : 1;
+      final outputFeaturesSize = outputShape.length > 1 
+          ? outputShape.sublist(1).reduce((a, b) => a * b)
+          : 1;
+      final output = List.generate(
+        outputBatchSize,
+        (_) => List.filled(outputFeaturesSize, 0.0),
+      );
+
+      _interpreter!.run(reshapedInput, output);
+
+      final scores = <EmotionType, double>{};
+      final modelLabels = [
+        EmotionType.happy,
+        EmotionType.sad,
+        EmotionType.angry,
+        EmotionType.disgust,
+        EmotionType.neutral,
+        EmotionType.fear,
+      ];
+
+      for (int i = 0; i < modelLabels.length && i < output[0].length; i++) {
+        final val = output[0][i];
+        scores[modelLabels[i]] = val is num ? (val as num).toDouble() : 0.0;
+      }
+
+      // Normalisasi
+      final total = scores.values.fold<double>(0, (sum, val) => sum + val);
+      if (total > 0) {
+        scores.updateAll((key, value) => value / total);
+      }
+
+      // Cari dominan
+      EmotionType dominant = EmotionType.neutral;
+      double maxScore = 0;
+
+      for (final entry in scores.entries) {
+        if (entry.value > maxScore) {
+          maxScore = entry.value;
+          dominant = entry.key;
+        }
+      }
+
+      _currentScores = scores;
+      _currentDominantEmotion = dominant;
+      _currentConfidence = maxScore;
+
+      _detectionStream.add(
+        DetectionResult(
+          scores: scores,
+          dominantEmotion: dominant,
+          confidence: maxScore,
+          timestamp: DateTime.now(),
+        ),
+      );
+
+      debugPrint('✅ Emotion detected: $dominant (${(maxScore * 100).toStringAsFixed(1)}%)');
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('❌ Error processing final audio: $e');
     }
   }
 
@@ -245,31 +359,50 @@ class AudioRecorderWithDetection extends ChangeNotifier {
       );
 
       final features = extractAudioFeatures(segment);
-
-      final inputShape = _interpreter!.getInputTensor(0).shape;
-      final outputShape = _interpreter!.getOutputTensor(0).shape;
-
-      final batchSize = 1;
-      final timeSteps = 128;
-      final nFeatures = 121;
-
-      final reshapedInput = List.filled(
-        batchSize,
-        List.filled(
-          timeSteps,
-          List.filled(nFeatures, 0.0),
-        ),
-      );
-      for (int t = 0; t < timeSteps; t++) {
-        for (int f = 0; f < nFeatures; f++) {
-          reshapedInput[0][t][f] = features[t * nFeatures + f];
-        }
+      
+      if (features.length != 128 * 121) {
+        debugPrint('⚠️ Invalid feature length: ${features.length}');
+        return;
       }
 
-      final outputLength = outputShape.reduce((a, b) => a * b);
-      final output = List.filled(outputLength, 0.0);
+      final inputTensor = _interpreter!.getInputTensor(0);
+      final outputTensor = _interpreter!.getOutputTensor(0);
+      
+      final inputShape = inputTensor.shape;
+      final outputShape = outputTensor.shape;
+      
+      debugPrint('   Input shape from model: $inputShape');
+      debugPrint('   Output shape from model: $outputShape');
 
-      _interpreter!.run(reshapedInput.cast<List<double>>(), [output]);
+      final modelBatch = inputShape[0];
+      final modelTime = inputShape[1];
+      final modelFeat = inputShape[2];
+
+      final reshapedInput = List.generate(
+        modelBatch,
+        (_) => List.generate(
+          modelTime,
+          (t) {
+            final start = t * modelFeat;
+            final end = start + modelFeat;
+            if (end > features.length) {
+              return List.filled(modelFeat, 0.0);
+            }
+            return features.sublist(start, end);
+          },
+        ),
+      );
+
+      final outputBatchSize = outputShape.isNotEmpty ? outputShape[0] : 1;
+      final outputFeaturesSize = outputShape.length > 1 
+          ? outputShape.sublist(1).reduce((a, b) => a * b)
+          : 1;
+      final output = List.generate(
+        outputBatchSize,
+        (_) => List.filled(outputFeaturesSize, 0.0),
+      );
+
+      _interpreter!.run(reshapedInput, output);
 
       final scores = <EmotionType, double>{};
       final modelLabels = [
@@ -281,8 +414,9 @@ class AudioRecorderWithDetection extends ChangeNotifier {
         EmotionType.fear,
       ];
 
-      for (int i = 0; i < modelLabels.length && i < output.length; i++) {
-        scores[modelLabels[i]] = output[i].toDouble();
+      for (int i = 0; i < modelLabels.length && i < output[0].length; i++) {
+        final val = output[0][i];
+        scores[modelLabels[i]] = val is num ? (val as num).toDouble() : 0.0;
       }
 
       // Normalisasi
