@@ -116,8 +116,9 @@ class AudioRecorderWithDetection extends ChangeNotifier {
       _useMockDetection = false;
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ Failed to load model: $e');
+      debugPrint('⚠️ Failed to load model with Flex delegate: $e');
       _useMockDetection = true;
+      _interpreter = null;
       _isModelLoaded = true;
       notifyListeners();
     }
@@ -187,11 +188,26 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
       // Proses audio setelah recording berhenti
       if (path != null && _audioBuffer.length >= _targetAudioLength) {
-        debugPrint('🔄 Processing final audio...');
-        await _processAudioFinal();
+        // Pastikan model loaded sebelum deteksi
+        if (!_validateInterpreter()) {
+          await _ensureModelLoaded();
+        }
+        
+        if (_useMockDetection || _interpreter == null) {
+          _runMockDetection();
+        } else {
+          try {
+            debugPrint('🔄 Processing final audio...');
+            await _processAudioFinal();
+          } catch (e) {
+            debugPrint('❌ Inference failed: $e');
+            _useMockDetection = true;
+            _runMockDetection();
+          }
+        }
+      } else {
+        debugPrint('✅ Recording stopped. Saved to: $path');
       }
-
-      debugPrint('✅ Recording stopped. Saved to: $path');
 
       notifyListeners();
       return path;
@@ -201,9 +217,81 @@ class AudioRecorderWithDetection extends ChangeNotifier {
     }
   }
   
+  /// Validasi interpreter dan tensor sebelum digunakan
+  bool _validateInterpreter() {
+    if (_interpreter == null || _useMockDetection) return false;
+    
+    try {
+      final inputTensor = _interpreter!.getInputTensor(0);
+      final outputTensor = _interpreter!.getOutputTensor(0);
+      
+      if (inputTensor == null || outputTensor == null) {
+        debugPrint('⚠️ Tensors are null, reloading model');
+        _isModelLoaded = false;
+        return false;
+      }
+      
+      // Validasi shape tensors
+      if (inputTensor.shape.isEmpty || outputTensor.shape.isEmpty) {
+        debugPrint('⚠️ Invalid tensor shapes, reloading model');
+        _isModelLoaded = false;
+        return false;
+      }
+      
+      return true;
+    } catch (e) {
+      debugPrint('⚠️ Error validating interpreter: $e');
+      _isModelLoaded = false;
+      return false;
+    }
+  }
+
+  /// Load ulang model jika diperlukan
+  Future<void> _ensureModelLoaded() async {
+    // Jika model sudah loaded dan valid, tidak perlu reload
+    if (_isModelLoaded && _validateInterpreter()) {
+      return;
+    }
+    
+    debugPrint('🔄 Reloading model for inference...');
+    _isModelLoaded = false;
+    _interpreter?.close();
+    _interpreter = null;
+    
+    try {
+      final flexDelegate = await FlexDelegate.create();
+      final interpreterOptions = InterpreterOptions()
+        ..addDelegate(flexDelegate)
+        ..threads = 2;
+      _interpreter = await Interpreter.fromAsset(
+        'assets/final_female_model.tflite',
+        options: interpreterOptions,
+      );
+      _isModelLoaded = true;
+      _useMockDetection = false;
+      debugPrint('✅ Model reloaded successfully');
+    } catch (e) {
+      debugPrint('⚠️ Failed to reload model, using mock: $e');
+      _useMockDetection = true;
+      _interpreter = null;
+      // Penting: JANGAN set _isModelLoaded = true jika reload gagal
+      // Biarkan false agar next attempt bisa retry
+    }
+  }
+
   /// Proses audio setelah recording selesai
   Future<void> _processAudioFinal() async {
     if (!_isModelLoaded || _audioBuffer.isEmpty) return;
+    if (_useMockDetection) {
+      _runMockDetection();
+      return;
+    }
+
+    await _ensureModelLoaded();
+    if (_interpreter == null || _useMockDetection) {
+      _runMockDetection();
+      return;
+    }
 
     try {
       final segment = _audioBuffer.sublist(
@@ -220,6 +308,12 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
       final inputTensor = _interpreter!.getInputTensor(0);
       final outputTensor = _interpreter!.getOutputTensor(0);
+      
+      if (inputTensor == null || outputTensor == null) {
+        debugPrint('⚠️ Tensors null, using mock detection');
+        _runMockDetection();
+        return;
+      }
       
       final inputShape = inputTensor.shape;
       final outputShape = outputTensor.shape;
@@ -304,10 +398,41 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
       debugPrint('✅ Emotion detected: $dominant (${(maxScore * 100).toStringAsFixed(1)}%)');
 
+      // Reload model setelah inferensi selesai untuk menghindari crash di penggunaan berikutnya
+      _reloadModelInBackground();
+
       notifyListeners();
     } catch (e) {
       debugPrint('❌ Error processing final audio: $e');
     }
+  }
+
+  /// Reload model di background (async) setelah inferensi selesai
+  void _reloadModelInBackground() {
+    Future.microtask(() async {
+      debugPrint('🔄 Reloading model in background...');
+      _interpreter?.close();
+      _interpreter = null;
+      _isModelLoaded = false;
+      
+      try {
+        final flexDelegate = await FlexDelegate.create();
+        final interpreterOptions = InterpreterOptions()
+          ..addDelegate(flexDelegate)
+          ..threads = 2;
+        _interpreter = await Interpreter.fromAsset(
+          'assets/final_female_model.tflite',
+          options: interpreterOptions,
+        );
+        _isModelLoaded = true;
+        _useMockDetection = false;
+        debugPrint('✅ Model reloaded in background');
+      } catch (e) {
+        debugPrint('⚠️ Background reload failed: $e');
+        _useMockDetection = true;
+        _interpreter = null;
+      }
+    });
   }
 
   /// Mulai deteksi periodik dari audio stream
@@ -347,10 +472,16 @@ class AudioRecorderWithDetection extends ChangeNotifier {
         return;
       }
 
-      if (_interpreter == null) return;
-
       if (_audioBuffer.length < _targetAudioLength) {
         return;
+      }
+
+      if (!_validateInterpreter()) {
+        await _ensureModelLoaded();
+        if (_interpreter == null || _useMockDetection) {
+          _runMockDetection();
+          return;
+        }
       }
 
       final segment = _audioBuffer.sublist(

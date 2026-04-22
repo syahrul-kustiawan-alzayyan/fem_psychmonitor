@@ -190,6 +190,10 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
         _isRecording = false;
       });
 
+      // Tunggu sebentar untuk hasil deteksi final dari stream
+      // karena result dikirim secara async melalui detectorStream
+      await Future.delayed(const Duration(milliseconds: 500));
+
       final hasEmotionData = _detectedEmotion != null && _detectedScores != null;
 
       if (hasEmotionData && audioPath != null) {
@@ -227,6 +231,14 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
         } catch (e) {
           debugPrint('❌ Error saving recording: $e');
         }
+      } else if (mounted) {
+        // Fallback: tampilkan pesan jika tidak ada data emosi
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Data emosi tidak tersedia. Silakan coba rekam ulang.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
       }
     }
   }
