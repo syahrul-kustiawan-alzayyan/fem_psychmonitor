@@ -154,7 +154,7 @@ class SettingsScreen extends StatelessWidget {
                     onTap: () {
                       showLicensePage(
                         context: context,
-                        applicationName: 'Fem-Psych Monitor',
+                        applicationName: AppLocalizations.tr('app_name'),
                         applicationVersion: '1.0.0',
                         applicationIcon: Padding(
                           padding: const EdgeInsets.all(16),
@@ -192,8 +192,8 @@ class SettingsScreen extends StatelessWidget {
                     context,
                     icon: Icons.restart_alt_rounded,
                     iconColor: const Color(0xFF60A5FA),
-                    title: 'Tampilkan Onboarding Lagi',
-                    subtitle: 'Lihat splash screen & pertanyaan MBTI',
+                    title: AppLocalizations.tr('show_onboarding_again'),
+                    subtitle: AppLocalizations.tr('app_guide_desc'),
                     onTap: () => _handleResetOnboarding(context),
                   ),
                   _buildDivider(context),
@@ -211,8 +211,8 @@ class SettingsScreen extends StatelessWidget {
                     context,
                     icon: Icons.delete_forever_rounded,
                     iconColor: const Color(0xFFEF4444),
-                    title: 'Hapus Akun & Data',
-                    subtitle: 'Menghapus data rekaman & profil secara permanen',
+                    title: AppLocalizations.tr('delete_account_data'),
+                    subtitle: AppLocalizations.tr('delete_account_desc'),
                     titleColor: const Color(0xFFEF4444),
                     onTap: () => _handleDeleteAccount(context),
                   ),
@@ -570,7 +570,7 @@ class SettingsScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         ),
         title: Text(
-          'Tampilkan Onboarding Lagi?',
+          AppLocalizations.tr('show_onboarding_title'),
           style: GoogleFonts.poppins(
             fontSize: 17,
             fontWeight: FontWeight.w600,
@@ -578,7 +578,7 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
         content: Text(
-          'Aplikasi akan menampilkan splash screen dan pertanyaan MBTI kembali. Data Anda tidak akan dihapus.',
+          AppLocalizations.tr('show_onboarding_message'),
           style: GoogleFonts.poppins(
             fontSize: 13,
             color: AppTheme.textS(context),
@@ -588,7 +588,7 @@ class SettingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
-              'Batal',
+              AppLocalizations.tr('cancel'),
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w500,
                 color: AppTheme.textS(context),
@@ -624,7 +624,7 @@ class SettingsScreen extends StatelessWidget {
               }
             },
             child: Text(
-              'Ya, Tampilkan',
+              AppLocalizations.tr('yes_show'),
               style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
             ),
           ),
@@ -707,7 +707,7 @@ class SettingsScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         ),
         title: Text(
-          'Hapus Akun & Data?',
+          AppLocalizations.tr('delete_account_title'),
           style: GoogleFonts.poppins(
             fontSize: 17,
             fontWeight: FontWeight.w600,
@@ -715,7 +715,7 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
         content: Text(
-          'Seluruh data Anda termasuk profil, hasil MBTI, dan rekaman emosi akan dihapus secara permanen dari perangkat ini. Lanjutkan?',
+          AppLocalizations.tr('delete_account_message'),
           style: GoogleFonts.poppins(
             fontSize: 13,
             color: AppTheme.textS(context),
@@ -758,7 +758,7 @@ class SettingsScreen extends StatelessWidget {
               }
             },
             child: Text(
-              'Ya, Hapus',
+              AppLocalizations.tr('yes_delete'),
               style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
             ),
           ),

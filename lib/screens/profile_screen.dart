@@ -79,7 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Pilih Foto Profil',
+                AppLocalizations.tr('select_profile_photo'),
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -96,7 +96,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: const Icon(Icons.camera_alt_rounded, color: AppTheme.primaryColor),
                 ),
-                title: Text('Kamera', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                title: Text(AppLocalizations.tr('camera'), style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
                 onTap: () {
                   Navigator.pop(ctx);
                   _getImage(ImageSource.camera);
@@ -111,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: const Icon(Icons.photo_library_rounded, color: Colors.deepPurple),
                 ),
-                title: Text('Galeri', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                title: Text(AppLocalizations.tr('gallery'), style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
                 onTap: () {
                   Navigator.pop(ctx);
                   _getImage(ImageSource.gallery);
@@ -127,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: const Icon(Icons.delete_rounded, color: Colors.red),
                   ),
-                  title: Text('Hapus Foto', style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.red)),
+                  title: Text(AppLocalizations.tr('delete_photo'), style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.red)),
                   onTap: () {
                     Navigator.pop(ctx);
                     _removePhoto();
@@ -172,7 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() => _photoPath = savedFile.path);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Foto profil berhasil diperbarui', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+            content: Text(AppLocalizations.tr('profile_photo_updated'), style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
             backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusSm)),
@@ -183,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memilih foto: $e', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+            content: Text('${AppLocalizations.tr("failed_select_photo")}: $e', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusSm)),
@@ -418,7 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) {
-                                return 'Username wajib diisi';
+                                return AppLocalizations.tr('username_required');
                               }
                               return null;
                             },

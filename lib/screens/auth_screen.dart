@@ -83,7 +83,7 @@ class _AuthScreenState extends State<AuthScreen>
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Email tidak terdaftar atau password salah'),
+          content: Text(AppLocalizations.tr('email_not_registered')),
           backgroundColor: AppTheme.secondaryColor,
         ),
       );
@@ -115,7 +115,7 @@ class _AuthScreenState extends State<AuthScreen>
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Email sudah terdaftar. Silakan login.'),
+          content: Text(AppLocalizations.tr('email_already_registered')),
           backgroundColor: AppTheme.secondaryColor,
         ),
       );
@@ -257,8 +257,8 @@ class _AuthScreenState extends State<AuthScreen>
             icon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
             validator: (v) {
-              if (v == null || v.isEmpty) return 'Email wajib diisi';
-              if (!v.contains('@')) return 'Format email tidak valid';
+              if (v == null || v.isEmpty) return AppLocalizations.tr('email_required');
+              if (!v.contains('@')) return AppLocalizations.tr('email_invalid');
               return null;
             },
           ),
@@ -282,8 +282,8 @@ class _AuthScreenState extends State<AuthScreen>
               onPressed: () => setState(() => _obscureLogin = !_obscureLogin),
             ),
             validator: (v) {
-              if (v == null || v.isEmpty) return 'Password wajib diisi';
-              if (v.length < 6) return 'Minimal 6 karakter';
+              if (v == null || v.isEmpty) return AppLocalizations.tr('password_required');
+              if (v.length < 6) return AppLocalizations.tr('password_min_length');
               return null;
             },
           ),
@@ -390,7 +390,7 @@ class _AuthScreenState extends State<AuthScreen>
               hint: AppLocalizations.tr('username_hint'),
               icon: Icons.person_outlined,
               validator: (v) {
-                if (v == null || v.isEmpty) return 'Nama wajib diisi';
+                if (v == null || v.isEmpty) return AppLocalizations.tr('name_required');
                 return null;
               },
             ),
@@ -404,8 +404,8 @@ class _AuthScreenState extends State<AuthScreen>
               icon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
               validator: (v) {
-                if (v == null || v.isEmpty) return 'Email wajib diisi';
-                if (!v.contains('@')) return 'Format email tidak valid';
+                if (v == null || v.isEmpty) return AppLocalizations.tr('email_required');
+                if (!v.contains('@')) return AppLocalizations.tr('email_invalid');
                 return null;
               },
             ),
@@ -429,8 +429,8 @@ class _AuthScreenState extends State<AuthScreen>
                 onPressed: () => setState(() => _obscureReg = !_obscureReg),
               ),
               validator: (v) {
-                if (v == null || v.isEmpty) return 'Password wajib diisi';
-                if (v.length < 6) return 'Minimal 6 karakter';
+                if (v == null || v.isEmpty) return AppLocalizations.tr('password_required');
+                if (v.length < 6) return AppLocalizations.tr('password_min_length');
                 return null;
               },
             ),
@@ -455,8 +455,8 @@ class _AuthScreenState extends State<AuthScreen>
                     setState(() => _obscureRegConfirm = !_obscureRegConfirm),
               ),
               validator: (v) {
-                if (v == null || v.isEmpty) return 'Konfirmasi password';
-                if (v != _regPassword.text) return 'Password tidak cocok';
+                if (v == null || v.isEmpty) return AppLocalizations.tr('confirm_password');
+                if (v != _regPassword.text) return AppLocalizations.tr('password_mismatch');
                 return null;
               },
             ),

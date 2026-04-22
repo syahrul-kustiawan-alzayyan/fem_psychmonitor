@@ -80,12 +80,15 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
         _onDetectionResult,
       );
     } catch (e) {
-      setState(() => _isModelLoading = false);
+      setState(() {
+        _isModelLoading = false;
+        _isModelReady = true;
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memuat model: \$e'),
-            backgroundColor: Colors.red,
+            content: Text('Gagal memuat model: $e (mode simulasi diaktifkan)'),
+            backgroundColor: Colors.orange,
           ),
         );
       }
@@ -144,8 +147,8 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
 
     if (!_hasPermission) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Permission microphone diperlukan untuk fitur ini'),
+        SnackBar(
+          content: Text(AppLocalizations.tr('mic_permission_required')),
           backgroundColor: Colors.orange,
         ),
       );
@@ -169,7 +172,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memulai rekaman: \$e'),
+            content: Text('${AppLocalizations.tr("failed_start_recording")}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -222,7 +225,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
             );
           }
         } catch (e) {
-          debugPrint('❌ Error saving recording: \$e');
+          debugPrint('❌ Error saving recording: $e');
         }
       }
     }
@@ -396,7 +399,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
           ),
           const SizedBox(height: 24),
           Text(
-            _isRecording ? 'Menganalisis Suara Live...' : 'Siap Mendengarkan',
+            _isRecording ? AppLocalizations.tr('analyzing_voice') : AppLocalizations.tr('ready_to_listen'),
             style: GoogleFonts.poppins(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -558,7 +561,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                'Distribusi Emosi Live',
+                AppLocalizations.tr('emotion_distribution'),
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -755,7 +758,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
           ),
           const SizedBox(height: 12),
           Text(
-            'Cara Menggunakan',
+            AppLocalizations.tr('how_to_use_title'),
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w700,
@@ -763,13 +766,10 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
             ),
           ),
           const SizedBox(height: 12),
-          _buildGuideStep('1', 'Sentuh tombol mikrofon untuk memulai'),
-          const SizedBox(height: 8),
-          _buildGuideStep('2', 'Bicara dengan jelas selama 5-10 detik'),
-          const SizedBox(height: 8),
-          _buildGuideStep('3', 'Sentuh lagi untuk menghentikan'),
-          const SizedBox(height: 8),
-          _buildGuideStep('4', 'Lihat hasil deteksi emosi Anda'),
+_buildGuideStep('1', AppLocalizations.tr('guide_step_1_record')),
+          _buildGuideStep('2', AppLocalizations.tr('guide_step_2_speak')),
+          _buildGuideStep('3', AppLocalizations.tr('guide_step_3_stop')),
+          _buildGuideStep('4', AppLocalizations.tr('guide_step_4_view')),
         ],
       ),
     );

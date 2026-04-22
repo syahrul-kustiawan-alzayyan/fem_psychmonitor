@@ -92,48 +92,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String get _todayLabel {
     final now = DateTime.now();
     final isId = AppLocalizations.currentLocale == 'id';
-    final months = isId
-        ? [
-            'Januari',
-            'Februari',
-            'Maret',
-            'April',
-            'Mei',
-            'Juni',
-            'Juli',
-            'Agustus',
-            'September',
-            'Oktober',
-            'November',
-            'Desember',
-          ]
-        : [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December',
-          ];
-    final days = isId
-        ? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
-        : [
-            'Monday',
-            'Tuesday',
-            'Wednesday',
-            'Thursday',
-            'Friday',
-            'Saturday',
-            'Sunday',
-          ];
-    final wd = days[now.weekday - 1];
-    return '$wd, ${now.day} ${months[now.month - 1]} ${now.year}';
+    final monthKeys = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    final dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    final wd = AppLocalizations.tr(dayKeys[now.weekday - 1]);
+    final month = AppLocalizations.tr(monthKeys[now.month - 1]);
+    return '$wd, ${now.day} $month ${now.year}';
   }
 
   @override
@@ -536,11 +499,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         if (displayScore100 == null) {
           primaryColor = const Color(0xFF64748B);
           secondaryColor = const Color(0xFF94A3B8);
-          statusLabel = 'Belum Dinilai';
+          statusLabel = AppLocalizations.tr('not_assessed');
           statusIcon = Icons.help_outline_rounded;
           emoji = '📋';
-          description =
-              'Isi kuesioner kesehatan mental untuk melihat skor Anda';
+          description = AppLocalizations.tr('fill_questionnaire_to_see_score');
         } else if (displayScore100 >= 80) {
           primaryColor = const Color(0xFF10B981); // Green - Baik
           secondaryColor = const Color(0xFF34D399);
@@ -670,7 +632,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Kesehatan Mental',
+                              AppLocalizations.tr('mental_health'),
                               style: GoogleFonts.poppins(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -741,7 +703,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             Text(
                               displayScore100 != null
                                   ? _getScoreCategory100(displayScore100)
-                                  : 'Skor Kesehatan Mental',
+                                  : AppLocalizations.tr('mental_health_score'),
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
@@ -819,7 +781,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Dampak Emosi terhadap Skor',
+                              AppLocalizations.tr('emotion_impact_on_score'),
                               style: GoogleFonts.poppins(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w600,
@@ -840,8 +802,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 Expanded(
                                   child: Text(
                                     emotionAdjustment >= 0
-                                        ? 'Emosi positif (Happy, Neutral) meningkatkan skor'
-                                        : 'Emosi negatif (Sad, Fear, Angry, Disgust) menurunkannya',
+                                        ? AppLocalizations.tr('positive_emotions_increase')
+                                        : AppLocalizations.tr('negative_emotions_decrease'),
                                     style: GoogleFonts.poppins(
                                       fontSize: 9.5,
                                       color: Colors.white.withValues(alpha: 0.8),
@@ -896,7 +858,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Deteksi Terakhir',
+                                    AppLocalizations.tr('last_detection'),
                                     style: GoogleFonts.poppins(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w500,
@@ -1236,7 +1198,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         final mbtiType = user?.mbtiType ?? 'XXXX';
         final psychLabel = (mbtiType.isNotEmpty && mbtiType != 'XXXX')
             ? mbtiType
-            : 'Info';
+            : AppLocalizations.tr('info');
 
         return FutureBuilder<void>(
           future: SuggestionService().load(),

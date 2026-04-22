@@ -1,4 +1,5 @@
-import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:flutter_litert/flutter_litert.dart';
+import 'package:flutter_litert_flex/flutter_litert_flex.dart';
 import '../models/emotion_model.dart';
 
 /// TFLiteEmotionService - Layanan deteksi emosi menggunakan model TFLite
@@ -33,13 +34,19 @@ class TFLiteEmotionService {
 
   /// Muat model TFLite dari assets
   Future<void> loadModel({
-    String modelPath = 'assets/model_female.tflite',
+    String modelPath = 'assets/final_female_model.tflite',
   }) async {
     if (_isModelLoaded) return;
 
     try {
       print('🔄 Memuat model TFLite: $modelPath');
-      _interpreter = await Interpreter.fromAsset(modelPath);
+      
+      final flexDelegate = await FlexDelegate.create();
+      final interpreterOptions = InterpreterOptions()..addDelegate(flexDelegate);
+      _interpreter = await Interpreter.fromAsset(
+        modelPath,
+        options: interpreterOptions,
+      );
 
       // Tampilkan info model
       final inputShape = _interpreter!.getInputTensor(0).shape;
@@ -71,27 +78,33 @@ class TFLiteEmotionService {
     }
 
     try {
-      // Siapkan input tensor
       final inputShape = _interpreter!.getInputTensor(0).shape;
       final outputShape = _interpreter!.getOutputTensor(0).shape;
 
-      // Reshape input sesuai dengan model
-      // Asumsi: model menerima input 1D array
-      final input = [audioFeatures];
-      final output = List.filled(
-        outputShape.reduce((a, b) => a * b),
-        0.0,
-      ).reshape(outputShape.sublist(1));
+      final timeSteps = 128;
+      final nFeatures = 121;
 
-      // Jalankan inferensi
-      _interpreter!.run(input, output);
+      final reshapedInput = List.filled(
+        1,
+        List.filled(
+          timeSteps,
+          List.filled(nFeatures, 0.0),
+        ),
+      );
+      for (int t = 0; t < timeSteps; t++) {
+        for (int f = 0; f < nFeatures; f++) {
+          reshapedInput[0][t][f] = audioFeatures[t * nFeatures + f];
+        }
+      }
 
-      // Parse output menjadi map emotion -> probability
+      final outputLength = outputShape.reduce((a, b) => a * b);
+      final output = List.filled(outputLength, 0.0);
+
+      _interpreter!.run(reshapedInput.cast<List<double>>(), [output]);
+
       final probabilities = <EmotionType, double>{};
-      final outputList = output is List ? output : [output];
-
-      for (int i = 0; i < _emotionLabels.length && i < outputList.length; i++) {
-        probabilities[_emotionLabels[i]] = outputList[i].toDouble();
+      for (int i = 0; i < _emotionLabels.length && i < output.length; i++) {
+        probabilities[_emotionLabels[i]] = (output[i] as num).toDouble();
       }
 
       return probabilities;

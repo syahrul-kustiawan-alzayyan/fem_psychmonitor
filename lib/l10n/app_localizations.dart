@@ -363,6 +363,72 @@ class AppLocalizations {
           'Coba teknik grounding: sebutkan 5 hal yang kamu lihat, 4 yang bisa disentuh.',
       'overall_attn_5':
           'Jangan ragu menghubungi layanan kesehatan jiwa jika merasa kewalahan.',
+
+      // ── Auth Validation ──
+      'email_not_registered': 'Email tidak terdaftar atau password salah',
+      'email_already_registered': 'Email sudah terdaftar. Silakan login.',
+      'email_required': 'Email wajib diisi',
+      'email_invalid': 'Format email tidak valid',
+      'password_required': 'Password wajib diisi',
+      'password_min_length': 'Minimal 6 karakter',
+      'name_required': 'Nama wajib diisi',
+      'confirm_password': 'Konfirmasi password',
+      'password_mismatch': 'Password tidak cocok',
+
+      // ── Settings ──
+      'show_onboarding_again': 'Tampilkan Onboarding Lagi',
+      'delete_account_data': 'Hapus Akun & Data',
+      'delete_account_desc': 'Menghapus data rekaman & profil secara permanen',
+      'yes_show': 'Ya, Tampilkan',
+      'yes_delete': 'Ya, Hapus',
+      'show_onboarding_title': 'Tampilkan Onboarding Lagi?',
+      'show_onboarding_message': 'Aplikasi akan menampilkan splash screen dan pertanyaan MBTI kembali. Data Anda tidak akan dihapus.',
+      'delete_account_title': 'Hapus Akun & Data?',
+      'delete_account_message': 'Semua data rekaman dan profil Anda akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.',
+
+      // ── Profile ──
+      'select_profile_photo': 'Pilih Foto Profil',
+      'camera': 'Kamera',
+      'gallery': 'Galeri',
+      'delete_photo': 'Hapus Foto',
+      'profile_photo_updated': 'Foto profil berhasil diperbarui',
+      'failed_select_photo': 'Gagal memilih foto',
+      'username_required': 'Username wajib diisi',
+
+      // ── Onboarding ──
+      'user': 'Pengguna',
+      'start_now': 'Mulai Sekarang',
+      'yes_i_know': 'Ya, Saya Sudah Tahu',
+      'no_i_want_test': 'Belum, Saya Ingin Tes',
+      'confirm_continue': 'Konfirmasi & Lanjut',
+      'understanding_differences': 'Memahami Perbedaan',
+      'mental_health_questionnaire': 'Kuesioner Kesehatan Mental',
+      'important_note': 'Catatan Penting',
+      'continue_to_question': 'Lanjut ke Pertanyaan',
+      'next': 'Next',
+      'mental_health': 'Kesehatan Mental',
+      'mbti_result': 'Ini kepribadianmu:',
+      'dimension_energy': 'Energi',
+      'dimension_information': 'Informasi',
+      'dimension_decisions': 'Keputusan',
+      'dimension_lifestyle': 'Gaya Hidup',
+
+      // ── Home ──
+      'not_assessed': 'Belum Dinilai',
+      'fill_questionnaire_to_see_score': 'Isi kuesioner kesehatan mental untuk melihat skor Anda',
+      'mental_health_score': 'Skor Kesehatan Mental',
+      'emotion_impact_on_score': 'Dampak Emosi terhadap Skor',
+      'positive_emotions_increase': 'Emosi positif (Happy, Neutral) meningkatkan skor',
+      'negative_emotions_decrease': 'Emosi negatif (Sad, Fear, Angry, Disgust) menurunkannya',
+      'last_detection': 'Deteksi Terakhir',
+      'info': 'Info',
+
+      // ── Live Detection ──
+      'analyzing_voice': 'Menganalisis Suara Live...',
+      'ready_to_listen': 'Siap Mendengarkan',
+      'story_prompt_proud': 'Ceritakan hal yang membuatmu bangga akhir-akhir ini',
+      'story_prompt_supporter': 'Siapa yang selalu mendukungmu? Ceritakan tentang mereka',
+      'story_prompts_title': 'Ceritakan Keluh Kesahmu',
     },
 
     // ════════════════════════════════════════════
@@ -705,6 +771,72 @@ class AppLocalizations {
           'Try grounding techniques: name 5 things you can see, 4 you can touch.',
       'overall_attn_5':
           'Do not hesitate to contact mental health services if feeling overwhelmed.',
+
+      // ── Auth Validation ──
+      'email_not_registered': 'Email not registered or password incorrect',
+      'email_already_registered': 'Email already registered. Please login.',
+      'email_required': 'Email is required',
+      'email_invalid': 'Invalid email format',
+      'password_required': 'Password is required',
+      'password_min_length': 'Minimum 6 characters',
+      'name_required': 'Name is required',
+      'confirm_password': 'Confirm password',
+      'password_mismatch': 'Password does not match',
+
+      // ── Settings ──
+      'show_onboarding_again': 'Show Onboarding Again',
+      'delete_account_data': 'Delete Account & Data',
+      'delete_account_desc': 'Permanently delete recording data and profile',
+      'yes_show': 'Yes, Show',
+      'yes_delete': 'Yes, Delete',
+      'show_onboarding_title': 'Show Onboarding Again?',
+      'show_onboarding_message': 'The app will show the splash screen and MBTI questions again. Your data will not be deleted.',
+      'delete_account_title': 'Delete Account & Data?',
+      'delete_account_message': 'All your recording data and profile will be permanently deleted. This action cannot be undone.',
+
+      // ── Profile ──
+      'select_profile_photo': 'Select Profile Photo',
+      'camera': 'Camera',
+      'gallery': 'Gallery',
+      'delete_photo': 'Delete Photo',
+      'profile_photo_updated': 'Profile photo updated successfully',
+      'failed_select_photo': 'Failed to select photo',
+      'username_required': 'Username is required',
+
+      // ── Onboarding ──
+      'user': 'User',
+      'start_now': 'Start Now',
+      'yes_i_know': 'Yes, I Know',
+      'no_i_want_test': 'No, I Want to Test',
+      'confirm_continue': 'Confirm & Continue',
+      'understanding_differences': 'Understanding Differences',
+      'mental_health_questionnaire': 'Mental Health Questionnaire',
+      'important_note': 'Important Note',
+      'continue_to_question': 'Continue to Question',
+      'next': 'Next',
+      'mental_health': 'Mental Health',
+      'mbti_result': 'Your personality is:',
+      'dimension_energy': 'Energy',
+      'dimension_information': 'Information',
+      'dimension_decisions': 'Decisions',
+      'dimension_lifestyle': 'Lifestyle',
+
+      // ── Home ──
+      'not_assessed': 'Not Assessed',
+      'fill_questionnaire_to_see_score': 'Fill mental health questionnaire to see your score',
+      'mental_health_score': 'Mental Health Score',
+      'emotion_impact_on_score': 'Emotion Impact on Score',
+      'positive_emotions_increase': 'Positive emotions (Happy, Neutral) increase score',
+      'negative_emotions_decrease': 'Negative emotions (Sad, Fear, Angry, Disgust) decrease it',
+      'last_detection': 'Last Detection',
+      'info': 'Info',
+
+      // ── Live Detection ──
+      'analyzing_voice': 'Analyzing Voice Live...',
+      'ready_to_listen': 'Ready to Listen',
+      'story_prompt_proud': 'Tell me about something that made you proud recently',
+      'story_prompt_supporter': 'Who always supports you? Tell me about them',
+      'story_prompts_title': 'Share Your Feelings',
     },
   };
 }

@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:flutter_litert/flutter_litert.dart';
+import 'package:flutter_litert_flex/flutter_litert_flex.dart';
 import '../models/emotion_model.dart';
 
 /// AudioEmotionDetector - Deteksi emosi dari audio secara real-time menggunakan TFLite
@@ -51,13 +52,19 @@ class AudioEmotionDetector extends ChangeNotifier {
 
   /// Muat model TFLite
   Future<void> loadModel({
-    String modelPath = 'assets/model_female.tflite',
+    String modelPath = 'assets/final_female_model.tflite',
   }) async {
     if (_isModelLoaded) return;
 
     try {
       debugPrint('🔄 Loading TFLite model: $modelPath');
-      _interpreter = await Interpreter.fromAsset(modelPath);
+      
+      final flexDelegate = await FlexDelegate.create();
+      final interpreterOptions = InterpreterOptions()..addDelegate(flexDelegate);
+      _interpreter = await Interpreter.fromAsset(
+        modelPath,
+        options: interpreterOptions,
+      );
 
       final inputShape = _interpreter!.getInputTensor(0).shape;
       final outputShape = _interpreter!.getOutputTensor(0).shape;
@@ -101,23 +108,42 @@ class AudioEmotionDetector extends ChangeNotifier {
       // Ekstrak fitur dari audio
       final features = extractAudioFeatures(segment);
 
-      // Siapkan input untuk model
-      final input = [features];
-
-      // Dapatkan output shape
+      final inputShape = _interpreter!.getInputTensor(0).shape;
       final outputShape = _interpreter!.getOutputTensor(0).shape;
+
+      final timeSteps = 128;
+      final nFeatures = 121;
+
+      final reshapedInput = List.filled(
+        1,
+        List.filled(
+          timeSteps,
+          List.filled(nFeatures, 0.0),
+        ),
+      );
+      for (int t = 0; t < timeSteps; t++) {
+        for (int f = 0; f < nFeatures; f++) {
+          reshapedInput[0][t][f] = features[t * nFeatures + f];
+        }
+      }
+
       final outputLength = outputShape.reduce((a, b) => a * b);
       final output = List.filled(outputLength, 0.0);
 
-      // Jalankan inferensi
-      _interpreter!.run(input, [output]);
+      _interpreter!.run(reshapedInput.cast<List<double>>(), [output]);
 
-      // Parse hasil
       final scores = <EmotionType, double>{};
-      final emotionLabels = EmotionType.values;
+      final emotionLabels = [
+        EmotionType.happy,
+        EmotionType.sad,
+        EmotionType.angry,
+        EmotionType.disgust,
+        EmotionType.neutral,
+        EmotionType.fear,
+      ];
 
       for (int i = 0; i < emotionLabels.length && i < output.length; i++) {
-        scores[emotionLabels[i]] = output[i].toDouble();
+        scores[emotionLabels[i]] = (output[i] as num).toDouble();
       }
 
       // Normalisasi skor agar total = 1.0

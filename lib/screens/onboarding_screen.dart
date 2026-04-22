@@ -218,7 +218,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() => _isSaving = true);
 
     final provider = context.read<AuthProvider>();
-    final userName = provider.username.isNotEmpty ? provider.username : 'Pengguna';
+    final userName = provider.username.isNotEmpty ? provider.username : AppLocalizations.tr('user');
 
     final user = AppUser(
       name: userName,
@@ -407,7 +407,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
           const SizedBox(height: 48),
-          _buildNextButton('Mulai Sekarang'),
+          _buildNextButton(AppLocalizations.tr('start_now')),
           const SizedBox(height: 40),
         ],
       ),
@@ -485,7 +485,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               icon: const Icon(Icons.check_circle_rounded, size: 22),
               label: Text(
-                'Ya, Saya Sudah Tahu',
+                AppLocalizations.tr('yes_i_know'),
                 style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700),
               ),
             ),
@@ -517,7 +517,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               icon: const Icon(Icons.arrow_forward_rounded, size: 20),
               label: Text(
-                'Belum, Saya Ingin Tes',
+                AppLocalizations.tr('no_i_want_test'),
                 style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700),
               ),
             ),
@@ -616,7 +616,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             },
           ),
           const SizedBox(height: 36),
-          _buildNextButton('Konfirmasi & Lanjut'),
+          _buildNextButton(AppLocalizations.tr('confirm_continue')),
           const SizedBox(height: 40),
         ],
       ),
@@ -815,7 +815,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const Icon(Icons.info_outline_rounded, color: Colors.white, size: 48),
                 const SizedBox(height: 12),
                 Text(
-                  'Memahami Perbedaan',
+                  AppLocalizations.tr('understanding_differences'),
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
@@ -850,7 +850,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           _buildInfoCard(
             icon: Icons.favorite_rounded,
             iconColor: AppTheme.secondaryColor,
-            title: 'Kuesioner Kesehatan Mental',
+            title: AppLocalizations.tr('mental_health_questionnaire'),
             description: 'Dirancang untuk membantu Anda memahami kesejahteraan emosional sehari-hari.',
             points: [
               '🧠 ${_psyQuestions.length} pertanyaan refleksi diri',
@@ -877,7 +877,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Catatan Penting',
+                        AppLocalizations.tr('important_note'),
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -900,7 +900,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
           const SizedBox(height: 28),
-          _buildNextButton('Lanjut ke Pertanyaan'),
+          _buildNextButton(AppLocalizations.tr('continue_to_question')),
           const SizedBox(height: 20),
         ],
       ),
@@ -1017,7 +1017,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const Icon(Icons.favorite_rounded, size: 14, color: Colors.pink),
                 const SizedBox(width: 6),
                 Text(
-                  'Kesehatan Mental · Pertanyaan $questionNum/${_psyQuestions.length}',
+                  '${AppLocalizations.tr("mental_health")} · Pertanyaan $questionNum/${_psyQuestions.length}',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -1174,7 +1174,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Halo ${user.name == '' ? 'Pengguna' : user.name}, ini kepribadianmu:',
+                  'Halo ${user.name == '' ? AppLocalizations.tr('user') : user.name}, ${AppLocalizations.tr("mbti_result")}',
                   style: GoogleFonts.poppins(
                     fontSize: 14.5,
                     color: AppTheme.textS(context),
@@ -1231,7 +1231,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildNextButton('Selanjutnya'),
+          _buildNextButton(AppLocalizations.tr('next')),
           const SizedBox(height: 40),
         ],
       ),
@@ -1284,7 +1284,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const Text('🧠', style: TextStyle(fontSize: 56)),
                 const SizedBox(height: 12),
                 Text(
-                  'Kesehatan Mental',
+                  AppLocalizations.tr('mental_health'),
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
