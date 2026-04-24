@@ -254,10 +254,10 @@ class AppLocalizations {
       'story_prompt_8': 'Bagaimana perasaanmu tentang keseimbangan hidupmu?',
 
       // ── Psych Levels ──
-      'psych_excellent': 'Sangat Sehat',
-      'psych_good': 'Baik',
-      'psych_fair': 'Cukup',
-      'psych_needs_attention': 'Perlu Perhatian',
+      'psych_excellent': 'Baik',
+      'psych_good': 'Cukup',
+      'psych_fair': 'Rentan',
+      'psych_needs_attention': 'Butuh Perhatian',
 
       // ── Emotion Translations ──
       'emotion_happy': 'Bahagia',
@@ -667,9 +667,9 @@ class AppLocalizations {
       'story_prompt_8': 'How do you feel about your life balance?',
 
       // ── Psych Levels ──
-      'psych_excellent': 'Excellent',
-      'psych_good': 'Good',
-      'psych_fair': 'Fair',
+      'psych_excellent': 'Good',
+      'psych_good': 'Fair',
+      'psych_fair': 'Vulnerable',
       'psych_needs_attention': 'Needs Attention',
 
       // ── Emotion Translations ──

@@ -1249,21 +1249,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     Color cardColor;
     IconData categoryIcon;
 
-    if (_psyScore <= 20) {
+    if (_psyScore <= 15) {
       category = AppLocalizations.tr('psych_excellent');
       advice = AppLocalizations.tr('overall_exc_1');
       cardColor = const Color(0xFF22C55E);
       categoryIcon = Icons.check_circle_rounded;
-    } else if (_psyScore <= 40) {
-      category = AppLocalizations.tr('psych_fair');
+    } else if (_psyScore <= 30) {
+      category = AppLocalizations.tr('psych_good');
       advice = AppLocalizations.tr('overall_good_2');
-      cardColor = const Color(0xFFF59E0B);
-      categoryIcon = Icons.warning_amber_rounded;
-    } else if (_psyScore <= 50) {
+      cardColor = const Color(0xFF84CC16);
+      categoryIcon = Icons.info_outline_rounded;
+    } else if (_psyScore <= 45) {
       category = AppLocalizations.tr('psych_fair');
       advice = AppLocalizations.tr('overall_fair_2');
-      cardColor = const Color(0xFFF97316);
-      categoryIcon = Icons.warning_rounded;
+      cardColor = const Color(0xFFF59E0B);
+      categoryIcon = Icons.warning_amber_rounded;
     } else {
       category = AppLocalizations.tr('psych_needs_attention');
       advice = AppLocalizations.tr('overall_attn_2');

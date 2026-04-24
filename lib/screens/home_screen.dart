@@ -503,21 +503,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           statusIcon = Icons.help_outline_rounded;
           emoji = '📋';
           description = AppLocalizations.tr('fill_questionnaire_to_see_score');
-        } else if (displayScore100 >= 80) {
+        } else if (displayScore100 >= 75) {
           primaryColor = const Color(0xFF10B981); // Green - Baik
           secondaryColor = const Color(0xFF34D399);
           statusLabel = AppLocalizations.tr('psych_excellent');
           statusIcon = Icons.check_circle_rounded;
           emoji = '😊';
           description = _getHealthClassDescription(displayScore100);
-        } else if (displayScore100 >= 60) {
+        } else if (displayScore100 >= 50) {
           primaryColor = const Color(0xFFF59E0B); // Amber - Cukup
           secondaryColor = const Color(0xFFFBBF24);
           statusLabel = AppLocalizations.tr('psych_good');
           statusIcon = Icons.check_circle_outline_rounded;
           emoji = '🙂';
           description = _getHealthClassDescription(displayScore100);
-        } else if (displayScore100 >= 40) {
+        } else if (displayScore100 >= 25) {
           primaryColor = const Color(0xFFF97316); // Orange - Rentan
           secondaryColor = const Color(0xFFFB923C);
           statusLabel = AppLocalizations.tr('psych_fair');
@@ -901,17 +901,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // Helper untuk kategori skor 0-100 (tinggi = baik)
   String _getScoreCategory100(int score) {
-    if (score >= 80) return AppLocalizations.tr('psych_excellent');
-    if (score >= 60) return AppLocalizations.tr('psych_good');
-    if (score >= 40) return AppLocalizations.tr('psych_fair');
+    if (score >= 75) return AppLocalizations.tr('psych_excellent');
+    if (score >= 50) return AppLocalizations.tr('psych_good');
+    if (score >= 25) return AppLocalizations.tr('psych_fair');
     return AppLocalizations.tr('psych_needs_attention');
   }
 
   // Helper untuk get description kelas kesehatan mental
   String _getHealthClassDescription(int score) {
-    if (score >= 80) return AppLocalizations.tr('overall_exc_1');
-    if (score >= 60) return AppLocalizations.tr('overall_good_1');
-    if (score >= 40) return AppLocalizations.tr('overall_fair_1');
+    if (score >= 75) return AppLocalizations.tr('overall_exc_1');
+    if (score >= 50) return AppLocalizations.tr('overall_good_1');
+    if (score >= 25) return AppLocalizations.tr('overall_fair_1');
     return AppLocalizations.tr('overall_attn_1');
   }
 
