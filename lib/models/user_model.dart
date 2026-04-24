@@ -44,9 +44,10 @@ class AppUser {
   /// Kategori kondisi mental berdasarkan skor
   String get mentalHealthCategory {
     if (psychologicalScore == null) return 'Belum Dinilai';
-    if (psychologicalScore! <= 10) return 'Baik';
-    if (psychologicalScore! <= 20) return 'Cukup';
-    return 'Perlu Perhatian';
+    if (psychologicalScore! <= 15) return 'Sehat Optimal';
+    if (psychologicalScore! <= 30) return 'Cukup Sehat';
+    if (psychologicalScore! <= 45) return 'Rentan';
+    return 'Butuh Perhatian Klinis';
   }
 
   /// Deskripsi kondisi mental
@@ -54,12 +55,14 @@ class AppUser {
     if (psychologicalScore == null) {
       return 'Anda belum mengisi kuesioner kesehatan mental.';
     }
-    if (psychologicalScore! <= 10) {
-      return 'Kondisi psikis Anda saat ini terpelihara dengan baik. Anda memiliki ketahanan mental yang sehat dan mampu mengelola stres sehari-hari secara efektif.';
-    } else if (psychologicalScore! <= 20) {
-      return 'Kondisi mental Anda sedang berada di area kuning. Anda mulai merasakan beban dari tekanan sehari-hari yang menumpuk. Ini adalah sinyal bahwa Anda sedang diforsir terlalu keras.';
+    if (psychologicalScore! <= 15) {
+      return 'Kondisi kesehatan mental Anda sangat baik. Anda memiliki mekanisme koping yang tangguh, batasan personal yang sehat, dan mampu mengelola stres serta tuntutan sosial dengan sangat efektif. Tetap pertahankan gaya hidup sehat dan dukungan sosial Anda.';
+    } else if (psychologicalScore! <= 30) {
+      return 'Kesehatan mental Anda secara umum stabil, namun ada beberapa pemicu stres (seperti beban ganda atau fluktuasi hormonal) yang mulai memengaruhi rutinitas. Ini adalah fase wajar. Sangat disarankan untuk meningkatkan waktu istirahat dan self-care.';
+    } else if (psychologicalScore! <= 45) {
+      return 'Anda sedang menghadapi tantangan emosional yang signifikan. Terdapat gejala kelelahan mental (burnout), kecemasan, atau masalah citra diri yang mulai mengganggu fungsi harian. Mulailah berbicara dengan orang terpercaya atau pertimbangkan sesi konseling awal.';
     } else {
-      return 'Kondisi mental Anda saat ini sedang sangat terkuras. Anda sedang menanggung beban emosional dan psikis yang cukup berat. Sangat penting untuk tidak mengabaikan perasaan ini.';
+      return 'Skor ini mengindikasikan distres psikologis yang tinggi. Anda mungkin merasa kewalahan, putus asa, atau mengalami gejala psikosomatis yang mengganggu kesehatan fisik. Sangat disarankan untuk segera mencari bantuan profesional (psikolog klinis/psikiater) untuk mendapatkan intervensi yang tepat.';
     }
   }
 
@@ -68,12 +71,14 @@ class AppUser {
     if (psychologicalScore == null) {
       return 'Silakan isi kuesioner kesehatan mental untuk mendapatkan saran.';
     }
-    if (psychologicalScore! <= 10) {
-      return 'Pertahankan rutinitas self-care Anda, jaga keseimbangan antara pekerjaan dan kehidupan pribadi, serta tetap luangkan waktu untuk diri sendiri (me-time).';
-    } else if (psychologicalScore! <= 20) {
-      return 'Anda perlu menekan tombol jeda. Mulailah menetapkan batasan yang sehat (belajar berkata "tidak"), kurangi beban kerja yang tidak esensial, delegasikan tugas jika memungkinkan, dan prioritaskan tidur yang cukup.';
+    if (psychologicalScore! <= 15) {
+      return 'Pertahankan rutinitas sehat dan terus mendukung mereka yang membutuhkan.';
+    } else if (psychologicalScore! <= 30) {
+      return 'Tambahkan waktu istirahat dan aktivitas self-care ke dalam kegiatan sehari-hari Anda.';
+    } else if (psychologicalScore! <= 45) {
+      return 'Segera bicarakan dengan orang terpercaya atau konsultan profesional.';
     } else {
-      return 'Sangat penting untuk tidak mengabaikan perasaan ini atau memendamnya sendirian. Ini adalah waktu yang tepat untuk mencari bantuan profesional. Berkonsultasi dengan psikolog akan sangat membantu Anda.';
+      return 'Segera cari bantuan profesional (psikolog klinis atau psikiater).';
     }
   }
 
@@ -235,4 +240,41 @@ class MBTIQuestion {
   type.write(scores['J']! >= scores['P']! ? 'J' : 'P');
 
   return (type: type.toString(), scores: scores);
+}
+
+class PsyQuestion {
+  final int id;
+  final String category;
+  final String question;
+  final List<PsyOption> options;
+
+  const PsyQuestion({
+    required this.id,
+    required this.category,
+    required this.question,
+    required this.options,
+  });
+
+  factory PsyQuestion.fromJson(Map<String, dynamic> json) {
+    return PsyQuestion(
+      id: json['id'],
+      category: json['category'],
+      question: json['question'],
+      options: (json['options'] as List).map((o) => PsyOption.fromJson(o)).toList(),
+    );
+  }
+}
+
+class PsyOption {
+  final String answer;
+  final int score;
+
+  const PsyOption({required this.answer, required this.score});
+
+  factory PsyOption.fromJson(Map<String, dynamic> json) {
+    return PsyOption(
+      answer: json['answer'],
+      score: json['score'],
+    );
+  }
 }
