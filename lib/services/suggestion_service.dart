@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SuggestionService — Layanan saran dinamis berdasarkan MBTI + Emosi
 //
-// Memuat data dari assets/saran.json dan menyediakan rekomendasi
+// Memuat data dari assets/saran.json (atau saran_en.json) dan menyediakan rekomendasi
 // yang dipersonalisasi sesuai tipe MBTI pengguna dan emosi terdeteksi.
 // ─────────────────────────────────────────────────────────────────────────────
 class SuggestionService {
@@ -20,16 +21,28 @@ class SuggestionService {
   /// Apakah data sudah dimuat
   bool get isLoaded => _recommendations != null;
 
-  /// Muat data saran dari assets/saran.json
+  /// Muat data saran dari assets/saran.json atau saran_en.json berdasarkan locale
   Future<void> load() async {
     if (_recommendations != null) return; // sudah dimuat
+    
+    final locale = AppLocalizations.locale;
+    final fileName = locale.startsWith('en') ? 'assets/saran_en.json' : 'assets/saran.json';
+    
     try {
-      final jsonString = await rootBundle.loadString('assets/saran.json');
+      final jsonString = await rootBundle.loadString(fileName);
       final data = jsonDecode(jsonString) as Map<String, dynamic>;
       _recommendations =
           List<Map<String, dynamic>>.from(data['mbti_recommendations']);
     } catch (e) {
-      _recommendations = [];
+      // Fallback ke bahasa Indonesia jika gagal
+      try {
+        final jsonString = await rootBundle.loadString('assets/saran.json');
+        final data = jsonDecode(jsonString) as Map<String, dynamic>;
+        _recommendations =
+            List<Map<String, dynamic>>.from(data['mbti_recommendations']);
+      } catch (e2) {
+        _recommendations = [];
+      }
     }
   }
 
@@ -84,7 +97,7 @@ class SuggestionService {
     return entry.isNotEmpty ? (entry['alias'] as String? ?? '') : '';
   }
 
-  /// Dapatkan grup MBTI dari saran.json (e.g. "Analis", "Diplomat")
+  /// Dapatkan grup MBTI dari saran.json (e.g. "Analyst", "Diplomat")
   String getMbtiGroup(String mbtiType) {
     if (_recommendations == null || _recommendations!.isEmpty) return '';
 
@@ -99,20 +112,26 @@ class SuggestionService {
   }
 
   /// Buat judul saran dinamis berdasarkan emosi dan MBTI
-  /// Contoh: "Saran untuk Happy — INTJ (The Architect)"
   String buildTitle(String mbtiType, EmotionType emotion) {
     final alias = getMbtiAlias(mbtiType);
     final emotionName = emotion.displayName;
+    final locale = AppLocalizations.locale;
 
     if (mbtiType.isEmpty || mbtiType == 'XXXX') {
-      return 'Saran untuk Emosi $emotionName';
+      return locale.startsWith('en') 
+          ? 'Suggestions for $emotionName emotion' 
+          : 'Saran untuk Emosi $emotionName';
     }
 
     if (alias.isNotEmpty) {
-      return 'Saran $emotionName — $mbtiType ($alias)';
+      return locale.startsWith('en') 
+          ? 'Suggestions $emotionName — $mbtiType ($alias)' 
+          : 'Saran $emotionName — $mbtiType ($alias)';
     }
 
-    return 'Saran $emotionName — $mbtiType';
+    return locale.startsWith('en') 
+        ? 'Suggestions $emotionName — $mbtiType' 
+        : 'Saran $emotionName — $mbtiType';
   }
 
   /// Map EmotionType enum ke key string di saran.json

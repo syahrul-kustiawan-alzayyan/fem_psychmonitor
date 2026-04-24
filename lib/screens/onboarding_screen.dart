@@ -79,13 +79,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _loadQuestions() async {
     try {
-      final mbtiString = await rootBundle.loadString('assets/MBTI.json');
+      final locale = AppLocalizations.locale;
+      final mbtiFile = locale.startsWith('en') ? 'assets/MBTI_en.json' : 'assets/MBTI.json';
+      final psyFile = locale.startsWith('en') ? 'assets/psych_en.json' : 'assets/psych.json';
+      
+      final mbtiString = await rootBundle.loadString(mbtiFile);
       final mbtiJson = jsonDecode(mbtiString);
       final mbtiList = (mbtiJson['mbti_questionnaire'] as List)
           .map((q) => MBTIQuestion.fromJson(q))
           .toList();
 
-      final psyString = await rootBundle.loadString('assets/psych.json');
+      final psyString = await rootBundle.loadString(psyFile);
       final psyJson = jsonDecode(psyString);
       final psyList = (psyJson['womens_mental_health_assessment']['questions'] as List)
           .map((q) => PsyQuestion.fromJson(q))

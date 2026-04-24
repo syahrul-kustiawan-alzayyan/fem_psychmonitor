@@ -632,17 +632,31 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
     );
   }
 
-  Widget _buildStoryPrompts() {
-    final prompts = [
-      {'emoji': '💭', 'text': 'Apa yang paling membuatmu khawatir hari ini?'},
-      {'emoji': '🌟', 'text': 'Ceritakan hal yang membuatmu bangga akhir-akhir ini'},
-      {'emoji': '💪', 'text': 'Bagaimana cara kamu menghadapi tantangan recently?'},
-      {'emoji': '🤗', 'text': 'Siapa yang selalu mendukungmu? Ceritakan tentang mereka'},
-      {'emoji': '😔', 'text': 'Apa yang paling membuatmu sedih minggu ini?'},
-      {'emoji': '🎯', 'text': 'Apa target yang ingin kamu capai bulan ini?'},
-      {'emoji': '❤️', 'text': 'Apa hal terbaik yang terjadi padamu baru-baru ini?'},
-      {'emoji': '🧘', 'text': 'Bagaimana perasaanmu tentang keseimbangan hidupmu?'},
-    ];
+Widget _buildStoryPrompts() {
+    final locale = AppLocalizations.locale;
+    final isEn = locale.startsWith('en');
+    
+    final prompts = isEn
+        ? [
+            {'emoji': '💭', 'text': "What's been worrying you the most lately?"},
+            {'emoji': '🌟', 'text': 'Tell me about something you\'re proud of recently'},
+            {'emoji': '💪', 'text': 'How have you been dealing with challenges?'},
+            {'emoji': '🤗', 'text': 'Who always supports you? Tell me about them'},
+            {'emoji': '😔', 'text': 'What made you saddest this week?'},
+            {'emoji': '🎯', 'text': 'What goal do you want to achieve this month?'},
+            {'emoji': '❤️', 'text': 'What\'s the best thing that happened to you recently?'},
+            {'emoji': '🧘', 'text': 'How do you feel about your life balance?'},
+          ]
+        : [
+            {'emoji': '💭', 'text': 'Apa yang paling membuatmu khawatir hari ini?'},
+            {'emoji': '🌟', 'text': 'Ceritakan hal yang membuatmu bangga akhir-akhir ini'},
+            {'emoji': '💪', 'text': 'Bagaimana cara kamu menghadapi tantangan recently?'},
+            {'emoji': '🤗', 'text': 'Siapa yang selalu mendukungmu? Ceritakan tentang mereka'},
+            {'emoji': '😔', 'text': 'Apa yang paling membuatmu sedih minggu ini?'},
+            {'emoji': '🎯', 'text': 'Apa target yang ingin kamu capai bulan ini?'},
+            {'emoji': '❤️', 'text': 'Apa hal terbaik yang terjadi padamu baru-barui ini?'},
+            {'emoji': '🧘', 'text': 'Bagaimana perasaanmu tentang keseimbangan hidupmu?'},
+          ];
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -663,7 +677,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                'Ceritakan Keluh Kesahmu',
+                isEn ? 'Share Your Thoughts' : 'Ceritakan Keluh Kesahmu',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -674,7 +688,9 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
           ),
           const SizedBox(height: 12),
           Text(
-            'Pilih salah satu pertanyaan di bawah ini dan ceritakan perasaanmu:',
+            isEn 
+                ? 'Choose one of the questions below and share your feelings:'
+                : 'Pilih salah satu pertanyaan di bawah ini dan ceritakan perasaanmu:',
             style: GoogleFonts.poppins(
               fontSize: 13,
               color: AppTheme.textS(context),

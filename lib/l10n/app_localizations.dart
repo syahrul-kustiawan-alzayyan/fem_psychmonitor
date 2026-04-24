@@ -5,6 +5,9 @@ class AppLocalizations {
   static String _currentLocale = 'id';
 
   static String get currentLocale => _currentLocale;
+  
+  /// Getter shorthand untuk locale (digunakan oleh services dan screens)
+  static String get locale => _currentLocale;
 
   static void setLocale(String locale) {
     _currentLocale = locale;
