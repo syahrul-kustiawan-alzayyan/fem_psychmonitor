@@ -236,14 +236,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          AppLocalizations.tr('profile_saved'),
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-        ),
-        backgroundColor: AppTheme.primaryColor,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        padding: EdgeInsets.zero,
+        content: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2563EB), Color(0xFFDB2777)],
+            ),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Text(
+            AppLocalizations.tr('profile_saved'),
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white),
+          ),
         ),
       ),
     );
@@ -283,98 +298,100 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           children: [
             // ── Header Banner ──────────────────────────────
-            Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.bottomCenter,
-              children: [
-                Container(
-                  height: 140,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppTheme.primaryColor.withValues(alpha: 0.7),
-                        AppTheme.primaryColor,
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+            SizedBox(
+              height: 205,
+              child: Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  Container(
+                    height: 140,
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color(0xFF3B82F6),
+                          Color(0xFFEC4899),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
                     ),
                   ),
-                ),
-                Positioned(
-                  bottom: -50,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Stack(
-                      children: [
-                        // Avatar
-                        Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: AppTheme.primaryGradient,
-                            boxShadow: AppTheme.primaryShadow,
-                          ),
-                          child: Container(
-                            width: 100,
-                            height: 100,
+                  Positioned(
+                    top: 90,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Stack(
+                        children: [
+                          // Avatar
+                          Container(
+                            padding: const EdgeInsets.all(3),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppTheme.surface(context),
-                              image: _photoPath != null && File(_photoPath!).existsSync()
-                                  ? DecorationImage(
-                                      image: FileImage(File(_photoPath!)),
-                                      fit: BoxFit.cover,
+                              gradient: AppTheme.primaryGradient,
+                              boxShadow: AppTheme.primaryShadow,
+                            ),
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppTheme.surface(context),
+                                image: _photoPath != null && File(_photoPath!).existsSync()
+                                    ? DecorationImage(
+                                        image: FileImage(File(_photoPath!)),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
+                              ),
+                              child: _photoPath == null || !File(_photoPath!).existsSync()
+                                  ? Center(
+                                      child: Text(
+                                        initial,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 40,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppTheme.primaryColor,
+                                        ),
+                                      ),
                                     )
                                   : null,
                             ),
-                            child: _photoPath == null || !File(_photoPath!).existsSync()
-                                ? Center(
-                                    child: Text(
-                                      initial,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 40,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppTheme.primaryColor,
-                                      ),
-                                    ),
-                                  )
-                                : null,
                           ),
-                        ),
-                        // Camera badge
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: _pickPhoto,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppTheme.primaryColor,
-                                border: Border.all(
-                                  color: AppTheme.surface(context),
-                                  width: 2.5,
+                          // Camera badge
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: _pickPhoto,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppTheme.primaryColor,
+                                  border: Border.all(
+                                    color: AppTheme.surface(context),
+                                    width: 2.5,
+                                  ),
                                 ),
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt_rounded,
-                                color: Colors.white,
-                                size: 16,
+                                child: const Icon(
+                                  Icons.camera_alt_rounded,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
 
-            const SizedBox(height: 56),
+            const SizedBox(height: 6),
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXl),
@@ -497,14 +514,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 28),
 
                   // ── Tombol Simpan ──────────────────────────────
-                  SizedBox(
+                  Container(
                     width: double.infinity,
                     height: 52,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF3B82F6), Color(0xFFEC4899)],
+                      ),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                    ),
                     child: ElevatedButton(
                       onPressed: _isSaving ? null : _saveProfile,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
+                        backgroundColor: Colors.transparent,
                         foregroundColor: Colors.white,
+                        shadowColor: Colors.transparent,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                             AppTheme.radiusMd,

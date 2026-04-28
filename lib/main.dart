@@ -194,141 +194,72 @@ class _SplashScreenState extends State<_SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF3B82F6), Color(0xFFEC4899), Color(0xFF8B5CF6)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            stops: [0.0, 0.5, 1.0],
-          ),
-        ),
-        child: Stack(
-          children: [
-            // Animated background circles
-            ...List.generate(3, (index) {
-              return Positioned.fill(
-                child: AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    return CustomPaint(
-                      painter: _CirclePainter(
-                        index: index,
-                        animation: _controller.value,
-                      ),
-                    );
-                  },
+      backgroundColor: AppTheme.bg(context),
+      body: Center(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/logo.png',
+                  width: 150,
+                  height: 150,
+                  fit: BoxFit.contain,
                 ),
-              );
-            }),
-
-            // Main content
-            Center(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Logo dengan gradient border dan glow effect
-                      Container(
-                        width: 140,
-                        height: 140,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: AppTheme.primaryGradient,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.3),
-                              blurRadius: 30,
-                              spreadRadius: 5,
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(6),
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                          ),
-                          child: ClipOval(
-                            child: Image.asset(
-                              'assets/logo.png',
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      Text(
-                        'Fem-Psych Monitor',
-                        style: GoogleFonts.poppins(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: -0.5,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withValues(alpha: 0.3),
-                              offset: const Offset(0, 2),
-                              blurRadius: 8,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          AppLocalizations.tr('app_subtitle'),
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 48),
-                      // Animated loading indicator
-                      SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 3,
-                          backgroundColor: Colors.white.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Memuat aplikasi...',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 32),
+                Text(
+                  'Fem-Psych Monitor',
+                  style: GoogleFonts.poppins(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textP(context),
+                    letterSpacing: -0.5,
                   ),
                 ),
-              ),
-            ),
-
-            // Feature cards at bottom
-            Positioned(
-              bottom: 60,
-              left: 0,
-              right: 0,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Padding(
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    AppLocalizations.tr('splash_subtitle'),
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.primaryColor,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 48),
+                // Loading indicator
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                    color: AppTheme.primaryColor,
+                    strokeWidth: 3,
+                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Memuat aplikasi...',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppTheme.textS(context),
+                  ),
+                ),
+                const SizedBox(height: 60),
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Row(
                     children: [
@@ -352,9 +283,9 @@ class _SplashScreenState extends State<_SplashScreen>
                     ],
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -378,20 +309,19 @@ class _SplashScreenState extends State<_SplashScreen>
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
+            color: AppTheme.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
           ),
           child: Column(
             children: [
-              Icon(icon, color: Colors.white, size: 24),
+              Icon(icon, color: AppTheme.primaryColor, size: 24),
               const SizedBox(height: 4),
               Text(
                 label,
                 style: GoogleFonts.poppins(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: AppTheme.textS(context),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -403,31 +333,7 @@ class _SplashScreenState extends State<_SplashScreen>
   }
 }
 
-// Custom painter untuk animated circles
-class _CirclePainter extends CustomPainter {
-  final int index;
-  final double animation;
 
-  _CirclePainter({required this.index, required this.animation});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05 + (index * 0.03))
-      ..style = PaintingStyle.fill;
-
-    final radius = 100 + (index * 80) + (animation * 30);
-    final offset = Offset(
-      size.width * (0.3 + (index * 0.2)),
-      size.height * (0.2 + (index * 0.15)),
-    );
-
-    canvas.drawCircle(offset, radius, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _CirclePainter oldDelegate) => true;
-}
 
 // ────────────────────────────────────────────────────────
 // Main Navigation — Bottom Nav Bar Premium

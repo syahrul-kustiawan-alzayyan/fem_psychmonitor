@@ -1,4 +1,4 @@
-import 'dart:io' show Platform;
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +13,7 @@ import '../theme/app_theme.dart';
 import '../utils/animations.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/suggestion_card.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'auth_screen.dart';
@@ -62,6 +63,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..forward();
+
+    _loadProfilePhoto();
+  }
+
+  String? _photoPath;
+
+  Future<void> _loadProfilePhoto() async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('auth_email') ?? '';
+    final savedPhoto = prefs.getString('profile_photo_$email');
+    if (mounted) {
+      setState(() {
+        _photoPath = savedPhoto;
+      });
+    }
   }
 
   @override
@@ -324,22 +340,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           ),
           color: AppTheme.surface(context),
-          onSelected: (val) {
+          onSelected: (val) async {
             if (val == 'profile') {
-              Navigator.push(
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ProfileScreen()),
               );
+              _loadProfilePhoto();
             } else if (val == 'settings') {
-              Navigator.push(
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
               );
+              _loadProfilePhoto();
             } else if (val == 'login') {
-              Navigator.push(
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const AuthScreen()),
               );
+              _loadProfilePhoto();
             }
           },
           itemBuilder: (ctx) => [
@@ -436,17 +455,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppTheme.surface(context),
+                image: _photoPath != null && File(_photoPath!).existsSync()
+                    ? DecorationImage(
+                        image: FileImage(File(_photoPath!)),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              child: Center(
-                child: Text(
-                  initial,
-                  style: GoogleFonts.poppins(
-                    color: AppTheme.primaryColor,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+              child: _photoPath == null || !File(_photoPath!).existsSync()
+                  ? Center(
+                      child: Text(
+                        initial,
+                        style: GoogleFonts.poppins(
+                          color: AppTheme.primaryColor,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    )
+                  : null,
             ),
           ),
         ),

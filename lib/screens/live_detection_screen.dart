@@ -336,8 +336,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
 
               if (_isRecording) ...[
                 const SizedBox(height: AppTheme.spaceMd),
-                _buildLiveResults(),
-                const SizedBox(height: AppTheme.spaceMd),
               ],
 
               if (!_isRecording) _buildStoryPrompts(),
@@ -355,7 +353,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
 
   Widget _buildWaveVisualizer() {
     return Container(
-      height: 180,
+      height: 220,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -474,7 +472,9 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               )
-                            : AppTheme.primaryGradient,
+                            : const LinearGradient(
+                                colors: [Color(0xFF3B82F6), Color(0xFFEC4899)],
+                              ),
                         boxShadow: [
                           BoxShadow(
                             color: (_isRecording ? Colors.red : AppTheme.primaryColor)
@@ -554,83 +554,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
     );
   }
 
-  Widget _buildLiveResults() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.cardShadow,
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.analytics_rounded,
-                color: AppTheme.primaryColor,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                AppLocalizations.tr('emotion_distribution'),
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textP(context),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          if (_detectedEmotion != null)
-            EmotionBadge(
-              emotion: _detectedEmotion!,
-              confidence: _detectedConfidence ?? 0.0,
-            ),
-
-          const SizedBox(height: 24),
-
-          if (_detectedScores != null)
-            SizedBox(
-              height: 200,
-              child: RadarChart(
-                RadarChartData(
-                  dataSets: [
-                    RadarDataSet(
-                      fillColor: AppTheme.primaryColor.withOpacity(0.2),
-                      borderColor: AppTheme.primaryColor,
-                      entryRadius: 3,
-                      dataEntries: EmotionType.values.map((e) {
-                        return RadarEntry(value: _detectedScores![e] ?? 0.0);
-                      }).toList(),
-                      borderWidth: 2,
-                    ),
-                  ],
-                  radarBackgroundColor: Colors.transparent,
-                  borderData: FlBorderData(show: false),
-                  radarBorderData: const BorderSide(color: Colors.transparent),
-                  tickCount: 3,
-                  ticksTextStyle: const TextStyle(color: Colors.transparent, fontSize: 10),
-                  tickBorderData: BorderSide(color: AppTheme.textH(context).withOpacity(0.2)),
-                  gridBorderData: BorderSide(color: AppTheme.textH(context).withOpacity(0.2), width: 1.5),
-                  getTitle: (index, angle) {
-                    final emotion = EmotionType.values[index];
-                    return RadarChartTitle(
-                      text: emotion.displayName,
-                      angle: 0,
-                      positionPercentageOffset: 0.1,
-                    );
-                  },
-                ),
-                swapAnimationDuration: const Duration(milliseconds: 200),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 
 Widget _buildStoryPrompts() {
     final locale = AppLocalizations.locale;
