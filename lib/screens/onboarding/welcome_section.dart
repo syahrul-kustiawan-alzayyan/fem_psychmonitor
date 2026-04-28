@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
 
 class WelcomeSection extends StatelessWidget {
@@ -11,9 +13,12 @@ class WelcomeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final loc = AppLocalizations.tr;
+
     return Container(
       decoration: BoxDecoration(
-        gradient: AppTheme.lightGradientBackground,
+        gradient: isDark ? AppTheme.darkGradientBackground : AppTheme.lightGradientBackground,
       ),
       child: SafeArea(
         bottom: false,
@@ -96,12 +101,11 @@ class WelcomeSection extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 36,
                   fontWeight: FontWeight.w800,
-                  color: AppTheme.textP(context),
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.textP(context),
                   height: 1.1,
                 ),
               ),
               const SizedBox(height: 16),
-              // App Description
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
@@ -113,17 +117,18 @@ class WelcomeSection extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  'Aplikasi kesehatan mental khusus perempuan yang menggabungkan analisis emosi berbasis AI dengan pemahaman kepribadian MBTI untuk mendukung perkembangan diri Anda.',
+                  loc('welcome_desc'),
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w500,
-                    color: AppTheme.textS(context),
+                    color: isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context),
                     height: 1.6,
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              // Value Proposition Cards
               // Value Proposition Cards - Enhanced Glassmorphism style
               Container(
                 padding: const EdgeInsets.all(24),
@@ -148,8 +153,8 @@ class WelcomeSection extends StatelessWidget {
                       context: context,
                       icon: Icons.graphic_eq_rounded,
                       color: AppTheme.primaryColor,
-                      title: 'Analisis Suara & Emosi',
-                      description: 'Deteksi emosi secara real-time menggunakan AI canggih. Rekam suara Anda dan dapatkan analisis mendalam tentang state emosi saat ini.',
+                      title: loc('feature_voice_title'),
+                      description: loc('feature_voice_desc'),
                       iconBg: AppTheme.primaryColor.withValues(alpha: 0.12),
                     ),
                     const SizedBox(height: 20),
@@ -162,8 +167,8 @@ class WelcomeSection extends StatelessWidget {
                       context: context,
                       icon: Icons.psychology_rounded,
                       color: AppTheme.secondaryColor,
-                      title: 'Pemahaman Diri',
-                      description: 'Kenali tipe kepribadian MBTI dan pantau kesehatan mental dengan asesmen terstruktur berbasis sains.',
+                      title: loc('feature_self_title'),
+                      description: loc('feature_self_desc'),
                       iconBg: AppTheme.secondaryColor.withValues(alpha: 0.12),
                     ),
                     const SizedBox(height: 20),
@@ -176,8 +181,8 @@ class WelcomeSection extends StatelessWidget {
                       context: context,
                       icon: Icons.self_improvement_rounded,
                       color: Colors.green.shade600,
-                      title: 'Pengembangan Diri',
-                      description: 'Dapatkan rekomendasi dan saran tindakan yang dipersonalisasi untuk setiap fase kehidupan dan kondisi mental Anda.',
+                      title: loc('feature_growth_title'),
+                      description: loc('feature_growth_desc'),
                       iconBg: Colors.green.shade600.withValues(alpha: 0.12),
                     ),
                   ],
@@ -253,6 +258,7 @@ class WelcomeSection extends StatelessWidget {
     required String description,
     required Color iconBg,
   }) {
+    final isDark = context.watch<ThemeProvider>().isDark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -281,7 +287,7 @@ class WelcomeSection extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textP(context),
+                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
                 ),
               ),
               const SizedBox(height: 6),
@@ -289,7 +295,7 @@ class WelcomeSection extends StatelessWidget {
                 description,
                 style: GoogleFonts.poppins(
                   fontSize: 13.5,
-                  color: AppTheme.textS(context),
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context),
                   height: 1.5,
                 ),
               ),

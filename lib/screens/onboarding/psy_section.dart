@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../../l10n/app_localizations.dart';
+import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
 import 'onboarding_state.dart';
 
@@ -51,9 +53,12 @@ class _PsySectionState extends State<PsySection> {
   }
 
   Widget _buildIntroPage(BuildContext context, OnboardingState state) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final loc = AppLocalizations.tr;
+
     return Container(
       decoration: BoxDecoration(
-        gradient: AppTheme.lightGradientBackground,
+        gradient: isDark ? AppTheme.darkGradientBackground : AppTheme.lightGradientBackground,
       ),
       child: SafeArea(
         bottom: false,
@@ -95,7 +100,7 @@ class _PsySectionState extends State<PsySection> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Kesehatan Mental\nPerempuan',
+                      loc('psy_intro_title'),
                       style: GoogleFonts.poppins(
                         fontSize: 30,
                         fontWeight: FontWeight.w800,
@@ -105,7 +110,7 @@ class _PsySectionState extends State<PsySection> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Pahami kesehatan mental Anda dengan pendekatan saintifik yang disesuaikan untuk kebutuhan perempuan.',
+                      loc('psy_intro_desc'),
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -122,13 +127,13 @@ class _PsySectionState extends State<PsySection> {
                 context: context,
                 icon: Icons.info_outline_rounded,
                 iconColor: AppTheme.primaryColor,
-                title: 'Tentang Asesmen Kesehatan Mental',
-                description: 'Kuesioner ini dirancang khusus untuk mengukur kesejahteraan mental perempuan, menggunakan standar klinis yang telah divalidasi. Asesmen ini mencakup 4 aspek utama yang seringkali unik bagi pengalaman perempuan:',
+                title: loc('psy_about_title'),
+                description: loc('psy_about_desc'),
                 points: [
-                  '💼 Beban Peran & Stres: Menilai tekanan dari peran sosial, pekerjaan, dan keluarga',
-                  '💭 Regulasi Emosi & Hormonal: Memahami dampak fluktuasi hormon terhadap stabilitas emosi',
-                  '🪞 Citra Tubuh (Body Image): Mengukur persepsi diri dan kepuasan terhadap fisik',
-                  '🌙 Kualitas Tidur & Energi: Evaluasi pola tidur dan tingkat vitalitas harian',
+                  loc('psy_point_1'),
+                  loc('psy_point_2'),
+                  loc('psy_point_3'),
+                  loc('psy_point_4'),
                 ],
               ),
               const SizedBox(height: 24),
@@ -157,7 +162,7 @@ class _PsySectionState extends State<PsySection> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Catatan Penting',
+                            loc('psy_note_title'),
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -166,10 +171,10 @@ class _PsySectionState extends State<PsySection> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Jawablah dengan jujur sesuai kondisi Anda selama ini. Hasil asesmen ini bersifat rahasia dan hanya akan digunakan untuk memberikan rekomendasi yang dipersonalisasi.',
+                            loc('psy_note_desc'),
                             style: GoogleFonts.poppins(
                               fontSize: 13,
-                              color: AppTheme.textS(context),
+                              color: isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context),
                               height: 1.5,
                             ),
                           ),
@@ -204,10 +209,10 @@ class _PsySectionState extends State<PsySection> {
                     child: Center(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Mulai Asesmen',
-                            style: GoogleFonts.poppins(
+children: [
+                           Text(
+                             loc('start_assessment'),
+                             style: GoogleFonts.poppins(
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -242,6 +247,7 @@ class _PsySectionState extends State<PsySection> {
 
   Widget _buildQuestionPage(
       BuildContext context, OnboardingState state, int qIndex) {
+    final isDark = context.watch<ThemeProvider>().isDark;
     if (state.psyQuestions.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -257,7 +263,7 @@ class _PsySectionState extends State<PsySection> {
     final selected = state.psyAnswers[qIndex];
     final questionNum = qIndex + 1;
     final totalQuestions = state.psyQuestions.length;
-    final progress = questionNum / totalQuestions;
+final progress = questionNum / totalQuestions;
 
     return SingleChildScrollView(
       key: ValueKey(qIndex),
@@ -268,37 +274,52 @@ class _PsySectionState extends State<PsySection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 12),
-            // Improved Top Navigation & Progress
-            // Progress Section
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
+            // Progress Section with Navigation Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildGradientIconButton(
+                  icon: Icons.arrow_back_ios_new_rounded,
+                  onTap: qIndex > 0 ? _prevPage : null,
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.favorite_rounded, size: 14, color: Colors.pink),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$questionNum / $totalQuestions',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.favorite_rounded, size: 14, color: Colors.pink),
-                    const SizedBox(width: 6),
-                    Text(
-                      '$questionNum / $totalQuestions',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                _buildGradientIconButton(
+                  icon: Icons.home_rounded,
+                  onTap: () {
+                    setState(() {
+                      _pageIndex = 0;
+                    });
+},
             ),
-            const SizedBox(height: 24),
-            // Beautiful Animated Progress Bar
+            const SizedBox(height: 30),
+          ],
+        ),
+            const SizedBox(height: 16),
+            // Progress Bar
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Stack(
@@ -306,7 +327,7 @@ class _PsySectionState extends State<PsySection> {
                   Container(
                     height: 10,
                     width: double.infinity,
-                    color: AppTheme.surfVar(context),
+                    color: isDark ? AppTheme.darkSurfaceVar : AppTheme.surfVar(context),
                   ),
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 400),
@@ -407,24 +428,6 @@ class _PsySectionState extends State<PsySection> {
                 ),
               );
             }),
-            const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildGradientIconButton(
-                  icon: Icons.home_rounded,
-                  onTap: () {
-                    setState(() {
-                      _pageIndex = 0;
-                    });
-                  },
-                ),
-                _buildGradientIconButton(
-                  icon: Icons.arrow_back_ios_new_rounded,
-                  onTap: qIndex > 0 ? _prevPage : null,
-                ),
-              ],
-            ),
             const SizedBox(height: 30),
           ],
         ),
@@ -441,6 +444,7 @@ class _PsySectionState extends State<PsySection> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final isDark = context.watch<ThemeProvider>().isDark;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -449,10 +453,10 @@ class _PsySectionState extends State<PsySection> {
         decoration: BoxDecoration(
           color: isSelected
               ? color.withValues(alpha: 0.05)
-              : AppTheme.surface(context),
+              : (isDark ? AppTheme.darkCard : AppTheme.surface(context)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? color : AppTheme.surfVar(context),
+            color: isSelected ? color : (isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.surfVar(context)),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: AppTheme.cardShadow,
@@ -463,7 +467,7 @@ class _PsySectionState extends State<PsySection> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: isSelected ? color : AppTheme.surfVar(context),
+                color: isSelected ? color : (isDark ? AppTheme.darkSurfaceVar : AppTheme.surfVar(context)),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Center(
@@ -472,7 +476,7 @@ class _PsySectionState extends State<PsySection> {
                   style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: isSelected ? Colors.white : AppTheme.textP(context),
+                    color: isSelected ? Colors.white : (isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context)),
                   ),
                 ),
               ),
@@ -484,7 +488,7 @@ class _PsySectionState extends State<PsySection> {
                 style: GoogleFonts.poppins(
                   fontSize: 14.5,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: AppTheme.textP(context),
+                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
                 ),
               ),
             ),
@@ -509,14 +513,15 @@ class _PsySectionState extends State<PsySection> {
     required String description,
     required List<String> points,
   }) {
+    final isDark = context.watch<ThemeProvider>().isDark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.surface(context),
+        color: isDark ? AppTheme.darkCard : AppTheme.surface(context),
         borderRadius: BorderRadius.circular(28),
         boxShadow: AppTheme.cardShadow,
         border: Border.all(
-          color: AppTheme.surfVar(context),
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.surfVar(context),
           width: 1,
         ),
       ),
@@ -540,7 +545,7 @@ class _PsySectionState extends State<PsySection> {
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: AppTheme.textP(context),
+                    color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
                     height: 1.2,
                   ),
                 ),
@@ -553,14 +558,14 @@ class _PsySectionState extends State<PsySection> {
             style: GoogleFonts.poppins(
               fontSize: 13.5,
               fontWeight: FontWeight.w500,
-              color: AppTheme.textS(context),
+              color: isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context),
               height: 1.6,
             ),
           ),
           const SizedBox(height: 20),
           Container(
             height: 1,
-            color: AppTheme.surfVar(context),
+            color: isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.surfVar(context),
             margin: const EdgeInsets.only(bottom: 20),
           ),
           ...points.map(
@@ -587,7 +592,7 @@ class _PsySectionState extends State<PsySection> {
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: AppTheme.textP(context),
+                        color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
                         height: 1.5,
                       ),
                     ),
@@ -605,6 +610,7 @@ class _PsySectionState extends State<PsySection> {
     required IconData icon,
     required VoidCallback? onTap,
   }) {
+    final isDark = context.watch<ThemeProvider>().isDark;
     final isDisabled = onTap == null;
     return Material(
       color: Colors.transparent,
@@ -619,7 +625,7 @@ class _PsySectionState extends State<PsySection> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            color: isDisabled ? AppTheme.surfVar(context) : null,
+            color: isDisabled ? (isDark ? AppTheme.darkSurfaceVar : AppTheme.surfVar(context)) : null,
             borderRadius: BorderRadius.circular(16),
             boxShadow: isDisabled ? null : [
               BoxShadow(
@@ -632,7 +638,7 @@ class _PsySectionState extends State<PsySection> {
           child: Icon(
             icon,
             size: 24,
-            color: isDisabled ? AppTheme.textS(context) : Colors.white,
+            color: isDisabled ? (isDark ? AppTheme.darkTextHint : AppTheme.textS(context)) : Colors.white,
           ),
         ),
       ),

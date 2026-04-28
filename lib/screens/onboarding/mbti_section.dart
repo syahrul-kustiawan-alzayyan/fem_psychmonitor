@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
 import 'onboarding_state.dart';
 
@@ -52,9 +53,12 @@ class _MbtiSectionState extends State<MbtiSection> {
   }
 
   Widget _buildIntroPage(BuildContext context, OnboardingState state) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final loc = AppLocalizations.tr;
+
     return Container(
       decoration: BoxDecoration(
-        gradient: AppTheme.lightGradientBackground,
+        gradient: isDark ? AppTheme.darkGradientBackground : AppTheme.lightGradientBackground,
       ),
       child: SafeArea(
         bottom: false,
@@ -86,12 +90,12 @@ class _MbtiSectionState extends State<MbtiSection> {
               ),
               const SizedBox(height: 28),
               Text(
-                'Psikologi MBTI',
+                loc('mbti_intro_title'),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
-                  color: AppTheme.textP(context),
+                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
                   height: 1.2,
                 ),
               ),
@@ -103,7 +107,7 @@ class _MbtiSectionState extends State<MbtiSection> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  'Kenali tipe kepribadianmu',
+                  loc('mbti_intro_subtitle'),
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -112,7 +116,6 @@ class _MbtiSectionState extends State<MbtiSection> {
                 ),
               ),
               const SizedBox(height: 32),
-              // Enhanced Info Container
               // Enhanced Info Container (Blue-Pink Gradient)
               Container(
                 padding: const EdgeInsets.all(28),
@@ -151,7 +154,7 @@ class _MbtiSectionState extends State<MbtiSection> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: Text(
-                            'Apa itu MBTI?',
+                            loc('mbti_what_is'),
                             style: GoogleFonts.poppins(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -163,7 +166,7 @@ class _MbtiSectionState extends State<MbtiSection> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Myers-Briggs Type Indicator (MBTI) adalah alat ukur kepribadian yang disusun berdasarkan teori tipe psikologis Carl Jung. Tes ini membantu memahami cara Anda memproses informasi, mengambil keputusan, dan berinteraksi dengan dunia.',
+                      loc('mbti_what_is_desc'),
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.white.withValues(alpha: 0.95),
@@ -178,7 +181,7 @@ class _MbtiSectionState extends State<MbtiSection> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface(context).withValues(alpha: 0.95),
+                  color: isDark ? AppTheme.darkCard : AppTheme.surface(context).withValues(alpha: 0.95),
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
@@ -188,7 +191,7 @@ class _MbtiSectionState extends State<MbtiSection> {
                     ),
                   ],
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.7),
                     width: 1.5,
                   ),
                 ),
@@ -196,32 +199,32 @@ class _MbtiSectionState extends State<MbtiSection> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '4 Dimensi Utama:',
+                      loc('mbti_4dimensions'),
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.textP(context),
+                        color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildDimensionCard(context, '⚡', 'E vs I', 'Orientasi Energi', 'Dari mana Anda mendapatkan energi: Ekstrovert (luar) atau Introvert (dalam)'),
+                    _buildDimensionCard(context, '⚡', 'E vs I', loc('mbti_dimension_ei'), loc('mbti_dimension_ei_desc')),
                     const SizedBox(height: 10),
-                    _buildDimensionCard(context, '🔍', 'S vs N', 'Pemrosesan Info', 'Bagaimana Anda mengolah informasi: Sensing (fakta) atau Intuition (konsep)'),
+                    _buildDimensionCard(context, '🔍', 'S vs N', loc('mbti_dimension_sn'), loc('mbti_dimension_sn_desc')),
                     const SizedBox(height: 10),
-                    _buildDimensionCard(context, '💭', 'T vs F', 'Pengambilan Keputusan', 'Basis keputusan Anda: Thinking (logika) atau Feeling (nilai/perasaan)'),
+                    _buildDimensionCard(context, '💭', 'T vs F', loc('mbti_dimension_tf'), loc('mbti_dimension_tf_desc')),
                     const SizedBox(height: 10),
-                    _buildDimensionCard(context, '📋', 'J vs P', 'Gaya Hidup', 'Cara Anda menghadapi dunia: Judging (terencana) atau Perceiving (fleksibel)'),
+                    _buildDimensionCard(context, '📋', 'J vs P', loc('mbti_dimension_jp'), loc('mbti_dimension_jp_desc')),
                   ],
                 ),
               ),
               const SizedBox(height: 36),
               Text(
-                'Apakah Anda sudah mengetahui\ntipe MBTI Anda?',
+                loc('mbti_know_question'),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textP(context),
+                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
                   height: 1.4,
                 ),
               ),
@@ -230,11 +233,11 @@ class _MbtiSectionState extends State<MbtiSection> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface(context).withValues(alpha: 0.95),
+                  color: isDark ? AppTheme.darkCard : AppTheme.surface(context).withValues(alpha: 0.95),
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: AppTheme.cardShadow,
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.7),
                     width: 1.5,
                   ),
                 ),
@@ -242,8 +245,8 @@ class _MbtiSectionState extends State<MbtiSection> {
                   children: [
                     _buildModernSelectionCard(
                       context: context,
-                      title: 'Saya Belum Tahu',
-                      subtitle: 'Ikuti tes MBTI untuk mengetahui tipe kepribadian Anda',
+                      title: loc('mbti_not_know'),
+                      subtitle: loc('mbti_not_know_desc'),
                       icon: Icons.psychology_rounded,
                       iconColor: AppTheme.primaryColor,
                       isSelected: !state.showManualMbti,
@@ -254,8 +257,8 @@ class _MbtiSectionState extends State<MbtiSection> {
                     const SizedBox(height: 12),
                     _buildModernSelectionCard(
                       context: context,
-                      title: 'Saya Sudah Tahu',
-                      subtitle: 'Pilih tipe MBTI Anda dari daftar yang tersedia',
+                      title: loc('mbti_already_know'),
+                      subtitle: loc('mbti_already_know_desc'),
                       icon: Icons.edit_note_rounded,
                       iconColor: AppTheme.secondaryColor,
                       isSelected: state.showManualMbti,
@@ -396,14 +399,15 @@ class _MbtiSectionState extends State<MbtiSection> {
     final selected = state.mbtiAnswers[qIndex];
     final questionNum = qIndex + 1;
     final totalQuestions = state.mbtiQuestions.length;
+    final currentLocale = AppLocalizations.locale;
 
     final dimensionLabels = {
-      'E_I': ('\u26A1', 'Energi', 'Energy'),
-      'S_N': ('\uD83D\uDD0D', 'Informasi', 'Information'),
-      'T_F': ('\uD83D\uDCAD', 'Keputusan', 'Decisions'),
-      'J_P': ('\uD83D\uDCCB', 'Gaya Hidup', 'Lifestyle'),
+      'E_I': ('⚡', currentLocale == 'id' ? 'Energi' : 'Energy'),
+      'S_N': ('🔍', currentLocale == 'id' ? 'Informasi' : 'Information'),
+      'T_F': ('💭', currentLocale == 'id' ? 'Keputusan' : 'Decisions'),
+      'J_P': ('📋', currentLocale == 'id' ? 'Gaya Hidup' : 'Lifestyle'),
     };
-    final dimInfo = dimensionLabels[q.dimension] ?? ('\uD83D\uDCA1', 'Umum', 'General');
+    final dimInfo = dimensionLabels[q.dimension] ?? ('💧', currentLocale == 'id' ? 'Umum' : 'General');
     final progress = questionNum / totalQuestions;
 
     return SingleChildScrollView(
@@ -415,37 +419,51 @@ class _MbtiSectionState extends State<MbtiSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 12),
-            // Improved Top Navigation & Progress
-            // Progress Section
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.secondaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppTheme.secondaryColor.withValues(alpha: 0.2),
+            // Progress Section with Navigation Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildGradientIconButton(
+                  icon: Icons.arrow_back_ios_new_rounded,
+                  onTap: qIndex > 0 ? _prevPage : null,
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppTheme.secondaryColor.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(dimInfo.$1, style: const TextStyle(fontSize: 14)),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${dimInfo.$2} ($questionNum / $totalQuestions)',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.secondaryColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(dimInfo.$1, style: const TextStyle(fontSize: 14)),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${dimInfo.$2} ($questionNum / $totalQuestions)',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.secondaryColor,
-                      ),
-                    ),
-                  ],
+                _buildGradientIconButton(
+                  icon: Icons.home_rounded,
+                  onTap: () {
+                    setState(() {
+                      _pageIndex = 0;
+                    });
+                  },
                 ),
-              ),
+              ],
             ),
-            const SizedBox(height: 24),
-            // Beautiful Animated Progress Bar
+            const SizedBox(height: 16),
+            // Progress Bar
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Stack(
@@ -535,24 +553,6 @@ class _MbtiSectionState extends State<MbtiSection> {
               },
             ),
 
-            const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildGradientIconButton(
-                  icon: Icons.home_rounded,
-                  onTap: () {
-                    setState(() {
-                      _pageIndex = 0;
-                    });
-                  },
-                ),
-                _buildGradientIconButton(
-                  icon: Icons.arrow_back_ios_new_rounded,
-                  onTap: qIndex > 0 ? _prevPage : null,
-                ),
-              ],
-            ),
             const SizedBox(height: 30),
           ],
         ),
@@ -561,6 +561,8 @@ class _MbtiSectionState extends State<MbtiSection> {
   }
 
   Widget _buildManualInput(BuildContext context, OnboardingState state) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final loc = AppLocalizations.tr;
     final mbtiTypes = [
       'INTJ', 'INTP', 'ENTJ', 'ENTP',
       'INFJ', 'INFP', 'ENFJ', 'ENFP',
@@ -621,6 +623,7 @@ class _MbtiSectionState extends State<MbtiSection> {
     required Color color,
     required VoidCallback onTap,
   }) {
+    final isDark = context.watch<ThemeProvider>().isDark;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -629,10 +632,10 @@ class _MbtiSectionState extends State<MbtiSection> {
         decoration: BoxDecoration(
           color: isSelected
               ? color.withValues(alpha: 0.1)
-              : AppTheme.surface(context),
+              : (isDark ? AppTheme.darkCard : AppTheme.surface(context)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? color : AppTheme.surfVar(context),
+            color: isSelected ? color : (isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.surfVar(context)),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: AppTheme.cardShadow,
@@ -643,7 +646,7 @@ class _MbtiSectionState extends State<MbtiSection> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: isSelected ? color : AppTheme.surfVar(context),
+                color: isSelected ? color : (isDark ? AppTheme.darkSurfaceVar : AppTheme.surfVar(context)),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -652,7 +655,7 @@ class _MbtiSectionState extends State<MbtiSection> {
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
-                    color: isSelected ? Colors.white : AppTheme.textP(context),
+                    color: isSelected ? Colors.white : (isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context)),
                   ),
                 ),
               ),
@@ -664,7 +667,7 @@ class _MbtiSectionState extends State<MbtiSection> {
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: AppTheme.textP(context),
+                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
                   height: 1.4,
                 ),
               ),
@@ -721,13 +724,14 @@ class _MbtiSectionState extends State<MbtiSection> {
   }
 
   Widget _buildDimensionCard(BuildContext context, String emoji, String code, String title, String description) {
+    final isDark = context.watch<ThemeProvider>().isDark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface(context).withValues(alpha: 0.6),
+        color: isDark ? AppTheme.darkSurfaceVar.withValues(alpha: 0.5) : AppTheme.surface(context).withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.surfVar(context).withValues(alpha: 0.5),
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.surfVar(context).withValues(alpha: 0.5),
           width: 1,
         ),
       ),
@@ -764,7 +768,7 @@ class _MbtiSectionState extends State<MbtiSection> {
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.textP(context),
+                          color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
                         ),
                       ),
                     ),
@@ -775,7 +779,7 @@ class _MbtiSectionState extends State<MbtiSection> {
                   description,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    color: AppTheme.textS(context),
+                    color: isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context),
                     height: 1.5,
                   ),
                 ),
@@ -796,6 +800,7 @@ class _MbtiSectionState extends State<MbtiSection> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final isDark = context.watch<ThemeProvider>().isDark;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -813,10 +818,10 @@ class _MbtiSectionState extends State<MbtiSection> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ) : null,
-            color: isSelected ? null : AppTheme.surface(context),
+            color: isSelected ? null : (isDark ? AppTheme.darkCard : AppTheme.surface(context)),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isSelected ? iconColor.withValues(alpha: 0.4) : AppTheme.surfVar(context),
+              color: isSelected ? iconColor.withValues(alpha: 0.4) : (isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.surfVar(context)),
               width: isSelected ? 2 : 1,
             ),
             boxShadow: isSelected
@@ -834,13 +839,13 @@ class _MbtiSectionState extends State<MbtiSection> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isSelected ? iconColor.withValues(alpha: 0.15) : AppTheme.surfVar(context),
+                  color: isSelected ? iconColor.withValues(alpha: 0.15) : (isDark ? AppTheme.darkSurfaceVar : AppTheme.surfVar(context)),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
                   icon,
                   size: 24,
-                  color: isSelected ? iconColor : AppTheme.textS(context),
+                  color: isSelected ? iconColor : (isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context)),
                 ),
               ),
               const SizedBox(width: 16),
@@ -853,7 +858,7 @@ class _MbtiSectionState extends State<MbtiSection> {
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: isSelected ? iconColor : AppTheme.textP(context),
+                        color: isSelected ? iconColor : (isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context)),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -861,7 +866,7 @@ class _MbtiSectionState extends State<MbtiSection> {
                       subtitle,
                       style: GoogleFonts.poppins(
                         fontSize: 12,
-                        color: AppTheme.textS(context),
+                        color: isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context),
                         height: 1.4,
                       ),
                     ),

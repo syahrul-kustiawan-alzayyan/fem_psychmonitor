@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/user_model.dart';
 import 'onboarding_state.dart';
@@ -16,6 +17,8 @@ class ResultSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<OnboardingState>();
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final loc = AppLocalizations.tr;
 
     // Mock an AppUser just to use its getters (nickname, advice, description)
     final user = AppUser(
@@ -26,41 +29,46 @@ class ResultSection extends StatelessWidget {
       createdAt: DateTime.now(),
     );
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            
-            // HEADER
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: AppTheme.lightGradientBackground,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: AppTheme.cardShadow,
-              ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: isDark ? AppTheme.darkGradientBackground : AppTheme.lightGradientBackground,
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              
+              // HEADER
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.darkCard : null,
+                  gradient: isDark ? null : AppTheme.lightGradientBackground,
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: AppTheme.cardShadow,
+                ),
               child: Column(
                 children: [
                   const Text('🎉', style: TextStyle(fontSize: 56)),
                   const SizedBox(height: 12),
                   Text(
-                    'Hasil Asesmen Anda',
+                    loc('result_title'),
                     style: GoogleFonts.poppins(
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
-                      color: AppTheme.textP(context),
+                      color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Halo ${user.name.isEmpty ? AppLocalizations.tr('user') : user.name}, berikut adalah hasil analisis kepribadian dan kesehatan mental Anda.',
+                    'Halo ${user.name.isEmpty ? loc('user') : user.name}${loc('result_subtitle')}',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                       fontSize: 13.5,
-                      color: AppTheme.textS(context),
+                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context),
                       height: 1.6,
                     ),
                   ),
@@ -99,7 +107,7 @@ class ResultSection extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Tipe MBTI Anda',
+                        loc('result_mbti'),
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -161,7 +169,7 @@ class ResultSection extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface(context),
+                  color: isDark ? AppTheme.darkCard : AppTheme.surface(context),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: AppTheme.cardShadow,
                 ),
@@ -169,11 +177,11 @@ class ResultSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Detail Skor MBTI',
+                      loc('result_mbti_detail'),
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.textP(context),
+                        color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -211,24 +219,24 @@ class ResultSection extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Selesai 🚀',
+                            loc('completed'),
                             style: GoogleFonts.poppins(
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                        ],
-                      ),
+])),
               ),
-            ),
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildMbtiScoreBar(BuildContext context, String leftLabel, String rightLabel, int leftScore, int rightScore, Color color) {
+    final isDark = context.watch<ThemeProvider>().isDark;
     final total = leftScore + rightScore;
     final leftRatio = total > 0 ? leftScore / total : 0.5;
     
@@ -305,6 +313,8 @@ class ResultSection extends StatelessWidget {
   }
 
   Widget _buildEnhancedPsyResultCard(BuildContext context, int psyScore) {
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final loc = AppLocalizations.tr;
     String category;
     String advice;
     Color cardColor;
@@ -319,9 +329,9 @@ class ResultSection extends StatelessWidget {
       cardColor = const Color(0xFF22C55E);
       categoryIcon = Icons.check_circle_rounded;
       recommendations = [
-        'Pertahankan rutinitas positif yang sudah berjalan',
-        'Lakukan aktivitas yang mendukung kesejahteraan mental',
-        'Bagikan energi positif Anda kepada orang lain',
+        AppLocalizations.tr('result_rec_1'),
+        AppLocalizations.tr('result_rec_2'),
+        AppLocalizations.tr('result_rec_3'),
       ];
     } else if (displayScore100 >= 50) {
       category = AppLocalizations.tr('psych_good');
@@ -329,9 +339,9 @@ class ResultSection extends StatelessWidget {
       cardColor = const Color(0xFF84CC16);
       categoryIcon = Icons.info_outline_rounded;
       recommendations = [
-        'Tingkatkan manajemen stres harian',
-        'Luangkan waktu lebih untuk diri sendiri',
-        'Eksplorasi teknik relaksasi baru',
+        AppLocalizations.tr('result_rec_4'),
+        AppLocalizations.tr('result_rec_5'),
+        AppLocalizations.tr('result_rec_6'),
       ];
     } else if (displayScore100 >= 25) {
       category = AppLocalizations.tr('psych_fair');
@@ -339,9 +349,9 @@ class ResultSection extends StatelessWidget {
       cardColor = const Color(0xFFF59E0B);
       categoryIcon = Icons.warning_amber_rounded;
       recommendations = [
-        'Pertimbangkan untuk berkonsultasi dengan profesional',
-        'Tingkatkan pola tidur dan istirahat yang cukup',
-        'Cari dukungan dari orang terdekat',
+        AppLocalizations.tr('result_rec_7'),
+        AppLocalizations.tr('result_rec_8'),
+        AppLocalizations.tr('result_rec_9'),
       ];
     } else {
       category = AppLocalizations.tr('psych_needs_attention');
@@ -349,9 +359,9 @@ class ResultSection extends StatelessWidget {
       cardColor = const Color(0xFFEF4444);
       categoryIcon = Icons.error_rounded;
       recommendations = [
-        'Segera konsultasikan dengan profesional kesehatan mental',
-        'Jangan ragu untuk mencari dukungan sosial',
-        'Prioritaskan aktivitas yang memulihkan energi',
+        AppLocalizations.tr('result_rec_10'),
+        AppLocalizations.tr('result_rec_11'),
+        AppLocalizations.tr('result_rec_12'),
       ];
     }
 
@@ -359,7 +369,7 @@ class ResultSection extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: AppTheme.surface(context),
+        color: isDark ? AppTheme.darkCard : AppTheme.surface(context),
         borderRadius: BorderRadius.circular(28),
         boxShadow: AppTheme.cardShadow,
         border: Border.all(
@@ -382,11 +392,11 @@ class ResultSection extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                'Kesehatan Mental',
+                loc('result_mental_health'),
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textP(context),
+                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
                 ),
               ),
             ],
@@ -461,7 +471,7 @@ class ResultSection extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            'Rekomendasi:',
+            loc('result_recommendations'),
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w700,
