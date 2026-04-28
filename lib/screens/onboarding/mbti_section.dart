@@ -36,6 +36,15 @@ class _MbtiSectionState extends State<MbtiSection> {
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
+      layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
+        return Stack(
+          alignment: Alignment.topCenter,
+          children: <Widget>[
+            ...previousChildren,
+            ?currentChild,
+          ],
+        );
+      },
       child: _pageIndex == 0
           ? _buildIntroPage(context, state)
           : _buildQuestionPage(context, state, _pageIndex - 1),
@@ -43,200 +52,335 @@ class _MbtiSectionState extends State<MbtiSection> {
   }
 
   Widget _buildIntroPage(BuildContext context, OnboardingState state) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppTheme.lightGradientBackground,
+      ),
       child: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            _buildModernInfoSection(
-              context: context,
-              icon: Icons.psychology_alt_rounded,
-              iconColor: AppTheme.primaryColor,
-              title: 'Psikologi MBTI',
-              description:
-                  'Myers-Briggs Type Indicator (MBTI) disusun berdasarkan konsep psikolog Swiss Carl Jung yang mengidentifikasi preferensi psikologis.',
-              points: [
-                'Pemrosesan Informasi: Bagaimana Anda bereaksi terhadap data (Sensing/Intuition)',
-                'Pengambilan Keputusan: Bagaimana Anda menilai situasi (Thinking/Feeling)',
-                'Orientasi Energi: Kepada siapa atau apa energi disalurkan (Extrovert/Introvert)',
-                'Gaya Hidup: Struktur hidup kesukaan (Judging/Perceiving)'
-              ],
-            ),
-            const SizedBox(height: 48),
-            Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+        bottom: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              // Hero icon with gradient background
+              Container(
+                width: 130,
+                height: 130,
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                      blurRadius: 35,
+                      offset: const Offset(0, 18),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.psychology_rounded,
+                  size: 60,
+                  color: Colors.white,
+                ),
               ),
-              child: Icon(Icons.psychology_rounded,
-                  size: 44, color: AppTheme.primaryColor),
-            ),
-            const SizedBox(height: 28),
-            Text(
-              'Apakah Anda sudah mengetahui tipe MBTI Anda?',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textP(context),
-                height: 1.3,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppTheme.surface(context),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: AppTheme.cardShadow,
-              ),
-              child: Text(
-                'Jika sudah, Anda bisa langsung mengetikkannya. Jika belum, kami akan membantu Anda mengetahuinya melalui tes singkat.',
+              const SizedBox(height: 28),
+              Text(
+                'Psikologi MBTI',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                  fontSize: 13.5,
-                  color: AppTheme.textS(context),
-                  height: 1.6,
+                  fontSize: 30,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textP(context),
+                  height: 1.2,
                 ),
               ),
-            ),
-            const SizedBox(height: 36),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => state.doNotSkipMbti(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: !state.showManualMbti
-                          ? AppTheme.primaryColor
-                          : AppTheme.surface(context),
-                      foregroundColor: !state.showManualMbti
-                          ? Colors.white
-                          : AppTheme.primaryColor,
-                      elevation: !state.showManualMbti ? 2 : 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(
-                          color: !state.showManualMbti
-                              ? Colors.transparent
-                              : AppTheme.primaryColor,
-                        ),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Text('Tes MBTI',
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600)),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'Kenali tipe kepribadianmu',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.secondaryColor,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => state.skipMbti(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: state.showManualMbti
-                          ? AppTheme.primaryColor
-                          : AppTheme.surface(context),
-                      foregroundColor: state.showManualMbti
-                          ? Colors.white
-                          : AppTheme.primaryColor,
-                      elevation: state.showManualMbti ? 2 : 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(
-                          color: state.showManualMbti
-                              ? Colors.transparent
-                              : AppTheme.primaryColor,
+              ),
+              const SizedBox(height: 32),
+              // Enhanced Info Container
+              // Enhanced Info Container (Blue-Pink Gradient)
+              Container(
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4A90E2), Color(0xFFFF6B9D)], // Blue to Pink
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF6B9D).withValues(alpha: 0.3),
+                      blurRadius: 25,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(
+                            Icons.psychology_outlined,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            'Apa itu MBTI?',
+                            style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Myers-Briggs Type Indicator (MBTI) adalah alat ukur kepribadian yang disusun berdasarkan teori tipe psikologis Carl Jung. Tes ini membantu memahami cara Anda memproses informasi, mengambil keputusan, dan berinteraksi dengan dunia.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.95),
+                        height: 1.6,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Dimensi Utama Container
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface(context).withValues(alpha: 0.95),
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 25,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '4 Dimensi Utama:',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textP(context),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildDimensionCard(context, '⚡', 'E vs I', 'Orientasi Energi', 'Dari mana Anda mendapatkan energi: Ekstrovert (luar) atau Introvert (dalam)'),
+                    const SizedBox(height: 10),
+                    _buildDimensionCard(context, '🔍', 'S vs N', 'Pemrosesan Info', 'Bagaimana Anda mengolah informasi: Sensing (fakta) atau Intuition (konsep)'),
+                    const SizedBox(height: 10),
+                    _buildDimensionCard(context, '💭', 'T vs F', 'Pengambilan Keputusan', 'Basis keputusan Anda: Thinking (logika) atau Feeling (nilai/perasaan)'),
+                    const SizedBox(height: 10),
+                    _buildDimensionCard(context, '📋', 'J vs P', 'Gaya Hidup', 'Cara Anda menghadapi dunia: Judging (terencana) atau Perceiving (fleksibel)'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 36),
+              Text(
+                'Apakah Anda sudah mengetahui\ntipe MBTI Anda?',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textP(context),
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Modern Selection Buttons
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface(context).withValues(alpha: 0.95),
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: AppTheme.cardShadow,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    _buildModernSelectionCard(
+                      context: context,
+                      title: 'Saya Belum Tahu',
+                      subtitle: 'Ikuti tes MBTI untuk mengetahui tipe kepribadian Anda',
+                      icon: Icons.psychology_rounded,
+                      iconColor: AppTheme.primaryColor,
+                      isSelected: !state.showManualMbti,
+                      onTap: () {
+                        state.doNotSkipMbti();
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _buildModernSelectionCard(
+                      context: context,
+                      title: 'Saya Sudah Tahu',
+                      subtitle: 'Pilih tipe MBTI Anda dari daftar yang tersedia',
+                      icon: Icons.edit_note_rounded,
+                      iconColor: AppTheme.secondaryColor,
+                      isSelected: state.showManualMbti,
+                      onTap: () {
+                        state.skipMbti();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              if (!state.showManualMbti)
+                Container(
+                  width: double.infinity,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.primaryGradient,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                        blurRadius: 24,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _nextPage,
+                      borderRadius: BorderRadius.circular(22),
+                      splashColor: Colors.white.withValues(alpha: 0.2),
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              AppLocalizations.tr('start_now'),
+                              style: GoogleFonts.poppins(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.25),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                            ),
+                          ],
                         ),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: Text('Pilih Manual',
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              if (state.showManualMbti) ...[                
+                _buildManualInput(context, state),
+                const SizedBox(height: 24),
+                Container(
+                  width: double.infinity,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: state.mbtiType.isNotEmpty ? AppTheme.primaryGradient : null,
+                    color: state.mbtiType.isNotEmpty ? null : AppTheme.surfVar(context),
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: state.mbtiType.isNotEmpty
+                        ? [
+                            BoxShadow(
+                              color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                              blurRadius: 24,
+                              offset: const Offset(0, 12),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: state.mbtiType.isNotEmpty
+                          ? () {
+                              state.calculateMbtiResult();
+                              widget.onNext();
+                            }
+                          : null,
+                      borderRadius: BorderRadius.circular(22),
+                      splashColor: state.mbtiType.isNotEmpty ? Colors.white.withValues(alpha: 0.2) : null,
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              AppLocalizations.tr('confirm_continue'),
+                              style: GoogleFonts.poppins(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: state.mbtiType.isNotEmpty ? Colors.white : AppTheme.textS(context),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: state.mbtiType.isNotEmpty ? Colors.white.withValues(alpha: 0.25) : Colors.transparent,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.arrow_forward_rounded,
+                                color: state.mbtiType.isNotEmpty ? Colors.white : AppTheme.textS(context),
+                                size: 18,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 30),
-            if (state.showManualMbti)
-              _buildManualInput(context, state)
-            else
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: _nextPage,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    elevation: 4,
-                    shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Mulai Tes MBTI',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward_rounded, color: Colors.white),
-                    ],
-                  ),
-                ),
-              ),
-            const SizedBox(height: 40),
-            if (state.showManualMbti)
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (state.isMbtiComplete()) {
-                      state.calculateMbtiResult();
-                      widget.onNext();
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Pilih tipe MBTI terlebih dahulu!',
-                              style: GoogleFonts.poppins(color: Colors.white)),
-                          backgroundColor: AppTheme.primaryColor,
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    elevation: 4,
-                    shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
-                  ),
-                  child: Text(
-                    'Lanjut ke Kesehatan Mental',
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 30),
-          ],
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
       ),
     );
@@ -254,12 +398,13 @@ class _MbtiSectionState extends State<MbtiSection> {
     final totalQuestions = state.mbtiQuestions.length;
 
     final dimensionLabels = {
-      'E_I': ('🔋', 'Energi', 'Energy'),
-      'S_N': ('🔍', 'Informasi', 'Information'),
-      'T_F': ('💭', 'Keputusan', 'Decisions'),
-      'J_P': ('📋', 'Gaya Hidup', 'Lifestyle'),
+      'E_I': ('\u26A1', 'Energi', 'Energy'),
+      'S_N': ('\uD83D\uDD0D', 'Informasi', 'Information'),
+      'T_F': ('\uD83D\uDCAD', 'Keputusan', 'Decisions'),
+      'J_P': ('\uD83D\uDCCB', 'Gaya Hidup', 'Lifestyle'),
     };
-    final dimInfo = dimensionLabels[q.dimension] ?? ('💡', 'Umum', 'General');
+    final dimInfo = dimensionLabels[q.dimension] ?? ('\uD83D\uDCA1', 'Umum', 'General');
+    final progress = questionNum / totalQuestions;
 
     return SingleChildScrollView(
       key: ValueKey(qIndex),
@@ -269,25 +414,57 @@ class _MbtiSectionState extends State<MbtiSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppTheme.surface(context),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: AppTheme.cardShadow,
+            const SizedBox(height: 12),
+            // Improved Top Navigation & Progress
+            // Progress Section
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppTheme.secondaryColor.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(dimInfo.$1, style: const TextStyle(fontSize: 14)),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${dimInfo.$2} ($questionNum / $totalQuestions)',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.secondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+            ),
+            const SizedBox(height: 24),
+            // Beautiful Animated Progress Bar
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Stack(
                 children: [
-                  Text(dimInfo.$1, style: const TextStyle(fontSize: 16)),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${dimInfo.$2} · Pertanyaan $questionNum/$totalQuestions',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textP(context),
+                  Container(
+                    height: 10,
+                    width: double.infinity,
+                    color: AppTheme.surfVar(context),
+                  ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeOutCubic,
+                    height: 10,
+                    width: (MediaQuery.of(context).size.width - 48) * progress,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ],
@@ -295,20 +472,32 @@ class _MbtiSectionState extends State<MbtiSection> {
             ),
             const SizedBox(height: 24),
             Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppTheme.surface(context),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: AppTheme.cardShadow,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF4A90E2), Color(0xFFFF6B9D)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF6B9D).withValues(alpha: 0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: Text(
                 q.question,
                 style: GoogleFonts.poppins(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textP(context),
+                  color: Colors.white,
                   height: 1.5,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 32),
@@ -322,6 +511,9 @@ class _MbtiSectionState extends State<MbtiSection> {
                 state.setMbtiAnswer(qIndex, 0);
                 if (qIndex < totalQuestions - 1) {
                   Future.delayed(const Duration(milliseconds: 300), _nextPage);
+                } else {
+                  state.calculateMbtiResult();
+                  widget.onNext();
                 }
               },
             ),
@@ -336,65 +528,28 @@ class _MbtiSectionState extends State<MbtiSection> {
                 state.setMbtiAnswer(qIndex, 1);
                 if (qIndex < totalQuestions - 1) {
                   Future.delayed(const Duration(milliseconds: 300), _nextPage);
+                } else {
+                  state.calculateMbtiResult();
+                  widget.onNext();
                 }
               },
             ),
-            const SizedBox(height: 48),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _prevPage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.surface(context),
-                      foregroundColor: AppTheme.textP(context),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Text(
-                      'Kembali',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (selected == -1) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Silakan pilih jawaban Anda',
-                                style: GoogleFonts.poppins(color: Colors.white)),
-                            backgroundColor: AppTheme.primaryColor,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                        return;
-                      }
 
-                      if (qIndex < totalQuestions - 1) {
-                        _nextPage();
-                      } else {
-                        state.calculateMbtiResult();
-                        widget.onNext();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Text(
-                      qIndex < totalQuestions - 1 ? 'Berikutnya' : 'Selesai MBTI',
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600, color: Colors.white),
-                    ),
-                  ),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildGradientIconButton(
+                  icon: Icons.home_rounded,
+                  onTap: () {
+                    setState(() {
+                      _pageIndex = 0;
+                    });
+                  },
+                ),
+                _buildGradientIconButton(
+                  icon: Icons.arrow_back_ios_new_rounded,
+                  onTap: qIndex > 0 ? _prevPage : null,
                 ),
               ],
             ),
@@ -527,102 +682,208 @@ class _MbtiSectionState extends State<MbtiSection> {
     );
   }
 
-  Widget _buildModernInfoSection({
-    required BuildContext context,
+  Widget _buildGradientIconButton({
     required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String description,
-    required List<String> points,
+    required VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: AppTheme.cardShadow,
-        border: Border.all(
-          color: AppTheme.surfVar(context),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Icon(icon, color: iconColor, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textP(context),
-                    height: 1.2,
-                  ),
-                ),
+    final isDisabled = onTap == null;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: isDisabled ? null : const LinearGradient(
+              colors: [Color(0xFF4A90E2), Color(0xFFFF6B9D)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            color: isDisabled ? AppTheme.surfVar(context) : null,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: isDisabled ? null : [
+              BoxShadow(
+                color: const Color(0xFFFF6B9D).withValues(alpha: 0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          Text(
-            description,
-            style: GoogleFonts.poppins(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textS(context),
-              height: 1.6,
-            ),
+          child: Icon(
+            icon,
+            size: 24,
+            color: isDisabled ? AppTheme.textS(context) : Colors.white,
           ),
-          const SizedBox(height: 20),
-          Container(
-            height: 1,
-            color: AppTheme.surfVar(context),
-            margin: const EdgeInsets.only(bottom: 20),
-          ),
-          ...points.map(
-            (point) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4.5),
-                    child: Container(
-                      width: 6,
-                      height: 6,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDimensionCard(BuildContext context, String emoji, String code, String title, String description) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context).withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.surfVar(context).withValues(alpha: 0.5),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 22)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: iconColor,
-                        shape: BoxShape.circle,
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        code,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primaryColor,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      point,
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.textP(context),
-                        height: 1.5,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textP(context),
+                        ),
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  description,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppTheme.textS(context),
+                    height: 1.5,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildModernSelectionCard({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: isSelected ? LinearGradient(
+              colors: [
+                iconColor.withValues(alpha: 0.12),
+                iconColor.withValues(alpha: 0.06),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ) : null,
+            color: isSelected ? null : AppTheme.surface(context),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isSelected ? iconColor.withValues(alpha: 0.4) : AppTheme.surfVar(context),
+              width: isSelected ? 2 : 1,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: iconColor.withValues(alpha: 0.2),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
+                    ),
+                  ]
+                : AppTheme.cardShadow,
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isSelected ? iconColor.withValues(alpha: 0.15) : AppTheme.surfVar(context),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  icon,
+                  size: 24,
+                  color: isSelected ? iconColor : AppTheme.textS(context),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected ? iconColor : AppTheme.textP(context),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppTheme.textS(context),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isSelected)
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: iconColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'onboarding/mbti_section.dart';
 import 'onboarding/onboarding_state.dart';
@@ -61,7 +62,9 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
         createdAt: DateTime.now(),
       );
       
-      await DatabaseService.insertUser(user);
+      final userId = await DatabaseService.insertUser(user);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('pending_onboarding_user_id', userId);
       await StorageService.setOnboardingComplete(user.name);
       
       if (!context.mounted) return;

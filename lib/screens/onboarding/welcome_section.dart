@@ -11,145 +11,236 @@ class WelcomeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(height: 60),
-          // Hero Illustration / Logo Section
-          Stack(
-            alignment: Alignment.center,
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppTheme.lightGradientBackground,
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Subtle decorative background
-              Container(
-                width: 170,
-                height: 170,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
+              const SizedBox(height: 20),
+              // Hero Illustration / Logo Section
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Animated decorative rings
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.8, end: 1.0),
+                    duration: const Duration(seconds: 2),
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                AppTheme.primaryColor.withValues(alpha: 0.08),
+                                AppTheme.secondaryColor.withValues(alpha: 0.04),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  // Main logo container
+                  Container(
+                    width: 130,
+                    height: 130,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                          blurRadius: 40,
+                          offset: const Offset(0, 20),
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/logo.png',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              // Modern Welcome Typography
+              ShaderMask(
+                shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(bounds),
+                child: Text(
+                  'Fem-Psych',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    height: 1.1,
+                  ),
                 ),
               ),
+              Text(
+                'Monitor',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textP(context),
+                  height: 1.1,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // App Description
               Container(
-                width: 130,
-                height: 130,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+                  color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  'Aplikasi kesehatan mental khusus perempuan yang menggabungkan analisis emosi berbasis AI dengan pemahaman kepribadian MBTI untuk mendukung perkembangan diri Anda.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.textS(context),
+                    height: 1.6,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              // Value Proposition Cards - Enhanced Glassmorphism style
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface(context).withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.15),
-                      blurRadius: 30,
-                      offset: const Offset(0, 15),
-                      spreadRadius: 5,
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    _buildWelcomeFeatureItem(
+                      context: context,
+                      icon: Icons.graphic_eq_rounded,
+                      color: AppTheme.primaryColor,
+                      title: 'Analisis Suara & Emosi',
+                      description: 'Deteksi emosi secara real-time menggunakan AI canggih. Rekam suara Anda dan dapatkan analisis mendalam tentang state emosi saat ini.',
+                      iconBg: AppTheme.primaryColor.withValues(alpha: 0.12),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      height: 1,
+                      color: AppTheme.surfVar(context).withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildWelcomeFeatureItem(
+                      context: context,
+                      icon: Icons.psychology_rounded,
+                      color: AppTheme.secondaryColor,
+                      title: 'Pemahaman Diri',
+                      description: 'Kenali tipe kepribadian MBTI dan pantau kesehatan mental dengan asesmen terstruktur berbasis sains.',
+                      iconBg: AppTheme.secondaryColor.withValues(alpha: 0.12),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      height: 1,
+                      color: AppTheme.surfVar(context).withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildWelcomeFeatureItem(
+                      context: context,
+                      icon: Icons.self_improvement_rounded,
+                      color: Colors.green.shade600,
+                      title: 'Pengembangan Diri',
+                      description: 'Dapatkan rekomendasi dan saran tindakan yang dipersonalisasi untuk setiap fase kehidupan dan kondisi mental Anda.',
+                      iconBg: Colors.green.shade600.withValues(alpha: 0.12),
                     ),
                   ],
                 ),
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/logo.png',
-                    fit: BoxFit.cover,
-                  ),
-                ),
               ),
-            ],
-          ),
-          const SizedBox(height: 48),
-          // Modern Welcome Typography
-          Text(
-            'Fem-Psych Monitor',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: AppTheme.textP(context),
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Selamat Datang! 👋',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.primaryColor,
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Value Proposition Cards
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppTheme.surface(context),
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: AppTheme.cardShadow,
-              border: Border.all(
-                color: AppTheme.surfVar(context),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              children: [
-                _buildWelcomeFeatureItem(
-                  context: context,
-                  icon: Icons.graphic_eq_rounded,
-                  color: AppTheme.primaryColor,
-                  title: 'Analisis Suara & Emosi',
-                  description: 'Deteksi emosi kamu secara real-time lewat AI.',
+              const SizedBox(height: 40),
+              // Modern Action Button with enhanced design
+              Container(
+                width: double.infinity,
+                height: 64,
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-                _buildWelcomeFeatureItem(
-                  context: context,
-                  icon: Icons.psychology_rounded,
-                  color: AppTheme.secondaryColor,
-                  title: 'Pemahaman Epik',
-                  description: 'Pantau kesehatan riwayat emosi dengan terstruktur.',
-                ),
-                const SizedBox(height: 20),
-                _buildWelcomeFeatureItem(
-                  context: context,
-                  icon: Icons.self_improvement_rounded,
-                  color: Colors.green.shade500,
-                  title: 'Pengembangan Diri',
-                  description: 'Saran tindakan khusus untuk setiap fase hidup.',
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
-          // Action Button
-          SizedBox(
-            width: double.infinity,
-            height: 60,
-            child: ElevatedButton(
-              onPressed: onNext,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 4,
-                shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    AppLocalizations.tr('start_now'),
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onNext,
+                    borderRadius: BorderRadius.circular(24),
+                    splashColor: Colors.white.withValues(alpha: 0.2),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            AppLocalizations.tr('start_now'),
+                            style: GoogleFonts.poppins(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward_rounded, color: Colors.white),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 40),
+            ],
           ),
-          const SizedBox(height: 40),
-        ],
+        ),
       ),
     );
   }
@@ -160,19 +251,27 @@ class WelcomeSection extends StatelessWidget {
     required Color color,
     required String title,
     required String description,
+    required Color iconBg,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
+            color: iconBg,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.15),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          child: Icon(icon, color: color, size: 24),
+          child: Icon(icon, color: color, size: 26),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 18),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,18 +279,18 @@ class WelcomeSection extends StatelessWidget {
               Text(
                 title,
                 style: GoogleFonts.poppins(
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textP(context),
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 description,
                 style: GoogleFonts.poppins(
-                  fontSize: 13,
+                  fontSize: 13.5,
                   color: AppTheme.textS(context),
-                  height: 1.4,
+                  height: 1.5,
                 ),
               ),
             ],
