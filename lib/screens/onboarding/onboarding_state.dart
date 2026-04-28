@@ -22,12 +22,23 @@ class OnboardingState extends ChangeNotifier {
   int psyScore = 0;
   bool isSaving = false;
 
+  String? _loadedLocale;
+
   Future<void> loadQuestions() async {
     try {
       final locale = AppLocalizations.locale;
+
+      // Skip reload jika locale sama dan sudah dimuat
+      if (_loadedLocale == locale && !isLoading && mbtiQuestions.isNotEmpty) {
+        return;
+      }
+
+      isLoading = true;
+      notifyListeners();
+
       final mbtiFile = locale.startsWith('en') ? 'assets/MBTI_en.json' : 'assets/MBTI.json';
       final psyFile = locale.startsWith('en') ? 'assets/psych_en.json' : 'assets/psych.json';
-      
+
       final mbtiString = await rootBundle.loadString(mbtiFile);
       final mbtiJson = jsonDecode(mbtiString);
       final mbtiList = (mbtiJson['mbti_questionnaire'] as List)
@@ -44,6 +55,7 @@ class OnboardingState extends ChangeNotifier {
       psyQuestions = psyList;
       mbtiAnswers = List.filled(mbtiQuestions.length, null);
       psyAnswers = List.filled(psyQuestions.length, null);
+      _loadedLocale = locale;
       isLoading = false;
       notifyListeners();
     } catch (e) {

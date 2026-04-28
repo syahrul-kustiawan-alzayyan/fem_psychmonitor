@@ -9,6 +9,7 @@ import 'onboarding/result_section.dart';
 import 'onboarding/welcome_section.dart';
 
 import '../models/user_model.dart';
+import '../providers/locale_provider.dart';
 import '../services/database_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
@@ -38,6 +39,22 @@ class _OnboardingScreenView extends StatefulWidget {
 class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  String _currentLocale = 'id';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final locale = context.watch<LocaleProvider>().locale;
+    if (locale != _currentLocale) {
+      _currentLocale = locale;
+      // Reload questions when locale changes
+      Future.microtask(() {
+        if (mounted) {
+          context.read<OnboardingState>().loadQuestions();
+        }
+      });
+    }
+  }
 
   void _nextPage() {
     if (_currentPage < 3) {

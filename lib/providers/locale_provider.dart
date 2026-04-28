@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_localizations.dart';
+import '../services/suggestion_service.dart';
 
 /// Provider untuk mengelola locale (bahasa) aplikasi.
 /// Menyimpan pilihan bahasa ke SharedPreferences.
@@ -25,6 +26,9 @@ class LocaleProvider extends ChangeNotifier {
     AppLocalizations.setLocale(newLocale);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_key, newLocale);
+    // Reset & muat ulang saran sesuai locale baru
+    SuggestionService().reset();
+    await SuggestionService().load();
     notifyListeners();
   }
 

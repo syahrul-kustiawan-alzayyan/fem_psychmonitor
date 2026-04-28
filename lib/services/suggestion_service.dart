@@ -18,16 +18,28 @@ class SuggestionService {
   /// Cache data saran yang sudah dimuat
   List<Map<String, dynamic>>? _recommendations;
 
+  /// Locale terakhir yang digunakan untuk memuat data
+  String? _loadedLocale;
+
   /// Apakah data sudah dimuat
   bool get isLoaded => _recommendations != null;
 
+  /// Reset cache agar data dimuat ulang saat locale berubah
+  void reset() {
+    _recommendations = null;
+    _loadedLocale = null;
+  }
+
   /// Muat data saran dari assets/saran.json atau saran_en.json berdasarkan locale
   Future<void> load() async {
-    if (_recommendations != null) return; // sudah dimuat
-    
     final locale = AppLocalizations.locale;
+
+    // Reload jika locale berubah atau belum dimuat
+    if (_recommendations != null && _loadedLocale == locale) return;
+
+    _loadedLocale = locale;
     final fileName = locale.startsWith('en') ? 'assets/saran_en.json' : 'assets/saran.json';
-    
+
     try {
       final jsonString = await rootBundle.loadString(fileName);
       final data = jsonDecode(jsonString) as Map<String, dynamic>;
