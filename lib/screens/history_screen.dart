@@ -37,6 +37,7 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   List<EmotionRecord> _dbHistory = [];
   bool _isLoading = true;
+  int? _psychScore;
 
   @override
   void initState() {
@@ -52,6 +53,7 @@ class _HistoryScreenState extends State<HistoryScreen>
       setState(() {
         _dbHistory = recordings.map((e) => e.toEmotionRecord()).toList();
         _isLoading = false;
+        _psychScore = user?.psychologicalScore;
       });
     }
   }
@@ -187,6 +189,24 @@ class _HistoryScreenState extends State<HistoryScreen>
 
                   // ── Ringkasan Statistik ──────────────────────────
                   _buildStatsSummary(context),
+
+                  const SizedBox(height: AppTheme.spaceXl),
+
+                  // ── Section Header: Mental Score Chart ──────────
+                  _buildSectionHeader(
+                    context,
+                    icon: Icons.monitor_heart_outlined,
+                    title: AppLocalizations.tr('mental_score_trend'),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    AppLocalizations.tr('mental_score_over_time'),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.textS(context),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildMentalScoreChart(),
 
                   const SizedBox(height: AppTheme.spaceXl),
 
@@ -637,6 +657,9 @@ class _HistoryScreenState extends State<HistoryScreen>
             ],
           ),
         ),
+        const SizedBox(height: 10),
+        _buildEmotionLegend(context),
+        const SizedBox(height: 10),
         Container(
           width: double.infinity,
           height: 270,
@@ -650,6 +673,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   children: [
                     SizedBox(
                       width: 32,
+                      height: 260,
                       child: _buildYAxisLabels(context),
                     ),
                     Expanded(
@@ -673,6 +697,406 @@ class _HistoryScreenState extends State<HistoryScreen>
                 ),
         ),
       ],
+    );
+  }
+
+  Widget _buildEmotionLegend(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppTheme.textH(context).withValues(alpha: 0.06)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: EmotionType.values.map((e) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(e.emoji, style: const TextStyle(fontSize: 11)),
+              const SizedBox(width: 3),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: e.color,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 3),
+              Text(
+                e.displayName,
+                style: GoogleFonts.poppins(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textS(context),
+                ),
+              ),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildMentalScoreChart() {
+    final history = List<EmotionRecord>.from(_filteredHistory)
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    if (history.isEmpty || _psychScore == null) {
+      return Container(
+        width: double.infinity,
+        height: 180,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.surface(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.monitor_heart_outlined, size: 40, color: AppTheme.textH(context)),
+              const SizedBox(height: 8),
+              Text(
+                AppLocalizations.tr('no_emotion_data'),
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: AppTheme.textS(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final baseScore100 = ((60 - _psychScore!) / 60 * 100).toDouble();
+
+    final spots = List.generate(
+      history.length,
+      (i) {
+        final adjustment = (history[i].emotionScore / 5 * 17);
+        final score = (baseScore100 + adjustment).clamp(0.0, 100.0);
+        return FlSpot(i.toDouble(), score);
+      },
+    );
+
+    final avgScore = spots.fold<double>(0, (sum, s) => sum + s.y) / spots.length;
+
+    Color scoreColor(double s) {
+      if (s >= 75) return const Color(0xFF10B981);
+      if (s >= 50) return const Color(0xFFF59E0B);
+      if (s >= 25) return const Color(0xFFF97316);
+      return const Color(0xFFEF4444);
+    }
+
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: scoreColor(avgScore).withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: scoreColor(avgScore).withValues(alpha: 0.2)),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                avgScore >= 50 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                color: scoreColor(avgScore),
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                AppLocalizations.tr('average_score_label').replaceAll('{score}', avgScore.toStringAsFixed(0)),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: scoreColor(avgScore),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                AppLocalizations.tr('sessions_count').replaceAll('{count}', history.length.toString()),
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: AppTheme.textS(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        _buildScoreLegend(context),
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          height: 270,
+          decoration: BoxDecoration(
+            color: AppTheme.surface(context),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            boxShadow: AppTheme.cardShadow,
+          ),
+          child: history.length > 10
+              ? SizedBox(
+                  height: 260,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: (MediaQuery.of(context).size.width - 48) * (history.length / 10),
+                      height: 260,
+                      child: _buildMentalScoreChartData(context, history, spots, scoreColor),
+                    ),
+                  ),
+                )
+              : SizedBox(
+                  height: 260,
+                  child: _buildMentalScoreChartData(context, history, spots, scoreColor),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScoreLegend(BuildContext context) {
+    final items = [
+      (Color(0xFF10B981), '75-100', AppLocalizations.tr('psych_excellent')),
+      (Color(0xFFF59E0B), '50-74', AppLocalizations.tr('psych_good')),
+      (Color(0xFFF97316), '25-49', AppLocalizations.tr('psych_fair')),
+      (Color(0xFFEF4444), '0-24', AppLocalizations.tr('psych_needs_attention')),
+    ];
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppTheme.textH(context).withValues(alpha: 0.06)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: items.map((item) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: item.$1,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.$2,
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: item.$1,
+                      height: 1.2,
+                    ),
+                  ),
+                  Text(
+                    item.$3,
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textS(context),
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildMentalScoreChartData(
+    BuildContext context,
+    List<EmotionRecord> history,
+    List<FlSpot> spots,
+    Color Function(double) scoreColor, {
+    bool showLeftTitles = true,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 20, 16, 8),
+      child: LineChart(
+        LineChartData(
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            getDrawingHorizontalLine: (v) {
+              if (v == 25 || v == 50 || v == 75) {
+                return FlLine(
+                  color: AppTheme.textH(context).withValues(alpha: 0.35),
+                  strokeWidth: 1.2,
+                  dashArray: [5, 4],
+                );
+              }
+              return FlLine(
+                color: AppTheme.textH(context).withValues(alpha: 0.06),
+                strokeWidth: 0.6,
+              );
+            },
+          ),
+          borderData: FlBorderData(show: false),
+          minX: 0,
+          maxX: (history.length - 1).toDouble().clamp(0, double.infinity),
+          minY: 0,
+          maxY: 100,
+          titlesData: FlTitlesData(
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: showLeftTitles,
+                interval: 25,
+                getTitlesWidget: (v, _) {
+                  String label;
+                  Color c;
+                  if (v >= 75) {
+                    label = AppLocalizations.tr('psych_excellent');
+                    c = const Color(0xFF10B981);
+                  } else if (v >= 50) {
+                    label = AppLocalizations.tr('psych_good');
+                    c = const Color(0xFFF59E0B);
+                  } else if (v >= 25) {
+                    label = AppLocalizations.tr('psych_fair');
+                    c = const Color(0xFFF97316);
+                  } else {
+                    label = AppLocalizations.tr('psych_needs_attention');
+                    c = const Color(0xFFEF4444);
+                  }
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: c.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      label,
+                      style: GoogleFonts.poppins(
+                        fontSize: 7,
+                        fontWeight: FontWeight.w600,
+                        color: c,
+                        height: 1.2,
+                      ),
+                    ),
+                  );
+                },
+                reservedSize: 58,
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: showLeftTitles,
+                interval: 25,
+                getTitlesWidget: (v, _) {
+                  return Text(
+                    v.toStringAsFixed(0),
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textH(context),
+                    ),
+                  );
+                },
+                reservedSize: 32,
+              ),
+            ),
+          ),
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: true,
+              curveSmoothness: 0.25,
+              color: const Color(0xFF6366F1),
+              barWidth: 2.5,
+              isStrokeCapRound: true,
+              dotData: FlDotData(
+                show: true,
+                getDotPainter: (spot, pct, bar, idx) {
+                  return FlDotCirclePainter(
+                    radius: 5,
+                    color: scoreColor(spot.y),
+                    strokeWidth: 2.5,
+                    strokeColor: Colors.white,
+                  );
+                },
+              ),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFEF4444),
+                  const Color(0xFFF97316),
+                  const Color(0xFFF59E0B),
+                  const Color(0xFF10B981),
+                ],
+                stops: const [0.0, 0.25, 0.5, 0.75],
+              ),
+            ),
+          ],
+          lineTouchData: LineTouchData(
+            enabled: true,
+            touchTooltipData: LineTouchTooltipData(
+              getTooltipItems: (touchedSpots) {
+                return touchedSpots.map((spot) {
+                  final i = spot.spotIndex;
+                  String label;
+                  if (spot.y >= 75) {
+                    label = AppLocalizations.tr('psych_excellent');
+                  } else if (spot.y >= 50) {
+                    label = AppLocalizations.tr('psych_good');
+                  } else if (spot.y >= 25) {
+                    label = AppLocalizations.tr('psych_fair');
+                  } else {
+                    label = AppLocalizations.tr('psych_needs_attention');
+                  }
+                  final date = i < history.length
+                      ? '${history[i].timestamp.day}/${history[i].timestamp.month}'
+                      : '';
+                  return LineTooltipItem(
+                    '${spot.y.toStringAsFixed(0)}\n$date • $label',
+                    TextStyle(
+                      color: scoreColor(spot.y),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  );
+                }).toList();
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMentalScoreYAxisLabels(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 20, 0, 8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text('100', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textH(context))),
+          Text('75', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textH(context))),
+          Text('50', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textH(context))),
+          Text('25', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textH(context))),
+          Text('0', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textH(context))),
+        ],
+      ),
     );
   }
 
