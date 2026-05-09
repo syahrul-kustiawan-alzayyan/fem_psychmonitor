@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../../providers/locale_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
 
@@ -19,7 +18,9 @@ class WelcomeSection extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: isDark ? AppTheme.darkGradientBackground : AppTheme.lightGradientBackground,
+        gradient: isDark
+            ? AppTheme.darkGradientBackground
+            : AppTheme.lightGradientBackground,
       ),
       child: SafeArea(
         bottom: false,
@@ -28,48 +29,6 @@ class WelcomeSection extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 12),
-              // Language toggle
-              Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface(context).withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Consumer<LocaleProvider>(
-                    builder: (ctx, locale, _) => Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: ['ID', 'EN'].asMap().entries.map((e) {
-                        final isSelected = (e.value == 'ID' && locale.locale == 'id') ||
-                            (e.value == 'EN' && locale.locale == 'en');
-                        return GestureDetector(
-                          onTap: () => locale.setLocale(e.value == 'ID' ? 'id' : 'en'),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppTheme.primaryColor : Colors.transparent,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              e.value,
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: isSelected ? Colors.white : AppTheme.textS(context),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              ),
               const SizedBox(height: 20),
               // Hero Illustration / Logo Section
               Stack(
@@ -100,31 +59,31 @@ class WelcomeSection extends StatelessWidget {
                     },
                   ),
                   // Main logo container
-Container(
-                  width: 130,
-                  height: 130,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                        blurRadius: 40,
-                        offset: const Offset(0, 20),
-                        spreadRadius: 5,
-                      ),
-                    ],
+                  Container(
+                    width: 130,
+                    height: 130,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                          blurRadius: 40,
+                          offset: const Offset(0, 20),
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: Image.asset('assets/logo.png', fit: BoxFit.cover),
+                    ),
                   ),
-                  child: Image.asset(
-                    'assets/logo.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
                 ],
               ),
               const SizedBox(height: 20),
               // Modern Welcome Typography
               ShaderMask(
-                shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(bounds),
+                shaderCallback: (bounds) =>
+                    AppTheme.primaryGradient.createShader(bounds),
                 child: Text(
                   'Fem-Psych',
                   textAlign: TextAlign.center,
@@ -137,18 +96,33 @@ Container(
                 ),
               ),
               Text(
+                'Fem-Psych',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : Colors.white,
+                  height: 1.1,
+                ),
+              ),
+              Text(
                 'Monitor',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 36,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.textP(context),
+                  color: isDark
+                      ? AppTheme.darkTextSecondary
+                      : AppTheme.textP(context),
                   height: 1.1,
                 ),
               ),
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryColor.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(16),
@@ -163,13 +137,41 @@ Container(
                   style: GoogleFonts.poppins(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context),
+                    color: isDark
+                        ? AppTheme.darkTextSecondary
+                        : AppTheme.textS(context),
                     height: 1.6,
                   ),
                 ),
               ),
+
               const SizedBox(height: 16),
-              // Value Proposition Cards
+              // App Description
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  'Aplikasi kesehatan mental khusus perempuan yang menggabungkan analisis emosi berbasis AI dengan pemahaman kepribadian MBTI untuk mendukung perkembangan diri Anda.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.textS(context),
+                    height: 1.6,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
               // Value Proposition Cards - Enhanced Glassmorphism style
               Container(
                 padding: const EdgeInsets.all(24),
@@ -328,7 +330,9 @@ Container(
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
+                  color: isDark
+                      ? AppTheme.darkTextPrimary
+                      : AppTheme.textP(context),
                 ),
               ),
               const SizedBox(height: 6),
@@ -336,7 +340,9 @@ Container(
                 description,
                 style: GoogleFonts.poppins(
                   fontSize: 13.5,
-                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context),
+                  color: isDark
+                      ? AppTheme.darkTextSecondary
+                      : AppTheme.textS(context),
                   height: 1.5,
                 ),
               ),

@@ -40,10 +40,7 @@ class _PsySectionState extends State<PsySection> {
       layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
         return Stack(
           alignment: Alignment.topCenter,
-          children: <Widget>[
-            ...previousChildren,
-            ?currentChild,
-          ],
+          children: <Widget>[...previousChildren, ?currentChild],
         );
       },
       child: _pageIndex == 0
@@ -58,7 +55,9 @@ class _PsySectionState extends State<PsySection> {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: isDark ? AppTheme.darkGradientBackground : AppTheme.lightGradientBackground,
+        gradient: isDark
+            ? AppTheme.darkGradientBackground
+            : AppTheme.lightGradientBackground,
       ),
       child: SafeArea(
         bottom: false,
@@ -174,7 +173,7 @@ class _PsySectionState extends State<PsySection> {
                             loc('psy_note_desc'),
                             style: GoogleFonts.poppins(
                               fontSize: 13,
-                              color: isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context),
+                              color: AppTheme.textS(context),
                               height: 1.5,
                             ),
                           ),
@@ -209,10 +208,10 @@ class _PsySectionState extends State<PsySection> {
                     child: Center(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-children: [
-                           Text(
-                             loc('start_assessment'),
-                             style: GoogleFonts.poppins(
+                        children: [
+                          Text(
+                            loc('start_assessment'),
+                            style: GoogleFonts.poppins(
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -246,8 +245,10 @@ children: [
   }
 
   Widget _buildQuestionPage(
-      BuildContext context, OnboardingState state, int qIndex) {
-    final isDark = context.watch<ThemeProvider>().isDark;
+    BuildContext context,
+    OnboardingState state,
+    int qIndex,
+  ) {
     if (state.psyQuestions.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -263,7 +264,7 @@ children: [
     final selected = state.psyAnswers[qIndex];
     final questionNum = qIndex + 1;
     final totalQuestions = state.psyQuestions.length;
-final progress = questionNum / totalQuestions;
+    final progress = questionNum / totalQuestions;
 
     return SingleChildScrollView(
       key: ValueKey(qIndex),
@@ -274,54 +275,44 @@ final progress = questionNum / totalQuestions;
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 12),
-            // Progress Section with Navigation Buttons
-            Row(
-              children: [
-                _buildGradientIconButton(
-                  icon: Icons.arrow_back_ios_new_rounded,
-                  onTap: qIndex > 0 ? _prevPage : null,
+            // Improved Top Navigation & Progress
+            // Progress Section
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-                Expanded(
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.favorite_rounded, size: 14, color: Colors.pink),
-                          const SizedBox(width: 6),
-                          Text(
-                            '$questionNum / $totalQuestions',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
                   ),
                 ),
-                _buildGradientIconButton(
-                  icon: Icons.home_rounded,
-                  onTap: () {
-                    setState(() {
-                      _pageIndex = 0;
-                    });
-                  },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.favorite_rounded,
+                      size: 14,
+                      color: Colors.pink,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$questionNum / $totalQuestions',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: 16),
-            // Progress Bar
+            const SizedBox(height: 24),
+            // Beautiful Animated Progress Bar
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Stack(
@@ -329,7 +320,7 @@ final progress = questionNum / totalQuestions;
                   Container(
                     height: 10,
                     width: double.infinity,
-                    color: isDark ? AppTheme.darkSurfaceVar : AppTheme.surfVar(context),
+                    color: AppTheme.surfVar(context),
                   ),
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 400),
@@ -338,7 +329,10 @@ final progress = questionNum / totalQuestions;
                     width: (MediaQuery.of(context).size.width - 48) * progress,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                        colors: [
+                          AppTheme.primaryColor,
+                          AppTheme.secondaryColor,
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -368,7 +362,10 @@ final progress = questionNum / totalQuestions;
               child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
@@ -376,8 +373,11 @@ final progress = questionNum / totalQuestions;
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.favorite_rounded,
-                            size: 14, color: Colors.white),
+                        const Icon(
+                          Icons.favorite_rounded,
+                          size: 14,
+                          color: Colors.white,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           q.category,
@@ -421,7 +421,9 @@ final progress = questionNum / totalQuestions;
                     state.setPsyAnswer(qIndex, opt.score);
                     if (qIndex < totalQuestions - 1) {
                       Future.delayed(
-                          const Duration(milliseconds: 300), _nextPage);
+                        const Duration(milliseconds: 300),
+                        _nextPage,
+                      );
                     } else {
                       state.calculatePsyResult();
                       widget.onNext();
@@ -430,6 +432,24 @@ final progress = questionNum / totalQuestions;
                 ),
               );
             }),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildGradientIconButton(
+                  icon: Icons.home_rounded,
+                  onTap: () {
+                    setState(() {
+                      _pageIndex = 0;
+                    });
+                  },
+                ),
+                _buildGradientIconButton(
+                  icon: Icons.arrow_back_ios_new_rounded,
+                  onTap: qIndex > 0 ? _prevPage : null,
+                ),
+              ],
+            ),
             const SizedBox(height: 30),
           ],
         ),
@@ -458,7 +478,11 @@ final progress = questionNum / totalQuestions;
               : (isDark ? AppTheme.darkCard : AppTheme.surface(context)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? color : (isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.surfVar(context)),
+            color: isSelected
+                ? color
+                : (isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : AppTheme.surfVar(context)),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: AppTheme.cardShadow,
@@ -469,7 +493,11 @@ final progress = questionNum / totalQuestions;
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: isSelected ? color : (isDark ? AppTheme.darkSurfaceVar : AppTheme.surfVar(context)),
+                color: isSelected
+                    ? color
+                    : (isDark
+                          ? AppTheme.darkSurfaceVar
+                          : AppTheme.surfVar(context)),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Center(
@@ -478,7 +506,11 @@ final progress = questionNum / totalQuestions;
                   style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: isSelected ? Colors.white : (isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context)),
+                    color: isSelected
+                        ? Colors.white
+                        : (isDark
+                              ? AppTheme.darkTextPrimary
+                              : AppTheme.textP(context)),
                   ),
                 ),
               ),
@@ -490,7 +522,7 @@ final progress = questionNum / totalQuestions;
                 style: GoogleFonts.poppins(
                   fontSize: 14.5,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
+                  color: AppTheme.textP(context),
                 ),
               ),
             ),
@@ -498,8 +530,11 @@ final progress = questionNum / totalQuestions;
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                child: const Icon(Icons.check_rounded,
-                    color: Colors.white, size: 16),
+                child: const Icon(
+                  Icons.check_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
               ),
           ],
         ),
@@ -523,7 +558,9 @@ final progress = questionNum / totalQuestions;
         borderRadius: BorderRadius.circular(28),
         boxShadow: AppTheme.cardShadow,
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.surfVar(context),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.1)
+              : AppTheme.surfVar(context),
           width: 1,
         ),
       ),
@@ -547,7 +584,9 @@ final progress = questionNum / totalQuestions;
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
+                    color: isDark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.textP(context),
                     height: 1.2,
                   ),
                 ),
@@ -560,14 +599,16 @@ final progress = questionNum / totalQuestions;
             style: GoogleFonts.poppins(
               fontSize: 13.5,
               fontWeight: FontWeight.w500,
-              color: isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context),
+              color: isDark
+                  ? AppTheme.darkTextSecondary
+                  : AppTheme.textS(context),
               height: 1.6,
             ),
           ),
           const SizedBox(height: 20),
           Container(
             height: 1,
-            color: isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.surfVar(context),
+            color: AppTheme.surfVar(context),
             margin: const EdgeInsets.only(bottom: 20),
           ),
           ...points.map(
@@ -594,7 +635,7 @@ final progress = questionNum / totalQuestions;
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
+                        color: AppTheme.textP(context),
                         height: 1.5,
                       ),
                     ),
@@ -612,7 +653,6 @@ final progress = questionNum / totalQuestions;
     required IconData icon,
     required VoidCallback? onTap,
   }) {
-    final isDark = context.watch<ThemeProvider>().isDark;
     final isDisabled = onTap == null;
     return Material(
       color: Colors.transparent,
@@ -622,25 +662,29 @@ final progress = questionNum / totalQuestions;
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            gradient: isDisabled ? null : const LinearGradient(
-              colors: [Color(0xFF4A90E2), Color(0xFFFF6B9D)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            color: isDisabled ? (isDark ? AppTheme.darkSurfaceVar : AppTheme.surfVar(context)) : null,
+            gradient: isDisabled
+                ? null
+                : const LinearGradient(
+                    colors: [Color(0xFF4A90E2), Color(0xFFFF6B9D)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+            color: isDisabled ? AppTheme.surfVar(context) : null,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: isDisabled ? null : [
-              BoxShadow(
-                color: const Color(0xFFFF6B9D).withValues(alpha: 0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            boxShadow: isDisabled
+                ? null
+                : [
+                    BoxShadow(
+                      color: const Color(0xFFFF6B9D).withValues(alpha: 0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
           ),
           child: Icon(
             icon,
             size: 24,
-            color: isDisabled ? (isDark ? AppTheme.darkTextHint : AppTheme.textS(context)) : Colors.white,
+            color: isDisabled ? AppTheme.textS(context) : Colors.white,
           ),
         ),
       ),
