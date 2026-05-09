@@ -5,6 +5,7 @@ import '../models/emotion_model.dart';
 import '../services/database_service.dart';
 import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/gradient_background.dart';
 import '../widgets/suggestion_card.dart';
 
 class ResultScreen extends StatefulWidget {
@@ -74,7 +75,11 @@ class _ResultScreenState extends State<ResultScreen> {
         centerTitle: true,
         iconTheme: IconThemeData(color: AppTheme.textP(context)),
       ),
-      body: SingleChildScrollView(
+      body: GradientBackground(
+        useOverlay: true,
+        child: SafeArea(
+          bottom: false,
+          child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -223,6 +228,8 @@ class _ResultScreenState extends State<ResultScreen> {
             
             const SizedBox(height: 48),
           ],
+        ),
+        ),
         ),
       ),
     );

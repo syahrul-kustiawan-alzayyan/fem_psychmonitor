@@ -421,35 +421,38 @@ class _MbtiSectionState extends State<MbtiSection> {
             const SizedBox(height: 12),
             // Progress Section with Navigation Buttons
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildGradientIconButton(
                   icon: Icons.arrow_back_ios_new_rounded,
                   onTap: qIndex > 0 ? _prevPage : null,
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.secondaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: AppTheme.secondaryColor.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(dimInfo.$1, style: const TextStyle(fontSize: 14)),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${dimInfo.$2} ($questionNum / $totalQuestions)',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.secondaryColor,
+                Expanded(
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppTheme.secondaryColor.withValues(alpha: 0.2),
                         ),
                       ),
-                    ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(dimInfo.$1, style: const TextStyle(fontSize: 14)),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${dimInfo.$2} ($questionNum / $totalQuestions)',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.secondaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 _buildGradientIconButton(

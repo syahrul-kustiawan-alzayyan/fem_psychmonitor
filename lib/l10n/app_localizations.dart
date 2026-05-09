@@ -96,6 +96,20 @@ class AppLocalizations {
       'confidence': 'Confidence',
       'all_filter': 'Semua',
       'filter_date': 'Filter Tanggal',
+      'emotion_value_trend': 'Tren Nilai Emosi',
+      'emotion_score_over_time': 'Perkembangan skor emosi dari waktu ke waktu',
+      'entries_count': '{count} entri',
+      'see_more_count': 'Lihat {count} lainnya',
+      'total': 'Total',
+      'no_emotion_data': 'Belum ada data emosi',
+      'average_score_label': 'Rata-rata: {score}',
+      'sessions_count': '{count} sesi',
+      'chart_tooltip_format': '{emoji} {name}\nSkor: {score} • {confidence}',
+      'search_emotion_hint': 'Cari emosi...',
+      'sort_newest': 'Terbaru',
+      'sort_oldest': 'Terlama',
+      'results_count': '{count} hasil',
+      'no_data_found': 'Tidak ada data ditemukan',
 
       // ── Profile Menu ──
       'profile': 'Profil',
@@ -481,6 +495,19 @@ class AppLocalizations {
       'last_detection': 'Deteksi Terakhir',
       'info': 'Info',
 
+      // ── Record Detail ──
+      'detail_title': 'Detail Deteksi',
+      'detail_detection_time': 'Waktu Deteksi',
+      'detail_emotion_value': 'Nilai Emosi',
+      'detail_confidence': 'Tingkat Kepercayaan',
+      'detail_weighted_score': 'Skor Berbobot',
+      'detail_scale_5': '(skala -5 s/d +5)',
+      'detail_emotion_distribution': 'Distribusi Emosi',
+      'detail_radar_desc': 'Grafik radar distribusi intensitas 6 jenis emosi dari rekaman suara',
+      'detail_emotion_scale': '📊 Skala Nilai Emosi',
+      'detail_suggestion_mbti': '💡 Saran Berdasarkan MBTI & Emosi',
+      'detail_suggestion_emotion': '💡 Saran Berdasarkan Emosi',
+
       // ── Live Detection ──
       'analyzing_voice': 'Menganalisis Suara Live...',
       'ready_to_listen': 'Siap Mendengarkan',
@@ -566,6 +593,20 @@ class AppLocalizations {
       'confidence': 'Confidence',
       'all_filter': 'All',
       'filter_date': 'Filter Date',
+      'emotion_value_trend': 'Emotion Value Trend',
+      'emotion_score_over_time': 'Emotion score development over time',
+      'entries_count': '{count} entries',
+      'see_more_count': 'See {count} more',
+      'total': 'Total',
+      'no_emotion_data': 'No emotion data yet',
+      'average_score_label': 'Average: {score}',
+      'sessions_count': '{count} sessions',
+      'chart_tooltip_format': '{emoji} {name}\nScore: {score} • {confidence}',
+      'search_emotion_hint': 'Search emotions...',
+      'sort_newest': 'Newest',
+      'sort_oldest': 'Oldest',
+      'results_count': '{count} results',
+      'no_data_found': 'No data found',
 
       // ── Profile Menu ──
       'profile': 'Profile',
@@ -943,6 +984,19 @@ class AppLocalizations {
       'negative_emotions_decrease': 'Negative emotions (Sad, Fear, Angry, Disgust) decrease it',
       'last_detection': 'Last Detection',
       'info': 'Info',
+
+      // ── Record Detail ──
+      'detail_title': 'Detection Detail',
+      'detail_detection_time': 'Detection Time',
+      'detail_emotion_value': 'Emotion Value',
+      'detail_confidence': 'Confidence Level',
+      'detail_weighted_score': 'Weighted Score',
+      'detail_scale_5': '(scale -5 to +5)',
+      'detail_emotion_distribution': 'Emotion Distribution',
+      'detail_radar_desc': 'Radar chart of 6 emotion intensity distribution from voice recording',
+      'detail_emotion_scale': '📊 Emotion Value Scale',
+      'detail_suggestion_mbti': '💡 Suggestions Based on MBTI & Emotion',
+      'detail_suggestion_emotion': '💡 Suggestions Based on Emotion',
 
       // ── Live Detection ──
       'analyzing_voice': 'Analyzing Voice Live...',

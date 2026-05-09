@@ -5,9 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../services/database_service.dart';
-import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gradient_background.dart';
+import 'record_detail_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HistoryScreen — Riwayat & Analitik Psikis
@@ -194,11 +194,11 @@ class _HistoryScreenState extends State<HistoryScreen>
                   _buildSectionHeader(
                     context,
                     icon: Icons.show_chart_rounded,
-                    title: 'Tren Nilai Emosi',
+                    title: AppLocalizations.tr('emotion_value_trend'),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Perkembangan skor emosi dari waktu ke waktu',
+                    AppLocalizations.tr('emotion_score_over_time'),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppTheme.textS(context),
                     ),
@@ -230,7 +230,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                           context,
                           icon: Icons.filter_list_rounded,
                           title: AppLocalizations.tr('detection_log'),
-                          trailingLabel: '${_filteredHistory.length} entri',
+                          trailingLabel: AppLocalizations.tr('entries_count').replaceAll('{count}', _filteredHistory.length.toString()),
                           trailingColor: AppTheme.primaryColor,
                         ),
                       ),
@@ -285,7 +285,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                         },
                         icon: const Icon(Icons.expand_more_rounded, size: 18),
                         label: Text(
-                          'Lihat ${_filteredHistory.length - 5} lainnya',
+                          AppLocalizations.tr('see_more_count').replaceAll('{count}', (_filteredHistory.length - 5).toString()),
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
                             fontSize: 12.5,
@@ -468,7 +468,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     final stats = [
       (
         value: '${history.length}',
-        label: 'Total',
+        label: AppLocalizations.tr('total'),
         icon: Icons.bar_chart_rounded,
         color: AppTheme.primaryColor,
       ),
@@ -572,7 +572,7 @@ class _HistoryScreenState extends State<HistoryScreen>
               Icon(Icons.show_chart_rounded, size: 40, color: AppTheme.textH(context)),
               const SizedBox(height: 8),
               Text(
-                'Belum ada data emosi',
+                AppLocalizations.tr('no_emotion_data'),
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   color: AppTheme.textS(context),
@@ -619,7 +619,7 @@ class _HistoryScreenState extends State<HistoryScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                'Rata-rata: ${avgScore > 0 ? "+" : ""}${avgScore.toStringAsFixed(1)}',
+                AppLocalizations.tr('average_score_label').replaceAll('{score}', '${avgScore > 0 ? "+" : ""}${avgScore.toStringAsFixed(1)}'),
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -628,7 +628,7 @@ class _HistoryScreenState extends State<HistoryScreen>
               ),
               const Spacer(),
               Text(
-                '${history.length} sesi',
+                AppLocalizations.tr('sessions_count').replaceAll('{count}', history.length.toString()),
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: AppTheme.textS(context),
@@ -639,189 +639,212 @@ class _HistoryScreenState extends State<HistoryScreen>
         ),
         Container(
           width: double.infinity,
-          height: 260,
-          padding: const EdgeInsets.fromLTRB(8, 20, 16, 8),
+          height: 270,
           decoration: BoxDecoration(
             color: AppTheme.surface(context),
             borderRadius: BorderRadius.circular(AppTheme.radiusXl),
             boxShadow: AppTheme.cardShadow,
           ),
-          child: LineChart(
-            LineChartData(
-              gridData: FlGridData(
-                show: true,
-                drawVerticalLine: false,
-                getDrawingHorizontalLine: (v) {
-                  if (v == 0) {
-                    return FlLine(
-                      color: AppTheme.textH(context).withValues(alpha: 0.5),
-                      strokeWidth: 1.5,
-                      dashArray: [4, 4],
-                    );
-                  }
-                  return FlLine(
-                    color: AppTheme.textH(context).withValues(alpha: 0.1),
-                    strokeWidth: 0.8,
+          child: history.length > 10
+              ? Row(
+                  children: [
+                    SizedBox(
+                      width: 32,
+                      child: _buildYAxisLabels(context),
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SizedBox(
+                          width: (MediaQuery.of(context).size.width - 48 - 32) * (history.length / 10),
+                          height: 260,
+                          child: _buildChart(
+                            context, history, spots, emotionColors,
+                            showLeftTitles: false,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : SizedBox(
+                  height: 260,
+                  child: _buildChart(context, history, spots, emotionColors),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChart(
+    BuildContext context,
+    List<EmotionRecord> history,
+    List<FlSpot> spots,
+    List<Color> emotionColors, {
+    bool showLeftTitles = true,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 20, 16, 8),
+      child: LineChart(
+        LineChartData(
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            getDrawingHorizontalLine: (v) {
+              if (v == 0) {
+                return FlLine(
+                  color: AppTheme.textH(context).withValues(alpha: 0.5),
+                  strokeWidth: 1.5,
+                  dashArray: [4, 4],
+                );
+              }
+              return FlLine(
+                color: AppTheme.textH(context).withValues(alpha: 0.1),
+                strokeWidth: 0.8,
+              );
+            },
+          ),
+          borderData: FlBorderData(show: false),
+          minX: 0,
+          maxX: (history.length - 1).toDouble().clamp(0, double.infinity),
+          minY: -5.5,
+          maxY: 5.5,
+          titlesData: FlTitlesData(
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: showLeftTitles,
+                interval: 2.5,
+                getTitlesWidget: (v, _) {
+                  final label = v > 0 ? '+${v.toStringAsFixed(0)}' : v.toStringAsFixed(0);
+                  return Text(
+                    label,
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      color: v > 0
+                          ? const Color(0xFF10B981)
+                          : v < 0
+                              ? const Color(0xFFEF4444)
+                              : AppTheme.textH(context),
+                      fontWeight: FontWeight.w600,
+                    ),
                   );
                 },
-              ),
-              borderData: FlBorderData(show: false),
-              minX: 0,
-              maxX: (history.length - 1).toDouble().clamp(0, double.infinity),
-              minY: -5.5,
-              maxY: 5.5,
-              titlesData: FlTitlesData(
-                topTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                rightTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    interval: 1,
-                    getTitlesWidget: (v, _) {
-                      final i = v.toInt();
-                      if (i < 0 || i >= history.length) return const SizedBox();
-                      final rec = history[i];
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              rec.emotion.emoji,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            Text(
-                              '${rec.timestamp.day}/${rec.timestamp.month}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 8,
-                                fontWeight: FontWeight.w500,
-                                color: AppTheme.textH(context),
-                                height: 1.1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    reservedSize: 36,
-                  ),
-                ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    interval: 2.5,
-                    getTitlesWidget: (v, _) {
-                      final label = v > 0 ? '+${v.toStringAsFixed(0)}' : v.toStringAsFixed(0);
-                      return Text(
-                        label,
-                        style: GoogleFonts.poppins(
-                          fontSize: 9,
-                          color: v > 0
-                              ? const Color(0xFF10B981)
-                              : v < 0
-                                  ? const Color(0xFFEF4444)
-                                  : AppTheme.textH(context),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      );
-                    },
-                    reservedSize: 32,
-                  ),
-                ),
-              ),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: spots,
-                  isCurved: true,
-                  curveSmoothness: 0.25,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF10B981), Color(0xFF6366F1)],
-                  ),
-                  barWidth: 2.5,
-                  isStrokeCapRound: true,
-                  dotData: FlDotData(
-                    show: true,
-                    getDotPainter: (spot, pct, bar, idx) {
-                      final dotColor = idx < emotionColors.length
-                          ? emotionColors[idx]
-                          : AppTheme.primaryColor;
-                      return FlDotCirclePainter(
-                        radius: 5,
-                        color: dotColor,
-                        strokeWidth: 2.5,
-                        strokeColor: Colors.white,
-                      );
-                    },
-                  ),
-                  // Area hijau di atas garis 0
-                  aboveBarData: BarAreaData(
-                    show: true,
-                    cutOffY: 0,
-                    applyCutOffY: true,
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        const Color(0xFF10B981).withValues(alpha: 0.15),
-                        const Color(0xFF10B981).withValues(alpha: 0.0),
-                      ],
-                    ),
-                  ),
-                  // Area merah di bawah garis 0
-                  belowBarData: BarAreaData(
-                    show: true,
-                    cutOffY: 0,
-                    applyCutOffY: true,
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [
-                        const Color(0xFFEF4444).withValues(alpha: 0.12),
-                        const Color(0xFFEF4444).withValues(alpha: 0.0),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-              lineTouchData: LineTouchData(
-                touchTooltipData: LineTouchTooltipData(
-                  getTooltipColor: (spot) {
-                    final i = spot.x.toInt();
-                    if (i >= 0 && i < history.length) {
-                      return history[i].emotion.color.withValues(alpha: 0.92);
-                    }
-                    return AppTheme.textP(context).withValues(alpha: 0.9);
-                  },
-                  getTooltipItems: (touchedSpots) {
-                    return touchedSpots.map((s) {
-                      final i = s.x.toInt();
-                      final rec = (i >= 0 && i < history.length)
-                          ? history[i]
-                          : null;
-                      final label = rec != null
-                          ? '${rec.emotion.emoji} ${rec.emotion.displayName}\nSkor: ${rec.emotionScoreLabel} • ${rec.confidencePercent}'
-                          : s.y.toStringAsFixed(1);
-                      return LineTooltipItem(
-                        label,
-                        GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 11,
-                          height: 1.5,
-                        ),
-                      );
-                    }).toList();
-                  },
-                ),
+                reservedSize: 32,
               ),
             ),
           ),
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: true,
+              curveSmoothness: 0.25,
+              gradient: const LinearGradient(
+                colors: [Color(0xFF10B981), Color(0xFF6366F1)],
+              ),
+              barWidth: 2.5,
+              isStrokeCapRound: true,
+              dotData: FlDotData(
+                show: true,
+                getDotPainter: (spot, pct, bar, idx) {
+                  final dotColor = idx < emotionColors.length
+                      ? emotionColors[idx]
+                      : AppTheme.primaryColor;
+                  return FlDotCirclePainter(
+                    radius: 5,
+                    color: dotColor,
+                    strokeWidth: 2.5,
+                    strokeColor: Colors.white,
+                  );
+                },
+              ),
+              aboveBarData: BarAreaData(
+                show: true,
+                cutOffY: 0,
+                applyCutOffY: true,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF10B981).withValues(alpha: 0.15),
+                    const Color(0xFF10B981).withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+              belowBarData: BarAreaData(
+                show: true,
+                cutOffY: 0,
+                applyCutOffY: true,
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    const Color(0xFFEF4444).withValues(alpha: 0.12),
+                    const Color(0xFFEF4444).withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          lineTouchData: LineTouchData(
+            touchTooltipData: LineTouchTooltipData(
+              getTooltipColor: (spot) {
+                final i = spot.x.toInt();
+                if (i >= 0 && i < history.length) {
+                  return history[i].emotion.color.withValues(alpha: 0.92);
+                }
+                return AppTheme.textP(context).withValues(alpha: 0.9);
+              },
+              getTooltipItems: (touchedSpots) {
+                return touchedSpots.map((s) {
+                  final i = s.x.toInt();
+                  final rec = (i >= 0 && i < history.length)
+                      ? history[i]
+                      : null;
+                  final label = rec != null
+                      ? AppLocalizations.tr('chart_tooltip_format')
+                          .replaceAll('{emoji}', rec.emotion.emoji)
+                          .replaceAll('{name}', rec.emotion.displayName)
+                          .replaceAll('{score}', rec.emotionScoreLabel)
+                          .replaceAll('{confidence}', rec.confidencePercent)
+                      : s.y.toStringAsFixed(1);
+                  return LineTooltipItem(
+                    label,
+                    GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                      height: 1.5,
+                    ),
+                  );
+                }).toList();
+              },
+            ),
+          ),
         ),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildYAxisLabels(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 20, 0, 8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text('+5', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFF10B981))),
+          Text('+2.5', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFF10B981))),
+          Text('0', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textH(context))),
+          Text('-2.5', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFFEF4444))),
+          Text('-5', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFFEF4444))),
+        ],
+      ),
     );
   }
 
@@ -1119,14 +1142,14 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   // ─────────────────────────────────────────────────────────────
-  // Detail Bottom Sheet: data lengkap hasil deteksi
+  // Detail Data Rekaman: navigasi ke halaman detail
   // ─────────────────────────────────────────────────────────────
   void _showRecordDetail(BuildContext context, EmotionRecord record) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _DetailBottomSheet(record: record),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RecordDetailScreen(record: record),
+      ),
     );
   }
 
@@ -1176,340 +1199,6 @@ class _HistoryScreenState extends State<HistoryScreen>
           ),
         ],
       ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// _DetailBottomSheet — Menampilkan detail lengkap deteksi emosi
-// ─────────────────────────────────────────────────────────────────────────────
-class _DetailBottomSheet extends StatelessWidget {
-  final EmotionRecord record;
-
-  const _DetailBottomSheet({required this.record});
-
-  @override
-  Widget build(BuildContext context) {
-    final emotion = record.emotion;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: DraggableScrollableSheet(
-        initialChildSize: 0.65,
-        minChildSize: 0.4,
-        maxChildSize: 0.85,
-        expand: false,
-        builder: (ctx, scrollController) {
-          return SingleChildScrollView(
-            controller: scrollController,
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Drag handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 20),
-                    decoration: BoxDecoration(
-                      color: AppTheme.textH(context).withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-
-                // Header: Emoji besar + nama emosi + skor
-                Row(
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: emotion.color.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Center(
-                        child: Text(emotion.emoji, style: const TextStyle(fontSize: 32)),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            emotion.displayName,
-                            style: GoogleFonts.poppins(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textP(context),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              _buildTag(
-                                record.confidencePercent,
-                                emotion.color,
-                              ),
-                              const SizedBox(width: 8),
-                              _buildTag(
-                                'Skor: ${record.emotionScoreLabel}',
-                                record.emotionScore >= 0
-                                    ? const Color(0xFF10B981)
-                                    : const Color(0xFFEF4444),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // Waktu deteksi
-                _buildInfoRow(
-                  Icons.access_time_rounded,
-                  'Waktu Deteksi',
-                  record.formattedTime,
-                  context,
-                ),
-                const SizedBox(height: 12),
-
-                // Nilai emosi
-                _buildInfoRow(
-                  Icons.trending_up_rounded,
-                  'Nilai Emosi',
-                  '${emotion.valueLabel} (skala -5 s/d +5)',
-                  context,
-                ),
-                const SizedBox(height: 12),
-
-                // Confidence
-                _buildInfoRow(
-                  Icons.speed_rounded,
-                  'Tingkat Kepercayaan',
-                  '${(record.confidence * 100).toStringAsFixed(1)}%',
-                  context,
-                ),
-                const SizedBox(height: 12),
-
-                // Skor berbobot
-                _buildInfoRow(
-                  Icons.calculate_rounded,
-                  'Skor Berbobot',
-                  '${emotion.valueLabel} × ${record.confidencePercent} = ${record.emotionScoreLabel}',
-                  context,
-                ),
-
-                const SizedBox(height: 24),
-
-                // Divider
-                Container(
-                  height: 1,
-                  color: AppTheme.textH(context).withValues(alpha: 0.1),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Tabel semua emosi
-                Text(
-                  '📊 Skala Nilai Emosi',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textP(context),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ...EmotionType.values.map((e) => _buildEmotionRow(context, e, e == emotion)),
-
-                const SizedBox(height: 24),
-
-                // Saran — dynamic dari saran.json
-                FutureBuilder<List<String>>(
-                  future: _loadSuggestions(emotion),
-                  builder: (ctx, snap) {
-                    final title = snap.hasData && snap.data!.isNotEmpty
-                        ? '💡 Saran Berdasarkan MBTI & Emosi'
-                        : '💡 Saran Berdasarkan Emosi';
-                    final suggestions = snap.data ?? emotion.recordingSuggestions;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textP(context),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        ...suggestions.take(5).map(
-                          (s) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  margin: const EdgeInsets.only(top: 6),
-                                  width: 6,
-                                  height: 6,
-                                  decoration: BoxDecoration(
-                                    color: emotion.color,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    s,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 13,
-                                      color: AppTheme.textS(context),
-                                      height: 1.5,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// Memuat saran dinamis dari saran.json berdasarkan MBTI + emosi
-  Future<List<String>> _loadSuggestions(EmotionType emotion) async {
-    final user = await DatabaseService.getUser();
-    final service = SuggestionService();
-    await service.load();
-
-    final mbtiType = user?.mbtiType ?? '';
-    if (mbtiType.isNotEmpty && mbtiType != 'XXXX') {
-      return service.getSuggestions(mbtiType, emotion);
-    }
-    return emotion.recordingSuggestions;
-  }
-
-  Widget _buildTag(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String label, String value, BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: AppTheme.primaryColor),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: AppTheme.textH(context),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                value,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textP(context),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmotionRow(BuildContext context, EmotionType e, bool isActive) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: isActive
-            ? e.color.withValues(alpha: 0.1)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-        border: isActive
-            ? Border.all(color: e.color.withValues(alpha: 0.3), width: 1.5)
-            : null,
-      ),
-      child: Row(
-        children: [
-          Text(e.emoji, style: const TextStyle(fontSize: 20)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              e.displayName,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive ? e.color : AppTheme.textP(context),
-              ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-            decoration: BoxDecoration(
-              color: (e.emotionValue >= 0
-                      ? const Color(0xFF10B981)
-                      : const Color(0xFFEF4444))
-                  .withValues(alpha: isActive ? 0.15 : 0.08),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              e.valueLabel,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: e.emotionValue >= 0
-                    ? const Color(0xFF10B981)
-                    : const Color(0xFFEF4444),
-              ),
-            ),
-          ),
-          if (isActive) ...[
-            const SizedBox(width: 8),
-            Icon(Icons.check_circle_rounded, color: e.color, size: 18),
-          ],
-        ],
-      ),
     );
   }
 }
@@ -1595,7 +1284,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                         onChanged: (v) => setState(() => _searchQuery = v),
                         style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textP(context)),
                         decoration: InputDecoration(
-                          hintText: 'Cari emosi...',
+                          hintText: AppLocalizations.tr('search_emotion_hint'),
                           hintStyle: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textH(context)),
                           prefixIcon: Icon(Icons.search_rounded, size: 18, color: AppTheme.textH(context)),
                           border: InputBorder.none,
@@ -1624,7 +1313,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                             size: 16, color: AppTheme.primaryColor,
                           ),
                           const SizedBox(width: 4),
-                          Text(_sortOrder == 'newest' ? 'Terbaru' : 'Terlama',
+                          Text(_sortOrder == 'newest' ? AppLocalizations.tr('sort_newest') : AppLocalizations.tr('sort_oldest'),
                               style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.primaryColor)),
                         ],
                       ),
@@ -1639,7 +1328,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
                 children: [
-                  _buildChip(null, 'Semua', widget.allHistory.length),
+                  _buildChip(null, AppLocalizations.tr('all_filter'), widget.allHistory.length),
                   ...EmotionType.values.map((e) {
                     final count = widget.allHistory.where((r) => r.emotion == e).length;
                     return _buildChip(e, '${e.emoji} ${e.displayName}', count);
@@ -1658,7 +1347,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                       color: AppTheme.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text('${filtered.length} hasil',
+                    child: Text(AppLocalizations.tr('results_count').replaceAll('{count}', filtered.length.toString()),
                         style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primaryColor)),
                   ),
                 ],
@@ -1673,7 +1362,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                         children: [
                           Icon(Icons.search_off_rounded, size: 48, color: AppTheme.textH(context)),
                           const SizedBox(height: 12),
-                          Text('Tidak ada data ditemukan',
+                          Text(AppLocalizations.tr('no_data_found'),
                               style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, color: AppTheme.textS(context))),
                         ],
                       ),
@@ -1731,7 +1420,16 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
   }
 
   Widget _buildFullLogItem(BuildContext context, EmotionRecord record) {
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => RecordDetailScreen(record: record),
+          ),
+        );
+      },
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
@@ -1806,6 +1504,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

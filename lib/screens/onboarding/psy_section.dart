@@ -276,35 +276,38 @@ final progress = questionNum / totalQuestions;
             const SizedBox(height: 12),
             // Progress Section with Navigation Buttons
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildGradientIconButton(
                   icon: Icons.arrow_back_ios_new_rounded,
                   onTap: qIndex > 0 ? _prevPage : null,
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.favorite_rounded, size: 14, color: Colors.pink),
-                      const SizedBox(width: 6),
-                      Text(
-                        '$questionNum / $totalQuestions',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.primaryColor,
+                Expanded(
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
                         ),
                       ),
-                    ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.favorite_rounded, size: 14, color: Colors.pink),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$questionNum / $totalQuestions',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 _buildGradientIconButton(
@@ -313,11 +316,10 @@ final progress = questionNum / totalQuestions;
                     setState(() {
                       _pageIndex = 0;
                     });
-},
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 30),
-          ],
-        ),
             const SizedBox(height: 16),
             // Progress Bar
             ClipRRect(

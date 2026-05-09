@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../providers/locale_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
 
@@ -27,6 +28,48 @@ class WelcomeSection extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const SizedBox(height: 12),
+              // Language toggle
+              Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface(context).withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Consumer<LocaleProvider>(
+                    builder: (ctx, locale, _) => Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: ['ID', 'EN'].asMap().entries.map((e) {
+                        final isSelected = (e.value == 'ID' && locale.locale == 'id') ||
+                            (e.value == 'EN' && locale.locale == 'en');
+                        return GestureDetector(
+                          onTap: () => locale.setLocale(e.value == 'ID' ? 'id' : 'en'),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              e.value,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: isSelected ? Colors.white : AppTheme.textS(context),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 20),
               // Hero Illustration / Logo Section
               Stack(
@@ -57,27 +100,25 @@ class WelcomeSection extends StatelessWidget {
                     },
                   ),
                   // Main logo container
-                  Container(
-                    width: 130,
-                    height: 130,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                          blurRadius: 40,
-                          offset: const Offset(0, 20),
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/logo.png',
-                        fit: BoxFit.cover,
+Container(
+                  width: 130,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                        blurRadius: 40,
+                        offset: const Offset(0, 20),
+                        spreadRadius: 5,
                       ),
-                    ),
+                    ],
                   ),
+                  child: Image.asset(
+                    'assets/logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
                 ],
               ),
               const SizedBox(height: 20),
