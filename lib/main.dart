@@ -90,7 +90,10 @@ class AppRouter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-      future: StorageService.isFirstLaunch(),
+      future: Future.wait([
+        StorageService.isFirstLaunch(),
+        Future.delayed(const Duration(seconds: 3)),
+      ]).then((results) => results[0] as bool),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const _SplashScreen();
 

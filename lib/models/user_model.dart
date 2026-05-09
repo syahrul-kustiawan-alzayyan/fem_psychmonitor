@@ -82,9 +82,12 @@ class AppUser {
     }
   }
 
-  /// Deskripsi singkat tipe MBTI
+  /// Deskripsi singkat tipe MBTI (locale-aware)
   String get mbtiDescription {
-    return _mbtiDescriptions[mbtiType] ?? 'Tipe kepribadian unik Anda.';
+    if (AppLocalizations.locale == 'en') {
+      return _mbtiDescriptionsEn[mbtiType] ?? 'Your unique personality type.';
+    }
+    return _mbtiDescriptionsId[mbtiType] ?? 'Tipe kepribadian unik Anda.';
   }
 
   /// Nama julukan tipe MBTI
@@ -92,9 +95,12 @@ class AppUser {
     return _mbtiNicknames[mbtiType] ?? 'The Unique One';
   }
 
-  /// Kekuatan utama berdasarkan MBTI
+  /// Kekuatan utama berdasarkan MBTI (locale-aware)
   List<String> get mbtiStrengths {
-    return _mbtiStrengths[mbtiType] ?? ['Adaptif', 'Unik', 'Kreatif'];
+    if (AppLocalizations.locale == 'en') {
+      return _mbtiStrengthsEn[mbtiType] ?? ['Adaptive', 'Unique', 'Creative'];
+    }
+    return _mbtiStrengthsId[mbtiType] ?? ['Adaptif', 'Unik', 'Kreatif'];
   }
 }
 
@@ -120,7 +126,7 @@ const Map<String, String> _mbtiNicknames = {
   'ESFP': 'The Entertainer',
 };
 
-const Map<String, String> _mbtiDescriptions = {
+const Map<String, String> _mbtiDescriptionsId = {
   'INTJ':
       'Pemikir strategis dengan visi jangka panjang. Mandiri, analitis, dan selalu mencari cara untuk meningkatkan sistem.',
   'INTP':
@@ -155,7 +161,42 @@ const Map<String, String> _mbtiDescriptions = {
       'Penghibur yang spontan dan energik. Membawa kegembiraan ke mana pun mereka pergi.',
 };
 
-const Map<String, List<String>> _mbtiStrengths = {
+const Map<String, String> _mbtiDescriptionsEn = {
+  'INTJ':
+      'Strategic thinker with long-term vision. Independent, analytical, and always seeking ways to improve systems.',
+  'INTP':
+      'Creative thinker hungry for knowledge. Innovative, logical, and always eager to understand how things work.',
+  'ENTJ':
+      'Natural-born leader who is decisive and efficient. Goal-oriented with exceptional organizational skills.',
+  'ENTP':
+      'Smart and enthusiastic innovator. Loves intellectual challenges and always seeks new ideas.',
+  'INFJ':
+      'Empathetic and visionary idealist. Inspires others with deep insight and compassion.',
+  'INFP':
+      'Creative idealist with strong values. Deeply empathetic and always striving to make the world a better place.',
+  'ENFJ':
+      'Charismatic leader who inspires. Deeply cares about others and collective growth.',
+  'ENFP':
+      'Enthusiastic explorer full of spirit. Creative, warm, and always sees potential in everyone.',
+  'ISTJ':
+      'Responsible and reliable individual. Practical, organized, and loyal to commitments.',
+  'ISFJ':
+      'Warm and caring protector. Loyal, thorough, and always ready to help others.',
+  'ESTJ':
+      'Efficient and decisive manager. Upholds rules and high standards.',
+  'ESFJ':
+      'Warm and caring individual. Highly attentive to others\' needs and maintaining harmony.',
+  'ISTP':
+      'Practical and adaptive craftsman. Enjoys understanding how things work and solving hands-on problems.',
+  'ISFP':
+      'Gentle and sensitive artist. Appreciates beauty and lives according to personal values.',
+  'ESTP':
+      'Energetic and pragmatic adventurer. Lives in the moment with courage and spontaneity.',
+  'ESFP':
+      'Spontaneous and energetic entertainer. Brings joy wherever they go.',
+};
+
+const Map<String, List<String>> _mbtiStrengthsId = {
   'INTJ': ['Strategis', 'Mandiri', 'Visioner', 'Analitis'],
   'INTP': ['Inovatif', 'Logis', 'Objektif', 'Kreatif'],
   'ENTJ': ['Kepemimpinan', 'Efisien', 'Tegas', 'Strategis'],
@@ -172,6 +213,25 @@ const Map<String, List<String>> _mbtiStrengths = {
   'ISFP': ['Sensitif', 'Artistik', 'Loyal', 'Fleksibel'],
   'ESTP': ['Energik', 'Pragmatis', 'Berani', 'Observan'],
   'ESFP': ['Spontan', 'Energik', 'Ceria', 'Adaptif'],
+};
+
+const Map<String, List<String>> _mbtiStrengthsEn = {
+  'INTJ': ['Strategic', 'Independent', 'Visionary', 'Analytical'],
+  'INTP': ['Innovative', 'Logical', 'Objective', 'Creative'],
+  'ENTJ': ['Leadership', 'Efficient', 'Decisive', 'Strategic'],
+  'ENTP': ['Creative', 'Smart', 'Adaptable', 'Argumentative'],
+  'INFJ': ['Empathetic', 'Visionary', 'Insightful', 'Idealistic'],
+  'INFP': ['Empathetic', 'Creative', 'Idealistic', 'Authentic'],
+  'ENFJ': ['Charismatic', 'Empathetic', 'Inspiring', 'Diplomatic'],
+  'ENFP': ['Enthusiastic', 'Creative', 'Warm', 'Optimistic'],
+  'ISTJ': ['Responsible', 'Organized', 'Thorough', 'Loyal'],
+  'ISFJ': ['Caring', 'Loyal', 'Patient', 'Detail-oriented'],
+  'ESTJ': ['Decisive', 'Efficient', 'Organized', 'Honest'],
+  'ESFJ': ['Warm', 'Caring', 'Loyal', 'Cooperative'],
+  'ISTP': ['Practical', 'Adaptable', 'Logical', 'Calm'],
+  'ISFP': ['Sensitive', 'Artistic', 'Loyal', 'Flexible'],
+  'ESTP': ['Energetic', 'Pragmatic', 'Bold', 'Observant'],
+  'ESFP': ['Spontaneous', 'Energetic', 'Cheerful', 'Adaptable'],
 };
 
 // ==========================================

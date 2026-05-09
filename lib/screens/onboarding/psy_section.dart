@@ -275,41 +275,51 @@ class _PsySectionState extends State<PsySection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 12),
-            // Improved Top Navigation & Progress
-            // Progress Section
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+            // Navigation + Progress
+            Row(
+              children: [
+                _buildGradientIconButton(
+                  icon: Icons.arrow_back_ios_new_rounded,
+                  onTap: qIndex > 0 ? _prevPage : null,
                 ),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.favorite_rounded,
-                      size: 14,
-                      color: Colors.pink,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '$questionNum / $totalQuestions',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primaryColor,
+                Expanded(
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.favorite_rounded, size: 14, color: Colors.pink),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$questionNum / $totalQuestions',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                _buildGradientIconButton(
+                  icon: Icons.home_rounded,
+                  onTap: () {
+                    setState(() {
+                      _pageIndex = 0;
+                    });
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 24),
             // Beautiful Animated Progress Bar
@@ -433,23 +443,6 @@ class _PsySectionState extends State<PsySection> {
               );
             }),
             const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildGradientIconButton(
-                  icon: Icons.home_rounded,
-                  onTap: () {
-                    setState(() {
-                      _pageIndex = 0;
-                    });
-                  },
-                ),
-                _buildGradientIconButton(
-                  icon: Icons.arrow_back_ios_new_rounded,
-                  onTap: qIndex > 0 ? _prevPage : null,
-                ),
-              ],
-            ),
             const SizedBox(height: 30),
           ],
         ),

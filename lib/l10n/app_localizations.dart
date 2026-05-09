@@ -26,6 +26,7 @@ class AppLocalizations {
       // ── Umum ──
       'app_name': 'Fem-Psych Monitor',
       'app_subtitle': 'Monitoring Psikologis Cerdas',
+      'splash_subtitle': 'Pantau Kesehatan Mentalmu',
       'cancel': 'Batal',
       'save': 'Simpan',
       'ok': 'OK',
@@ -253,6 +254,7 @@ class AppLocalizations {
       'story_prompt_tip': '💡 Tekan tombol mikrofon dan mulailah bercerita',
       'how_to_use_title': 'Cara Menggunakan',
       'guide_step_1_record': 'Sentuh tombol mikrofon untuk memulai',
+      'press_mic_tip': 'Tekan tombol mikrofon dan mulailah bercerita',
       'guide_step_2_speak': 'Bicara dengan jelas selama 5-10 detik',
       'guide_step_3_stop': 'Sentuh lagi untuk menghentikan',
       'guide_step_4_view': 'Lihat hasil deteksi emosi Anda',
@@ -525,6 +527,7 @@ class AppLocalizations {
       // ── General ──
       'app_name': 'Fem-Psych Monitor',
       'app_subtitle': 'Smart Psychological Monitoring',
+      'splash_subtitle': 'Monitor Your Mental Health',
       'cancel': 'Cancel',
       'save': 'Save',
       'ok': 'OK',
@@ -752,6 +755,7 @@ class AppLocalizations {
       'story_prompt_tip': '💡 Press the microphone button and start talking',
       'how_to_use_title': 'How to Use',
       'guide_step_1_record': 'Touch the microphone button to start',
+      'press_mic_tip': 'Press the microphone button and start talking',
       'guide_step_2_speak': 'Speak clearly for 5-10 seconds',
       'guide_step_3_stop': 'Touch again to stop',
       'guide_step_4_view': 'View your emotion detection results',

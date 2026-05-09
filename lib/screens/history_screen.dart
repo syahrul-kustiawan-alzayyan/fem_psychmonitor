@@ -1287,8 +1287,9 @@ class _HistoryScreenState extends State<HistoryScreen>
         boxShadow: AppTheme.cardShadow,
       ),
       child: Column(
-        children: freq.entries.map((entry) {
-          final pct = entry.value / total;
+        children: EmotionType.values.map((emotion) {
+          final count = freq[emotion] ?? 0;
+          final pct = total > 0 ? count / total : 0.0;
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 5),
             child: Row(
@@ -1297,16 +1298,16 @@ class _HistoryScreenState extends State<HistoryScreen>
                 Container(
                   padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
-                    color: entry.key.color.withValues(alpha: 0.12),
+                    color: emotion.color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(7),
                   ),
-                  child: Icon(entry.key.icon, color: entry.key.color, size: 14),
+                  child: Icon(emotion.icon, color: emotion.color, size: 14),
                 ),
                 const SizedBox(width: 8),
                 SizedBox(
                   width: 60,
                   child: Text(
-                    entry.key.displayName,
+                    emotion.displayName,
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -1321,7 +1322,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                       Container(
                         height: 10,
                         decoration: BoxDecoration(
-                          color: entry.key.color.withValues(alpha: 0.1),
+                          color: emotion.color.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(
                             AppTheme.radiusFull,
                           ),
@@ -1332,7 +1333,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                         child: Container(
                           height: 10,
                           decoration: BoxDecoration(
-                            color: entry.key.color,
+                            color: emotion.color,
                             borderRadius: BorderRadius.circular(
                               AppTheme.radiusFull,
                             ),
@@ -1343,13 +1344,13 @@ class _HistoryScreenState extends State<HistoryScreen>
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Count + percent
+                // Count
                 Text(
-                  '${entry.value}x',
+                  '${count}x',
                   style: GoogleFonts.poppins(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
-                    color: entry.key.color,
+                    color: emotion.color,
                   ),
                 ),
               ],

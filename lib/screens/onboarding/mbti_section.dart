@@ -67,55 +67,6 @@ class _MbtiSectionState extends State<MbtiSection> {
           child: Column(
             children: [
               const SizedBox(height: 20),
-              // Hero icon with gradient background
-              Container(
-                width: 130,
-                height: 130,
-                decoration: BoxDecoration(
-                  gradient: AppTheme.primaryGradient,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                      blurRadius: 35,
-                      offset: const Offset(0, 18),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.psychology_rounded,
-                  size: 60,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 28),
-              Text(
-                loc('mbti_intro_title'),
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
-                  height: 1.2,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.secondaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  loc('mbti_intro_subtitle'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.secondaryColor,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
               // Enhanced Info Container (Blue-Pink Gradient)
               Container(
                 padding: const EdgeInsets.all(28),
@@ -419,7 +370,7 @@ class _MbtiSectionState extends State<MbtiSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 12),
-            // Progress Section with Navigation Buttons
+            // Navigation + Progress
             Row(
               children: [
                 _buildGradientIconButton(

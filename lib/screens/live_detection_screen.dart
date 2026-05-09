@@ -677,7 +677,7 @@ Widget _buildStoryPrompts() {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '💡 Tekan tombol mikrofon dan mulailah bercerita',
+                    '💡 ${AppLocalizations.tr('press_mic_tip')}',
                     style: GoogleFonts.poppins(
                       fontSize: 12.5,
                       color: AppTheme.primaryColor,

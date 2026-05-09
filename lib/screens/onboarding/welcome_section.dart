@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../providers/locale_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
 
@@ -29,6 +30,41 @@ class WelcomeSection extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Consumer<LocaleProvider>(
+                    builder: (context, locale, _) {
+                      final isEn = locale.locale == 'en';
+                      return GestureDetector(
+                        onTap: () => locale.toggleLocale(),
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surface(context),
+                            borderRadius: BorderRadius.circular(22),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _langOption(context, 'ID', !isEn, () => locale.setLocale('id')),
+                              const SizedBox(width: 2),
+                              _langOption(context, 'EN', isEn, () => locale.setLocale('en')),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
               const SizedBox(height: 20),
               // Hero Illustration / Logo Section
               Stack(
@@ -95,16 +131,7 @@ class WelcomeSection extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                'Fem-Psych',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : Colors.white,
-                  height: 1.1,
-                ),
-              ),
+              const SizedBox(height: 4),
               Text(
                 'Monitor',
                 textAlign: TextAlign.center,
@@ -145,32 +172,6 @@ class WelcomeSection extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 16),
-              // App Description
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Text(
-                  'Aplikasi kesehatan mental khusus perempuan yang menggabungkan analisis emosi berbasis AI dengan pemahaman kepribadian MBTI untuk mendukung perkembangan diri Anda.',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.textS(context),
-                    height: 1.6,
-                  ),
-                ),
-              ),
               const SizedBox(height: 32),
               // Value Proposition Cards - Enhanced Glassmorphism style
               Container(
@@ -287,6 +288,28 @@ class WelcomeSection extends StatelessWidget {
               ),
               const SizedBox(height: 40),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _langOption(BuildContext context, String label, bool isActive, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? AppTheme.primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: isActive ? Colors.white : AppTheme.textS(context),
           ),
         ),
       ),
