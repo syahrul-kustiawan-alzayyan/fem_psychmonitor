@@ -959,45 +959,8 @@ class _HistoryScreenState extends State<HistoryScreen>
             topTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: false),
             ),
-            rightTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: showLeftTitles,
-                interval: 25,
-                getTitlesWidget: (v, _) {
-                  String label;
-                  Color c;
-                  if (v >= 75) {
-                    label = AppLocalizations.tr('psych_excellent');
-                    c = const Color(0xFF10B981);
-                  } else if (v >= 50) {
-                    label = AppLocalizations.tr('psych_good');
-                    c = const Color(0xFFF59E0B);
-                  } else if (v >= 25) {
-                    label = AppLocalizations.tr('psych_fair');
-                    c = const Color(0xFFF97316);
-                  } else {
-                    label = AppLocalizations.tr('psych_needs_attention');
-                    c = const Color(0xFFEF4444);
-                  }
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: c.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      label,
-                      style: GoogleFonts.poppins(
-                        fontSize: 7,
-                        fontWeight: FontWeight.w600,
-                        color: c,
-                        height: 1.2,
-                      ),
-                    ),
-                  );
-                },
-                reservedSize: 58,
-              ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
             ),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
