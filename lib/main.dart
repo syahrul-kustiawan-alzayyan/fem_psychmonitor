@@ -136,10 +136,13 @@ class AppRouter extends StatelessWidget {
             if (userSnapshot.data == null) {
               return OnboardingScreen(
                 onCompleted: () {
-                  // Setelah onboarding selesai, trigger AppRouter kembali.
-                  // Karena user sudah login dan ada di DB, dia akan masuk ke MainNavigation.
+                  // Setelah onboarding selesai, langsung masuk ke aplikasi.
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const AppRouter()),
+                    MaterialPageRoute(
+                      builder: (context) => MainNavigation(
+                        key: ValueKey('main_nav_${authProvider.username}'),
+                      ),
+                    ),
                   );
                 },
               );

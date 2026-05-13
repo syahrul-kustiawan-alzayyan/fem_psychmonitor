@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/database_service.dart';
 import '../screens/onboarding_screen.dart';
 
 /// Provider autentikasi menggunakan Firebase Authentication.
-/// Menggantikan mock auth yang sebelumnya menyimpan di SharedPreferences.
+/// Mendukung Email/Password (dengan verifikasi email) dan Google Sign-In.
 class AuthProvider extends ChangeNotifier {
   static const String _keyUsername = 'auth_username';
 
@@ -23,6 +24,13 @@ class AuthProvider extends ChangeNotifier {
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
 
+    // Inisialisasi Google Sign-In (wajib dipanggil sebelum authenticate)
+    try {
+      await GoogleSignIn.instance.initialize();
+    } catch (e) {
+      debugPrint('GoogleSignIn init error (mungkin sudah diinisialisasi): $e');
+    }
+
     // Cek apakah ada user yang sedang login di Firebase
     final currentUser = _auth.currentUser;
     if (currentUser != null) {
@@ -35,27 +43,26 @@ class AuthProvider extends ChangeNotifier {
       _username = '';
     }
 
-    // Listen to auth state changes
+    // Listen to auth state changes ONLY for sign out events.
+    // Let login() and register() explicitly handle sign in.
     _auth.authStateChanges().listen((User? user) {
-      if (user != null) {
-        _isLoggedIn = true;
-        _email = user.email ?? '';
-        if (_username.isEmpty) {
-          _username = user.displayName ?? user.email?.split('@').first ?? 'User';
-        }
-      } else {
+      if (user == null) {
         _isLoggedIn = false;
         _email = '';
         _username = '';
+        notifyListeners();
       }
-      notifyListeners();
     });
 
     notifyListeners();
   }
 
-  /// Login menggunakan Firebase Auth
-  Future<bool> login({
+  /// Login menggunakan Firebase Auth.
+  /// Returns:
+  ///   'success' — login berhasil dan email sudah diverifikasi
+  ///   'email_not_verified' — login berhasil tapi email belum diverifikasi
+  ///   'error' — gagal login (credential salah, dll)
+  Future<String> login({
     required String email,
     required String password,
   }) async {
@@ -66,6 +73,17 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (credential.user != null) {
+        // Cek apakah email sudah diverifikasi
+        // Reload user data untuk mendapat status terbaru
+        await credential.user!.reload();
+        final refreshedUser = _auth.currentUser;
+
+        if (refreshedUser != null && !refreshedUser.emailVerified) {
+          // Email belum diverifikasi — sign out dan kembalikan status
+          await _auth.signOut();
+          return 'email_not_verified';
+        }
+
         _isLoggedIn = true;
         _email = credential.user!.email ?? email;
 
@@ -85,20 +103,29 @@ class AuthProvider extends ChangeNotifier {
         }
 
         notifyListeners();
-        return true;
+
+        if (appUser == null && !hasPending) {
+          return 'new_user';
+        }
+
+        return 'success';
       }
-      return false;
+      return 'error';
     } on FirebaseAuthException catch (e) {
       debugPrint('Login error: ${e.code} - ${e.message}');
-      return false;
+      return e.code;
     } catch (e) {
       debugPrint('Login error: $e');
-      return false;
+      return 'error';
     }
   }
 
-  /// Register menggunakan Firebase Auth
-  Future<bool> register({
+  /// Register menggunakan Firebase Auth + kirim email verifikasi.
+  /// Returns:
+  ///   'success' — akun berhasil dibuat, email verifikasi terkirim
+  ///   'email_exists' — email sudah terdaftar
+  ///   'error' — gagal
+  Future<String> register({
     required String email,
     required String password,
     required String username,
@@ -113,14 +140,113 @@ class AuthProvider extends ChangeNotifier {
         // Update display name di Firebase Auth
         await credential.user!.updateDisplayName(username);
 
-        _isLoggedIn = true;
-        _email = credential.user!.email ?? email;
-        _username = username;
+        // Kirim email verifikasi
+        await credential.user!.sendEmailVerification();
 
+        // Simpan username lokal
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_keyUsername, username);
 
-        // Simpan data onboarding ke Firestore jika ada pending
+        _username = username;
+
+        // Sign out setelah register karena email belum diverifikasi
+        await _auth.signOut();
+        _isLoggedIn = false;
+
+        notifyListeners();
+        return 'success';
+      }
+      return 'error';
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Register error: ${e.code} - ${e.message}');
+      if (e.code == 'email-already-in-use') {
+        return 'email_exists';
+      }
+      return e.code;
+    } catch (e) {
+      debugPrint('Register error: $e');
+      return 'error';
+    }
+  }
+
+  /// Kirim ulang email verifikasi
+  Future<bool> resendVerificationEmail({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      // Login sementara untuk kirim ulang email
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      if (credential.user != null) {
+        await credential.user!.sendEmailVerification();
+        await _auth.signOut();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Resend verification error: $e');
+      return false;
+    }
+  }
+
+  /// Sign in dengan Google (menggunakan google_sign_in v7+ API)
+  /// Firebase otomatis membuat akun baru jika email belum terdaftar.
+  /// Returns:
+  ///   'success' — berhasil login (user lama)
+  ///   'new_user' — user baru, perlu onboarding
+  ///   'cancelled' — user membatalkan Google picker
+  ///   'error' — gagal
+  Future<String> signInWithGoogle({bool isLogin = false}) async {
+    try {
+      // Trigger the Google authentication flow (v7 API)
+      final GoogleSignInAccount? googleUser =
+          await GoogleSignIn.instance.authenticate();
+
+      // User membatalkan proses
+      if (googleUser == null) return 'cancelled';
+
+      // Dapatkan idToken dari authentication (v7 API)
+      final idToken = googleUser.authentication.idToken;
+
+      // Buat credential untuk Firebase (hanya butuh idToken)
+      final credential = GoogleAuthProvider.credential(
+        idToken: idToken,
+      );
+
+      // Sign in ke Firebase dengan credential Google
+      // Firebase otomatis membuat akun jika belum ada (register otomatis)
+      final userCredential = await _auth.signInWithCredential(credential);
+
+      if (userCredential.user != null) {
+        _isLoggedIn = true;
+        _email = userCredential.user!.email ?? '';
+        _username = userCredential.user!.displayName ?? _email.split('@').first;
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_keyUsername, _username);
+
+        // Cek apakah user baru (pertama kali login dengan Google)
+        final isNewUser =
+            userCredential.additionalUserInfo?.isNewUser ?? false;
+
+        if (isLogin && isNewUser) {
+          // Jika login tapi email ini belum pernah terdaftar,
+          // hapus akun Google yang baru saja dibuat di Firebase Auth
+          await userCredential.user?.delete();
+          await logout();
+          return 'unregistered_google';
+        }
+
+        if (isNewUser) {
+          // User baru via Google (hanya di tab register) — perlu onboarding
+          notifyListeners();
+          return 'new_user';
+        }
+
+        // User lama — cek dan sync pending onboarding data
         final hasPending = prefs.getBool('pending_onboarding_data') ?? false;
         if (hasPending) {
           try {
@@ -129,20 +255,25 @@ class AuthProvider extends ChangeNotifier {
         }
 
         notifyListeners();
-        return true;
+        return 'success';
       }
-      return false;
+      return 'error';
     } on FirebaseAuthException catch (e) {
-      debugPrint('Register error: ${e.code} - ${e.message}');
-      return false;
+      debugPrint('Google Sign-In Firebase error: ${e.code} - ${e.message}');
+      return 'error';
     } catch (e) {
-      debugPrint('Register error: $e');
-      return false;
+      debugPrint('Google Sign-In error: $e');
+      return 'error';
     }
   }
 
-  /// Logout — sign out dari Firebase Auth
+  /// Logout — sign out dari Firebase Auth + Google
   Future<void> logout() async {
+    // Sign out dari Google juga
+    try {
+      await GoogleSignIn.instance.disconnect();
+    } catch (_) {}
+
     await _auth.signOut();
     _isLoggedIn = false;
     _email = '';
@@ -153,6 +284,20 @@ class AuthProvider extends ChangeNotifier {
 
     DatabaseService.resetInstance();
     notifyListeners();
+  }
+
+  /// Hapus akun dari Firebase Auth
+  Future<void> deleteAccount() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await user.delete();
+      }
+    } catch (e) {
+      debugPrint('Delete account error: $e');
+      // Bila gagal (misal butuh re-authenticate), kita tetap lanjutkan hapus lokal
+    }
+    await logout();
   }
 
   /// Update profil

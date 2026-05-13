@@ -12,7 +12,20 @@
           "package_name": "com.example.fem_physicsmonitor"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "637727281592-75m3icjatat7f9njfqrp768a0kl7fbu0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fem_physicsmonitor",
+            "certificate_hash": "a915647c0e7c28f5bdedf31a08941611653d0729"
+          }
+        },
+        {
+          "client_id": "637727281592-5lk5ga4di62olc97u47g56ohfe1m44dh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBIRmnyXhvtUUUXOdb7TASSP5ml_YzZIPs"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "637727281592-5lk5ga4di62olc97u47g56ohfe1m44dh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -741,10 +741,12 @@ class SettingsScreen extends StatelessWidget {
               // Hapus database lokal
               await DatabaseService.deleteDatabase();
 
-              // Bersihkan token auth & shared prefs (misal status onboarding pertama)
+              // Hapus akun di Firebase dan bersihkan lokal (logout)
               if (ctx.mounted) {
-                await ctx.read<AuthProvider>().logout();
+                await ctx.read<AuthProvider>().deleteAccount();
               }
+              
+              // Reset status onboarding
               await StorageService.resetOnboarding();
 
               if (ctx.mounted) {

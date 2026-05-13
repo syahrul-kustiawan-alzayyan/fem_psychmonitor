@@ -393,8 +393,17 @@ class AppLocalizations {
       'password_required': 'Password wajib diisi',
       'password_min_length': 'Minimal 6 karakter',
       'name_required': 'Nama wajib diisi',
-      'confirm_password': 'Konfirmasi password',
       'password_mismatch': 'Password tidak cocok',
+      'email_verification_sent': 'Email Verifikasi Terkirim',
+      'email_verification_desc': 'Silakan cek inbox email Anda dan klik link verifikasi sebelum login. Periksa juga folder Spam.',
+      'email_not_verified': 'Email Belum Diverifikasi',
+      'email_not_verified_desc': 'Silakan verifikasi email Anda terlebih dahulu dengan mengklik link yang telah dikirim ke inbox Anda.',
+      'resend_verification': 'Kirim Ulang Email Verifikasi',
+      'verification_resent': 'Email verifikasi telah dikirim ulang!',
+      'resend_failed': 'Gagal mengirim ulang email verifikasi',
+      'google_signin_failed': 'Gagal masuk dengan Google',
+      'check_email': 'Mengerti, Cek Email',
+      'register_failed': 'Pendaftaran gagal. Silakan coba lagi.',
 
       // ── Settings ──
       'show_onboarding_again': 'Tampilkan Onboarding Lagi',
@@ -496,7 +505,6 @@ class AppLocalizations {
       'emotion_impact_on_score': 'Dampak Emosi terhadap Skor',
       'positive_emotions_increase': 'Emosi positif (Happy, Neutral) meningkatkan skor',
       'negative_emotions_decrease': 'Emosi negatif (Sad, Fear, Angry, Disgust) menurunkannya',
-      'last_detection': 'Deteksi Terakhir',
       'info': 'Info',
 
       // ── Record Detail ──
@@ -517,7 +525,6 @@ class AppLocalizations {
       'ready_to_listen': 'Siap Mendengarkan',
       'story_prompt_proud': 'Ceritakan hal yang membuatmu bangga akhir-akhir ini',
       'story_prompt_supporter': 'Siapa yang selalu mendukungmu? Ceritakan tentang mereka',
-      'story_prompts_title': 'Ceritakan Keluh Kesahmu',
     },
 
     // ════════════════════════════════════════════
@@ -887,8 +894,17 @@ class AppLocalizations {
       'password_required': 'Password is required',
       'password_min_length': 'Minimum 6 characters',
       'name_required': 'Name is required',
-      'confirm_password': 'Confirm password',
       'password_mismatch': 'Password does not match',
+      'email_verification_sent': 'Verification Email Sent',
+      'email_verification_desc': 'Please check your email inbox and click the verification link before logging in. Also check your Spam folder.',
+      'email_not_verified': 'Email Not Verified',
+      'email_not_verified_desc': 'Please verify your email first by clicking the link sent to your inbox.',
+      'resend_verification': 'Resend Verification Email',
+      'verification_resent': 'Verification email has been resent!',
+      'resend_failed': 'Failed to resend verification email',
+      'google_signin_failed': 'Failed to sign in with Google',
+      'check_email': 'Got It, Check Email',
+      'register_failed': 'Registration failed. Please try again.',
 
       // ── Settings ──
       'show_onboarding_again': 'Show Onboarding Again',
@@ -990,7 +1006,6 @@ class AppLocalizations {
       'emotion_impact_on_score': 'Emotion Impact on Score',
       'positive_emotions_increase': 'Positive emotions (Happy, Neutral) increase score',
       'negative_emotions_decrease': 'Negative emotions (Sad, Fear, Angry, Disgust) decrease it',
-      'last_detection': 'Last Detection',
       'info': 'Info',
 
       // ── Record Detail ──
@@ -1011,7 +1026,6 @@ class AppLocalizations {
       'ready_to_listen': 'Ready to Listen',
       'story_prompt_proud': 'Tell me about something that made you proud recently',
       'story_prompt_supporter': 'Who always supports you? Tell me about them',
-      'story_prompts_title': 'Share Your Feelings',
     },
   };
 }

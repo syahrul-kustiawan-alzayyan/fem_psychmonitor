@@ -10,6 +10,7 @@ import 'onboarding/result_section.dart';
 import 'onboarding/welcome_section.dart';
 
 import '../models/user_model.dart';
+import '../providers/auth_provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/database_service.dart';
 import '../services/storage_service.dart';
@@ -117,6 +118,13 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
       await prefs.setBool('pending_onboarding_data', true);
 
       await StorageService.setOnboardingComplete('');
+      
+      // Jika user sudah login, langsung simpan data onboarding ke database.
+      // Jika belum, data ini akan disimpan saat mereka login nanti.
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.isLoggedIn) {
+        await OnboardingScreen.savePendingOnboardingToFirestore();
+      }
       
       if (!context.mounted) return;
       widget.onCompleted();

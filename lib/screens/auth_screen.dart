@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart'; // For MainNavigation
 import '../providers/auth_provider.dart';
+import '../screens/onboarding_screen.dart';
 import '../theme/app_theme.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -58,17 +59,14 @@ class _AuthScreenState extends State<AuthScreen>
     super.dispose();
   }
 
-  // Mock login
+  // ── Login Handler ──
   Future<void> _handleLogin() async {
     if (!_loginFormKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    // Simulasi delay jaringan
-    await Future.delayed(const Duration(milliseconds: 800));
-
     if (!mounted) return;
 
-    final success = await context.read<AuthProvider>().login(
+    final result = await context.read<AuthProvider>().login(
       email: _loginEmail.text.trim(),
       password: _loginPassword.text,
     );
@@ -76,30 +74,52 @@ class _AuthScreenState extends State<AuthScreen>
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (success) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainNavigation()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.tr('email_not_registered')),
-          backgroundColor: AppTheme.secondaryColor,
-        ),
-      );
+    switch (result) {
+      case 'success':
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AppRouter()),
+        );
+        break;
+      case 'new_user':
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (routeContext) => OnboardingScreen(
+              onCompleted: () {
+                Navigator.of(routeContext).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const MainNavigation()),
+                );
+              },
+            ),
+          ),
+        );
+        break;
+      case 'email_not_verified':
+        _showEmailNotVerifiedDialog();
+        break;
+      case 'user-not-found':
+      case 'invalid-credential':
+      case 'wrong-password':
+        _showErrorDialog(
+          'Login Gagal',
+          'Email/Password salah, atau akun ini didaftarkan via Google. Silakan periksa kembali atau gunakan tombol Google Sign-In.',
+        );
+        break;
+      default:
+        _showErrorDialog(
+          'Login Gagal',
+          'Gagal masuk: $result',
+        );
     }
   }
 
-  // Mock register
+  // ── Register Handler ──
   Future<void> _handleRegister() async {
     if (!_registerFormKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    await Future.delayed(const Duration(milliseconds: 800));
-
     if (!mounted) return;
 
-    final success = await context.read<AuthProvider>().register(
+    final result = await context.read<AuthProvider>().register(
       email: _regEmail.text.trim(),
       password: _regPassword.text,
       username: _regUsername.text.trim(),
@@ -108,18 +128,348 @@ class _AuthScreenState extends State<AuthScreen>
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (success) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainNavigation()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.tr('email_already_registered')),
-          backgroundColor: AppTheme.secondaryColor,
-        ),
-      );
+    switch (result) {
+      case 'success':
+        _showEmailVerificationSentDialog();
+        break;
+      case 'email_exists':
+      case 'email-already-in-use':
+        _showErrorDialog(
+          'Pendaftaran Gagal',
+          'Email sudah terdaftar. Silakan login, atau gunakan tombol Google Sign-In.',
+        );
+        break;
+      default:
+        _showErrorDialog(
+          'Pendaftaran Gagal',
+          'Pendaftaran gagal: $result',
+        );
     }
+  }
+
+  // ── Google Sign-In Handler ──
+  Future<void> _handleGoogleSignIn(bool isLogin) async {
+    setState(() => _isLoading = true);
+
+    if (!mounted) return;
+
+    final result = await context.read<AuthProvider>().signInWithGoogle(isLogin: isLogin);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    switch (result) {
+      case 'success':
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AppRouter()),
+        );
+        break;
+      case 'new_user':
+        // User baru via Google → langsung ke onboarding
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (routeContext) => OnboardingScreen(
+              onCompleted: () {
+                Navigator.of(routeContext).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const MainNavigation()),
+                );
+              },
+            ),
+          ),
+        );
+        break;
+      case 'cancelled':
+        // User membatalkan, tidak perlu notifikasi
+        break;
+      case 'unregistered_google':
+        _showErrorDialog(
+          'Akun Tidak Ditemukan',
+          AppLocalizations.tr('unregistered_google') == 'unregistered_google' 
+              ? 'Email belum terdaftar. Silakan daftar terlebih dahulu di tab Register.' 
+              : AppLocalizations.tr('unregistered_google'),
+        );
+        break;
+      default:
+        _showErrorDialog(
+          'Login Google Gagal',
+          AppLocalizations.tr('google_signin_failed'),
+        );
+    }
+  }
+
+  // ── Dialog: Error ──
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface(ctx),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                color: Color(0xFFEF4444),
+                size: 48,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textP(ctx),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: AppTheme.textS(ctx),
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  AppLocalizations.tr('close') == 'close' ? 'Tutup' : AppLocalizations.tr('close'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Dialog: Email Verifikasi Terkirim ──
+  void _showEmailVerificationSentDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface(ctx),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.mark_email_read_rounded,
+                color: Color(0xFF10B981),
+                size: 48,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              AppLocalizations.tr('email_verification_sent'),
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textP(ctx),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              AppLocalizations.tr('email_verification_desc'),
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: AppTheme.textS(ctx),
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              ),
+              child: Text(
+                _regEmail.text.trim(),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  // Pindah ke tab Login
+                  _tabCtrl.animateTo(0);
+                  _loginEmail.text = _regEmail.text.trim();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  AppLocalizations.tr('check_email'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Dialog: Email Belum Diverifikasi ──
+  void _showEmailNotVerifiedDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface(ctx),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.email_outlined,
+                color: Color(0xFFF59E0B),
+                size: 48,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              AppLocalizations.tr('email_not_verified'),
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textP(ctx),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              AppLocalizations.tr('email_not_verified_desc'),
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: AppTheme.textS(ctx),
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            // Tombol Kirim Ulang
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  Navigator.of(ctx).pop();
+                  final sent = await context.read<AuthProvider>().resendVerificationEmail(
+                    email: _loginEmail.text.trim(),
+                    password: _loginPassword.text,
+                  );
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        sent
+                            ? AppLocalizations.tr('verification_resent')
+                            : AppLocalizations.tr('resend_failed'),
+                      ),
+                      backgroundColor: sent ? const Color(0xFF10B981) : AppTheme.secondaryColor,
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.send_rounded, size: 18),
+                label: Text(
+                  AppLocalizations.tr('resend_verification'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  ),
+                  elevation: 0,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Tombol Tutup
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(
+                AppLocalizations.tr('close'),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: AppTheme.textS(ctx),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -208,7 +558,7 @@ class _AuthScreenState extends State<AuthScreen>
 
               // ── Tab Content ─────────────────────────────────
               SizedBox(
-                height: 540,
+                height: 600,
                 child: TabBarView(
                   controller: _tabCtrl,
                   children: [_buildLoginTab(), _buildRegisterTab()],
@@ -320,7 +670,7 @@ class _AuthScreenState extends State<AuthScreen>
           const SizedBox(height: 16),
 
           // Google sign-in
-          _buildGoogleButton(),
+          _buildGoogleButton(isLogin: true),
 
           const SizedBox(height: 16),
 
@@ -405,7 +755,9 @@ class _AuthScreenState extends State<AuthScreen>
               keyboardType: TextInputType.emailAddress,
               validator: (v) {
                 if (v == null || v.isEmpty) return AppLocalizations.tr('email_required');
-                if (!v.contains('@')) return AppLocalizations.tr('email_invalid');
+                if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v)) {
+                  return AppLocalizations.tr('email_invalid');
+                }
                 return null;
               },
             ),
@@ -468,6 +820,16 @@ class _AuthScreenState extends State<AuthScreen>
               onTap: _handleRegister,
             ),
 
+            const SizedBox(height: 20),
+
+            // Divider
+            _buildDividerWithText(AppLocalizations.tr('or_continue_with')),
+
+            const SizedBox(height: 16),
+
+            // Google sign-in on register tab too
+            _buildGoogleButton(isLogin: false),
+
             const SizedBox(height: 16),
 
             // Link to login
@@ -495,6 +857,7 @@ class _AuthScreenState extends State<AuthScreen>
                 ),
               ],
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -629,14 +992,12 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildGoogleButton() {
+  Widget _buildGoogleButton({required bool isLogin}) {
     return SizedBox(
       width: double.infinity,
       height: 52,
       child: OutlinedButton.icon(
-        onPressed: () {
-          // Firebase Google Sign-In akan diimplementasikan nanti
-        },
+        onPressed: _isLoading ? null : () => _handleGoogleSignIn(isLogin),
         icon: Container(
           width: 20,
           height: 20,
