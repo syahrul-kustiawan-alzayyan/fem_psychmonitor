@@ -1,264 +1,182 @@
-import 'dart:convert';
-import 'dart:io' show Platform;
-import 'package:path/path.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/emotion_model.dart';
 import '../models/user_model.dart';
 
-// Initialize FFI for desktop platforms - only once
-bool _isFfiInitialized = false;
-void _initDatabaseFactory() {
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    if (!_isFfiInitialized) {
-      sqfliteFfiInit();
-      _isFfiInitialized = true;
-    }
-    // Use factoryFfi directly without changing global databaseFactory
-  }
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
-// DatabaseService — SQLite local persistence
+// DatabaseService — Cloud Firestore persistence
 //
-// Tabel:
-//   • users            — Data user + hasil MBTI
-//   • recordings       — Data recording lengkap
-//   • emotion_snapshots — Snapshot emosi per 3 detik
+// Koleksi Firestore:
+//   • users/{uid}                                    — Data user + hasil MBTI
+//   • users/{uid}/recordings/{id}                    — Data recording lengkap
+//   • users/{uid}/recordings/{id}/snapshots/{id}     — Snapshot emosi per 3 detik
 // ─────────────────────────────────────────────────────────────────────────────
 class DatabaseService {
-  static Database? _db;
-  static const String _dbName = 'fem_physics.db';
-  static const int _dbVersion = 3; // Naik ke versi 3 untuk multi-account support
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Singleton database instance
-  static Future<Database> get database async {
-    if (_db != null) return _db!;
-    _db = await _initDB();
-    return _db!;
-  }
+  /// Helper: dapatkan UID user yang sedang login
+  static String? get _currentUid => FirebaseAuth.instance.currentUser?.uid;
 
-  static Future<Database> _initDB() async {
-    _initDatabaseFactory();
-
-    // Use appropriate factory for getting database path
-    final dbPath = (Platform.isWindows || Platform.isLinux || Platform.isMacOS)
-        ? await databaseFactoryFfi.getDatabasesPath()
-        : await getDatabasesPath();
-    final path = join(dbPath, _dbName);
-
-    // Use databaseFactoryFfi for desktop platforms
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      return databaseFactoryFfi.openDatabase(
-        path,
-        options: OpenDatabaseOptions(
-          version: _dbVersion,
-          onCreate: _onCreate,
-          onUpgrade: _onUpgrade,
-        ),
-      );
-    }
-
-    return openDatabase(
-      path,
-      version: _dbVersion,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-    );
-  }
-
-  static Future<void> _onCreate(Database db, int version) async {
-    // ── Tabel users ──
-    await db.execute('''
-      CREATE TABLE users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT NOT NULL DEFAULT '',
-        name TEXT NOT NULL,
-        mbti_type TEXT NOT NULL DEFAULT '',
-        mbti_scores TEXT NOT NULL DEFAULT '{}',
-        psych_score INTEGER DEFAULT NULL,
-        created_at TEXT NOT NULL
-      )
-    ''');
-
-    // ── Tabel recordings ──
-    await db.execute('''
-      CREATE TABLE recordings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        date TEXT NOT NULL,
-        dominant_emotion TEXT NOT NULL,
-        confidence REAL NOT NULL DEFAULT 0.0,
-        suggestion TEXT NOT NULL DEFAULT '',
-        audio_emotions TEXT NOT NULL DEFAULT '{}',
-        transcript_emotions TEXT NOT NULL DEFAULT '{}',
-        transcript_text TEXT NOT NULL DEFAULT '',
-        duration_seconds INTEGER NOT NULL DEFAULT 0,
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-      )
-    ''');
-
-    // ── Tabel emotion_snapshots ──
-    await db.execute('''
-      CREATE TABLE emotion_snapshots (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        recording_id INTEGER NOT NULL,
-        emotion TEXT NOT NULL,
-        confidence REAL NOT NULL DEFAULT 0.0,
-        source TEXT NOT NULL DEFAULT 'combined',
-        timestamp TEXT NOT NULL,
-        FOREIGN KEY (recording_id) REFERENCES recordings (id) ON DELETE CASCADE
-      )
-    ''');
-  }
-
-  // Migration handler untuk database yang sudah ada
-  static Future<void> _onUpgrade(
-    Database db,
-    int oldVersion,
-    int newVersion,
-  ) async {
-    // Jika oldVersion < 2, tambahkan kolom psych_score
-    if (oldVersion < 2) {
-      try {
-        await db.execute(
-          'ALTER TABLE users ADD COLUMN psych_score INTEGER DEFAULT NULL',
-        );
-      } catch (e) {
-        // Abaikan error jika kolom sudah ada
-        debugPrint('Migration warning: $e');
-      }
-    }
-    
-    if (oldVersion < 3) {
-      try {
-        await db.execute('ALTER TABLE users ADD COLUMN email TEXT DEFAULT ""');
-      } catch (e) {
-        debugPrint('Migration warning email: $e');
-      }
-    }
+  /// Reference ke dokumen user saat ini
+  static DocumentReference? get _userDoc {
+    final uid = _currentUid;
+    if (uid == null) return null;
+    return _firestore.collection('users').doc(uid);
   }
 
   // ═══════════════════════════════════════════════════════════════
   // USER CRUD
   // ═══════════════════════════════════════════════════════════════
 
-  /// Simpan user baru, return user id
+  /// Simpan user baru ke Firestore, return user id (UID string → int hash)
   static Future<int> insertUser(AppUser user) async {
-    final prefs = await SharedPreferences.getInstance();
-    final currentEmail = prefs.getString('auth_email') ?? '';
+    final uid = _currentUid;
+    if (uid == null) throw Exception('User not authenticated');
 
-    final db = await database;
-    return db.insert('users', {
-      'email': currentEmail,
+    final email = FirebaseAuth.instance.currentUser?.email ?? '';
+
+    final data = {
       'name': user.name,
+      'email': email,
       'mbti_type': user.mbtiType,
-      'mbti_scores': jsonEncode(user.mbtiScores),
+      'mbti_scores': user.mbtiScores,
       'psych_score': user.psychologicalScore,
-      'created_at': user.createdAt.toIso8601String(),
-    });
+      'created_at': FieldValue.serverTimestamp(),
+      'updated_at': FieldValue.serverTimestamp(),
+    };
+
+    await _firestore.collection('users').doc(uid).set(data, SetOptions(merge: true));
+
+    // Return uid hashCode sebagai "int id" agar kompatibel dengan UI lama
+    return uid.hashCode;
   }
 
-  /// Ambil user pertama (single-user app)
+  /// Ambil data user saat ini
   static Future<AppUser?> getUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final currentEmail = prefs.getString('auth_email') ?? '';
+    final docRef = _userDoc;
+    if (docRef == null) return null;
 
-    final db = await database;
-    final result = await db.query('users', where: 'email = ?', whereArgs: [currentEmail], limit: 1, orderBy: 'id DESC');
-    if (result.isEmpty) return null;
+    try {
+      final snapshot = await docRef.get();
+      if (!snapshot.exists) return null;
 
-    final row = result.first;
-    return AppUser(
-      id: row['id'] as int?,
-      name: row['name'] as String,
-      mbtiType: row['mbti_type'] as String,
-      mbtiScores: Map<String, int>.from(
-        jsonDecode(row['mbti_scores'] as String) as Map,
-      ),
-      psychologicalScore: row['psych_score'] as int?,
-      createdAt: DateTime.parse(row['created_at'] as String),
-    );
+      final data = snapshot.data() as Map<String, dynamic>;
+      return AppUser(
+        id: _currentUid.hashCode,
+        name: data['name'] as String? ?? 'User',
+        mbtiType: data['mbti_type'] as String? ?? '',
+        mbtiScores: Map<String, int>.from(
+          (data['mbti_scores'] as Map?)?.map(
+            (k, v) => MapEntry(k.toString(), (v as num).toInt()),
+          ) ?? {},
+        ),
+        psychologicalScore: data['psych_score'] != null
+            ? (data['psych_score'] as num).toInt()
+            : null,
+        createdAt: data['created_at'] != null
+            ? (data['created_at'] as Timestamp).toDate()
+            : DateTime.now(),
+      );
+    } catch (e) {
+      debugPrint('Error getting user: $e');
+      return null;
+    }
   }
 
   /// Update user data
   static Future<void> updateUser(AppUser user) async {
-    final prefs = await SharedPreferences.getInstance();
-    final currentEmail = prefs.getString('auth_email') ?? '';
+    final docRef = _userDoc;
+    if (docRef == null) return;
 
-    final db = await database;
-    await db.update('users', {
+    await docRef.update({
       'name': user.name,
       'mbti_type': user.mbtiType,
-      'mbti_scores': jsonEncode(user.mbtiScores),
-    }, where: 'email = ? AND id = (SELECT MAX(id) FROM users WHERE email = ?)', whereArgs: [currentEmail, currentEmail]);
+      'mbti_scores': user.mbtiScores,
+      'updated_at': FieldValue.serverTimestamp(),
+    });
   }
 
-  /// Tautkan user baru yang telah melewati sesi onboarding dengan ID ke email
+  /// Update email user (tidak diperlukan di Firebase Auth, karena email
+  /// sudah ada di auth profile — tapi kita sync ke Firestore juga)
   static Future<void> updateUserEmail(int id, String email) async {
-    final db = await database;
-    await db.update('users', {'email': email}, where: 'id = ?', whereArgs: [id]);
+    final docRef = _userDoc;
+    if (docRef == null) return;
+
+    await docRef.update({
+      'email': email,
+      'updated_at': FieldValue.serverTimestamp(),
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════
   // RECORDING CRUD
   // ═══════════════════════════════════════════════════════════════
 
-  /// Simpan recording baru, return recording id
+  /// Simpan recording baru, return recording id (hashCode dari doc ID)
   static Future<int> insertRecording(RecordingData recording) async {
-    final db = await database;
-    return db.insert('recordings', {
-      'user_id': recording.userId,
-      'date': recording.date.toIso8601String(),
+    final docRef = _userDoc;
+    if (docRef == null) throw Exception('User not authenticated');
+
+    final recordingsRef = docRef.collection('recordings');
+    final newDoc = await recordingsRef.add({
+      'date': Timestamp.fromDate(recording.date),
       'dominant_emotion': recording.dominantEmotion.name,
       'confidence': recording.confidence,
       'suggestion': recording.suggestion,
-      'audio_emotions': jsonEncode(
-        recording.audioEmotions.map((k, v) => MapEntry(k.name, v)),
+      'audio_emotions': recording.audioEmotions.map(
+        (k, v) => MapEntry(k.name, v),
       ),
-      'transcript_emotions': jsonEncode(
-        recording.transcriptEmotions.map((k, v) => MapEntry(k.name, v)),
+      'transcript_emotions': recording.transcriptEmotions.map(
+        (k, v) => MapEntry(k.name, v),
       ),
       'transcript_text': recording.transcriptText,
       'duration_seconds': recording.durationSeconds,
     });
+
+    return newDoc.id.hashCode;
   }
 
-  /// Ambil semua recordings
+  /// Ambil semua recordings untuk user saat ini
   static Future<List<RecordingData>> getRecordings({int? userId}) async {
-    final db = await database;
-    int? targetUserId = userId;
-    
-    if (targetUserId == null) {
-      final user = await getUser();
-      if (user != null) {
-        targetUserId = user.id;
-      } else {
-        return [];
-      }
-    }
-    
-    final result = await db.query(
-      'recordings',
-      where: 'user_id = ?',
-      whereArgs: [targetUserId],
-      orderBy: 'date DESC',
-    );
+    final docRef = _userDoc;
+    if (docRef == null) return [];
 
-    return result.map((row) => RecordingData.fromMap(row)).toList();
+    try {
+      final querySnapshot = await docRef
+          .collection('recordings')
+          .orderBy('date', descending: true)
+          .get();
+
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        return RecordingData.fromFirestore(doc.id, data);
+      }).toList();
+    } catch (e) {
+      debugPrint('Error getting recordings: $e');
+      return [];
+    }
   }
 
-  /// Ambil recording by id
+  /// Ambil recording by id (Firestore doc ID hashCode)
   static Future<RecordingData?> getRecording(int id) async {
-    final db = await database;
-    final result = await db.query(
-      'recordings',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    if (result.isEmpty) return null;
-    return RecordingData.fromMap(result.first);
+    final docRef = _userDoc;
+    if (docRef == null) return null;
+
+    try {
+      // Karena kita menyimpan hashCode sebagai id, kita perlu scan
+      final querySnapshot = await docRef.collection('recordings').get();
+
+      for (final doc in querySnapshot.docs) {
+        if (doc.id.hashCode == id) {
+          return RecordingData.fromFirestore(doc.id, doc.data());
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting recording: $e');
+      return null;
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -270,53 +188,114 @@ class DatabaseService {
     int recordingId,
     List<EmotionSnapshot> snapshots,
   ) async {
-    final db = await database;
-    final batch = db.batch();
-    for (final snap in snapshots) {
-      batch.insert('emotion_snapshots', {
-        'recording_id': recordingId,
-        'emotion': snap.emotion.name,
-        'confidence': snap.confidence,
-        'source': snap.source,
-        'timestamp': snap.timestamp.toIso8601String(),
-      });
+    final docRef = _userDoc;
+    if (docRef == null) return;
+
+    try {
+      // Cari recording doc yang sesuai hashCode
+      final querySnapshot = await docRef.collection('recordings').get();
+      String? recordingDocId;
+
+      for (final doc in querySnapshot.docs) {
+        if (doc.id.hashCode == recordingId) {
+          recordingDocId = doc.id;
+          break;
+        }
+      }
+
+      if (recordingDocId == null) {
+        debugPrint('Recording not found for id: $recordingId');
+        return;
+      }
+
+      final batch = _firestore.batch();
+      final snapshotsRef = docRef
+          .collection('recordings')
+          .doc(recordingDocId)
+          .collection('snapshots');
+
+      for (final snap in snapshots) {
+        final snapDoc = snapshotsRef.doc();
+        batch.set(snapDoc, {
+          'emotion': snap.emotion.name,
+          'confidence': snap.confidence,
+          'source': snap.source,
+          'timestamp': Timestamp.fromDate(snap.timestamp),
+        });
+      }
+
+      await batch.commit();
+    } catch (e) {
+      debugPrint('Error inserting snapshots: $e');
     }
-    await batch.commit(noResult: true);
   }
 
   /// Ambil snapshots untuk recording tertentu
   static Future<List<EmotionSnapshot>> getSnapshots(int recordingId) async {
-    final db = await database;
-    final result = await db.query(
-      'emotion_snapshots',
-      where: 'recording_id = ?',
-      whereArgs: [recordingId],
-      orderBy: 'timestamp ASC',
-    );
+    final docRef = _userDoc;
+    if (docRef == null) return [];
 
-    return result.map((row) => EmotionSnapshot.fromMap(row)).toList();
-  }
+    try {
+      // Cari recording doc yang sesuai hashCode
+      final querySnapshot = await docRef.collection('recordings').get();
+      String? recordingDocId;
 
-  /// Hapus database (untuk reset/testing)
-  static Future<void> deleteDatabase() async {
-    // Use appropriate factory for getting database path
-    final dbPath = (Platform.isWindows || Platform.isLinux || Platform.isMacOS)
-        ? await databaseFactoryFfi.getDatabasesPath()
-        : await getDatabasesPath();
-    final path = join(dbPath, _dbName);
+      for (final doc in querySnapshot.docs) {
+        if (doc.id.hashCode == recordingId) {
+          recordingDocId = doc.id;
+          break;
+        }
+      }
 
-    // Use appropriate factory for deletion
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      await databaseFactoryFfi.deleteDatabase(path);
-    } else {
-      await databaseFactory.deleteDatabase(path);
+      if (recordingDocId == null) return [];
+
+      final snapshotsQuery = await docRef
+          .collection('recordings')
+          .doc(recordingDocId)
+          .collection('snapshots')
+          .orderBy('timestamp')
+          .get();
+
+      return snapshotsQuery.docs.map((doc) {
+        final data = doc.data();
+        return EmotionSnapshot.fromFirestore(doc.id, data);
+      }).toList();
+    } catch (e) {
+      debugPrint('Error getting snapshots: $e');
+      return [];
     }
-    _db = null;
   }
 
-  /// Reset singleton instance (untuk logout - tidak menghapus file database)
+  /// Reset instance (untuk logout - dipanggil oleh AuthProvider)
   static void resetInstance() {
-    _db = null;
+    // Tidak perlu apa-apa di Firestore, cukup sign out Firebase Auth
+    debugPrint('DatabaseService reset (no-op for Firestore)');
+  }
+
+  /// Hapus semua data user dari Firestore (pengganti deleteDatabase SQLite)
+  static Future<void> deleteDatabase() async {
+    try {
+      final docRef = _userDoc;
+      if (docRef == null) return;
+
+      // Hapus semua recordings beserta snapshots
+      final recordings = await docRef.collection('recordings').get();
+      for (final rec in recordings.docs) {
+        // Hapus snapshots di bawah recording
+        final snapshots = await rec.reference.collection('snapshots').get();
+        for (final snap in snapshots.docs) {
+          await snap.reference.delete();
+        }
+        await rec.reference.delete();
+      }
+
+      // Hapus dokumen user itu sendiri
+      await docRef.delete();
+
+      debugPrint('Firestore user data deleted successfully');
+    } catch (e) {
+      debugPrint('Error deleting Firestore data: $e');
+    }
   }
 }
 
@@ -348,20 +327,31 @@ class RecordingData {
     this.durationSeconds = 0,
   });
 
-  factory RecordingData.fromMap(Map<String, dynamic> map) {
-    final audioMap = jsonDecode(map['audio_emotions'] as String) as Map;
-    final textMap = jsonDecode(map['transcript_emotions'] as String) as Map;
+  /// Factory dari Firestore document
+  factory RecordingData.fromFirestore(String docId, Map<String, dynamic> data) {
+    final audioMap = data['audio_emotions'] as Map<String, dynamic>? ?? {};
+    final textMap = data['transcript_emotions'] as Map<String, dynamic>? ?? {};
+
+    // Handle date — bisa Timestamp atau String
+    DateTime dateValue;
+    if (data['date'] is Timestamp) {
+      dateValue = (data['date'] as Timestamp).toDate();
+    } else if (data['date'] is String) {
+      dateValue = DateTime.parse(data['date'] as String);
+    } else {
+      dateValue = DateTime.now();
+    }
 
     return RecordingData(
-      id: map['id'] as int?,
-      userId: map['user_id'] as int,
-      date: DateTime.parse(map['date'] as String),
+      id: docId.hashCode,
+      userId: 0, // userId tidak relevan di Firestore (sudah implicit dari path)
+      date: dateValue,
       dominantEmotion: EmotionType.values.firstWhere(
-        (e) => e.name == map['dominant_emotion'],
+        (e) => e.name == data['dominant_emotion'],
         orElse: () => EmotionType.neutral,
       ),
-      confidence: (map['confidence'] as num).toDouble(),
-      suggestion: map['suggestion'] as String,
+      confidence: (data['confidence'] as num?)?.toDouble() ?? 0.0,
+      suggestion: data['suggestion'] as String? ?? '',
       audioEmotions: audioMap.map(
         (k, v) => MapEntry(
           EmotionType.values.firstWhere(
@@ -380,8 +370,16 @@ class RecordingData {
           (v as num).toDouble(),
         ),
       ),
-      transcriptText: map['transcript_text'] as String,
-      durationSeconds: map['duration_seconds'] as int,
+      transcriptText: data['transcript_text'] as String? ?? '',
+      durationSeconds: (data['duration_seconds'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  /// Backward compat: fromMap (untuk kode lama yang mungkin masih memanggilnya)
+  factory RecordingData.fromMap(Map<String, dynamic> map) {
+    return RecordingData.fromFirestore(
+      map['id']?.toString() ?? '',
+      map,
     );
   }
 
@@ -416,17 +414,34 @@ class EmotionSnapshot {
     required this.timestamp,
   });
 
-  factory EmotionSnapshot.fromMap(Map<String, dynamic> map) {
+  /// Factory dari Firestore document
+  factory EmotionSnapshot.fromFirestore(String docId, Map<String, dynamic> data) {
+    DateTime timestampValue;
+    if (data['timestamp'] is Timestamp) {
+      timestampValue = (data['timestamp'] as Timestamp).toDate();
+    } else if (data['timestamp'] is String) {
+      timestampValue = DateTime.parse(data['timestamp'] as String);
+    } else {
+      timestampValue = DateTime.now();
+    }
+
     return EmotionSnapshot(
-      id: map['id'] as int?,
-      recordingId: map['recording_id'] as int?,
+      id: docId.hashCode,
       emotion: EmotionType.values.firstWhere(
-        (e) => e.name == map['emotion'],
+        (e) => e.name == data['emotion'],
         orElse: () => EmotionType.neutral,
       ),
-      confidence: (map['confidence'] as num).toDouble(),
-      source: map['source'] as String,
-      timestamp: DateTime.parse(map['timestamp'] as String),
+      confidence: (data['confidence'] as num?)?.toDouble() ?? 0.0,
+      source: data['source'] as String? ?? 'combined',
+      timestamp: timestampValue,
+    );
+  }
+
+  /// Backward compat: fromMap
+  factory EmotionSnapshot.fromMap(Map<String, dynamic> map) {
+    return EmotionSnapshot.fromFirestore(
+      map['id']?.toString() ?? '',
+      map,
     );
   }
 }

@@ -1,0 +1,20 @@
+rules_version='2'
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User hanya bisa baca/tulis data miliknya sendiri
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Recordings subcollection — milik user yang sama
+      match /recordings/{recordingId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // Snapshots subcollection — milik user yang sama
+        match /snapshots/{snapshotId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+    }
+  }
+}

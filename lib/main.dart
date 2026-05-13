@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'l10n/app_localizations.dart';
 import 'providers/locale_provider.dart';
@@ -23,6 +24,9 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  // Inisialisasi Firebase
+  await Firebase.initializeApp();
 
   // Inisialisasi providers sebelum runApp
   final localeProvider = LocaleProvider();

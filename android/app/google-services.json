@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "637727281592",
+    "project_id": "fem-psychmonitor",
+    "storage_bucket": "fem-psychmonitor.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:637727281592:android:4c76260f7b37b4198a3f4d",
+        "android_client_info": {
+          "package_name": "com.example.fem_physicsmonitor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIRmnyXhvtUUUXOdb7TASSP5ml_YzZIPs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
