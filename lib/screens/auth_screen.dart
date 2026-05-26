@@ -3,8 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
-import '../main.dart'; // For MainNavigation
+import '../main.dart';
 import '../providers/auth_provider.dart';
+import '../providers/premium_provider.dart';
+import '../services/ad_service.dart';
+import '../services/subscription_service.dart';
 import '../screens/onboarding_screen.dart';
 import '../theme/app_theme.dart';
 
@@ -59,6 +62,15 @@ class _AuthScreenState extends State<AuthScreen>
     super.dispose();
   }
 
+  Future<void> _showInterstitialBeforeNavigation(VoidCallback navigate) async {
+    final premium = context.read<PremiumProvider>();
+    if (!premium.isPremium) {
+      await AdService().showInterstitialAd();
+    }
+    if (!mounted) return;
+    navigate();
+  }
+
   // ── Login Handler ──
   Future<void> _handleLogin() async {
     if (!_loginFormKey.currentState!.validate()) return;
@@ -76,9 +88,12 @@ class _AuthScreenState extends State<AuthScreen>
 
     switch (result) {
       case 'success':
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const AppRouter()),
-        );
+        await SubscriptionService().refresh(context.read<PremiumProvider>());
+        _showInterstitialBeforeNavigation(() {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const AppRouter()),
+          );
+        });
         break;
       case 'new_user':
         Navigator.of(context).pushReplacement(
@@ -160,9 +175,12 @@ class _AuthScreenState extends State<AuthScreen>
 
     switch (result) {
       case 'success':
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const AppRouter()),
-        );
+        await SubscriptionService().refresh(context.read<PremiumProvider>());
+        _showInterstitialBeforeNavigation(() {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const AppRouter()),
+          );
+        });
         break;
       case 'new_user':
         // User baru via Google → langsung ke onboarding

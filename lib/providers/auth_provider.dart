@@ -9,6 +9,7 @@ import '../screens/onboarding_screen.dart';
 /// Mendukung Email/Password (dengan verifikasi email) dan Google Sign-In.
 class AuthProvider extends ChangeNotifier {
   static const String _keyUsername = 'auth_username';
+  static const String _keyEmail = 'auth_email';
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -37,6 +38,7 @@ class AuthProvider extends ChangeNotifier {
       _isLoggedIn = true;
       _email = currentUser.email ?? '';
       _username = prefs.getString(_keyUsername) ?? currentUser.displayName ?? currentUser.email?.split('@').first ?? 'User';
+      await prefs.setString(_keyEmail, _email);
     } else {
       _isLoggedIn = false;
       _email = '';
@@ -93,6 +95,7 @@ class AuthProvider extends ChangeNotifier {
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_keyUsername, _username);
+        await prefs.setString(_keyEmail, _email);
 
         // Link onboarding records safely
         final hasPending = prefs.getBool('pending_onboarding_data') ?? false;
@@ -227,6 +230,7 @@ class AuthProvider extends ChangeNotifier {
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_keyUsername, _username);
+        await prefs.setString(_keyEmail, _email);
 
         // Cek apakah user baru (pertama kali login dengan Google)
         final isNewUser =
@@ -281,6 +285,7 @@ class AuthProvider extends ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyUsername);
+    await prefs.remove(_keyEmail);
 
     DatabaseService.resetInstance();
     notifyListeners();

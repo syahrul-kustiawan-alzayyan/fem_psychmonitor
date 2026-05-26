@@ -46,6 +46,9 @@ dependencies:
   record: ^6.2.0
   image_picker: ^1.2.1
   google_sign_in: ^7.2.0
+  google_mobile_ads: ^5.1.0
+  purchases_flutter: ^8.0.0
+  purchases_ui_flutter: ^8.0.0
 
 dev_dependencies:
   flutter_test:

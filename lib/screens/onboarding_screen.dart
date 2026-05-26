@@ -12,6 +12,8 @@ import 'onboarding/welcome_section.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/premium_provider.dart';
+import '../services/ad_service.dart';
 import '../services/database_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
@@ -141,21 +143,39 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.bg(context),
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(), // Prevent manual swipe
-        onPageChanged: (index) {
-          setState(() {
-            _currentPage = index;
-          });
-        },
+      body: Column(
         children: [
-          WelcomeSection(onNext: _nextPage),
-          MbtiSection(onNext: _nextPage),
-          PsySection(onNext: _nextPage),
-          ResultSection(
-            onComplete: () => _completeOnboarding(context),
-            userName: '',
+          // Banner Ad - Top
+          Consumer<PremiumProvider>(
+            builder: (context, premium, _) => premium.isPremium
+                ? const SizedBox.shrink()
+                : AdService().buildBannerWidget(height: 50, isTop: true),
+          ),
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
+              children: [
+                WelcomeSection(onNext: _nextPage),
+                MbtiSection(onNext: _nextPage),
+                PsySection(onNext: _nextPage),
+                ResultSection(
+                  onComplete: () => _completeOnboarding(context),
+                  userName: '',
+                ),
+              ],
+            ),
+          ),
+          // Banner Ad - Bottom
+          Consumer<PremiumProvider>(
+            builder: (context, premium, _) => premium.isPremium
+                ? const SizedBox.shrink()
+                : AdService().buildBannerWidget(height: 50, isTop: false),
           ),
         ],
       ),

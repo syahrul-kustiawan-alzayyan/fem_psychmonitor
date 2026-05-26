@@ -3,14 +3,16 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
-import '../main.dart'; // For MainNavigation & AppRouter
+import '../main.dart';
 import '../providers/locale_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/premium_provider.dart';
 import '../services/database_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import 'onboarding_screen.dart';
+import 'premium_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SettingsScreen — Halaman Pengaturan
@@ -176,6 +178,69 @@ class SettingsScreen extends StatelessWidget {
                     },
                   ),
                 ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // ── Section: Premium ────────────────────────────
+              _buildSectionLabel(context, 'Premium'),
+              const SizedBox(height: 10),
+
+              Consumer<PremiumProvider>(
+                builder: (context, premium, _) => _buildSettingsCard(
+                  context,
+                  children: [
+                    _buildSettingsTile(
+                      context,
+                      icon: premium.isPremium
+                          ? Icons.verified_rounded
+                          : Icons.star_border_rounded,
+                      iconColor: premium.isPremium
+                          ? const Color(0xFFF59E0B)
+                          : AppTheme.primaryColor,
+                      title: premium.isPremium
+                          ? (AppLocalizations.locale.startsWith('en')
+                              ? 'Premium Active'
+                              : 'Premium Aktif')
+                          : (AppLocalizations.locale.startsWith('en')
+                              ? 'Upgrade to Premium'
+                              : 'Upgrade ke Premium'),
+                      subtitle: premium.isPremium
+                          ? (premium.expiryDate != null
+                              ? '${AppLocalizations.locale.startsWith('en') ? "Expires" : "Berakhir"}: ${premium.expiryDate!.day}/${premium.expiryDate!.month}/${premium.expiryDate!.year}'
+                              : (AppLocalizations.locale.startsWith('en')
+                                  ? 'Active'
+                                  : 'Aktif'))
+                          : (AppLocalizations.locale.startsWith('en')
+                              ? 'Remove ads & unlock features'
+                              : 'Hilangkan iklan & buka fitur'),
+                      trailing: premium.isPremium
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'ACTIVE',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            )
+                          : null,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const PremiumScreen()),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 24),
@@ -674,6 +739,9 @@ class SettingsScreen extends StatelessWidget {
             onPressed: () async {
               // Reset database singleton to clear cached data
               DatabaseService.resetInstance();
+
+              // Hapus status premium lokal
+              ctx.read<PremiumProvider>().clearPremium();
 
               // Logout user
               await ctx.read<AuthProvider>().logout();

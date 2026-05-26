@@ -266,6 +266,49 @@ class DatabaseService {
     }
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // PREMIUM STATUS
+  // ═══════════════════════════════════════════════════════════════
+
+  /// Simpan status premium ke Firestore user document
+  static Future<void> updatePremiumStatus(bool isPremium, DateTime? expiry) async {
+    final docRef = _userDoc;
+    if (docRef == null) return;
+
+    try {
+      await docRef.set({
+        'is_premium': isPremium,
+        'premium_expiry': expiry != null ? Timestamp.fromDate(expiry) : null,
+        'updated_at': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Error updating premium status: $e');
+    }
+  }
+
+  /// Load premium status dari Firestore
+  /// Returns (isPremium, expiryDate)
+  static Future<({bool isPremium, DateTime? expiry})> loadPremiumStatus() async {
+    final docRef = _userDoc;
+    if (docRef == null) return (isPremium: false, expiry: null);
+
+    try {
+      final snapshot = await docRef.get();
+      if (!snapshot.exists) return (isPremium: false, expiry: null);
+
+      final data = snapshot.data() as Map<String, dynamic>;
+      final isPremium = data['is_premium'] as bool? ?? false;
+      DateTime? expiry;
+      if (data['premium_expiry'] != null) {
+        expiry = (data['premium_expiry'] as Timestamp).toDate();
+      }
+      return (isPremium: isPremium, expiry: expiry);
+    } catch (e) {
+      debugPrint('Error loading premium status: $e');
+      return (isPremium: false, expiry: null);
+    }
+  }
+
   /// Reset instance (untuk logout - dipanggil oleh AuthProvider)
   static void resetInstance() {
     // Tidak perlu apa-apa di Firestore, cukup sign out Firebase Auth

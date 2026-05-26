@@ -8,7 +8,10 @@ import 'l10n/app_localizations.dart';
 import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/premium_provider.dart';
 import 'theme/app_theme.dart';
+import 'services/ad_service.dart';
+import 'services/subscription_service.dart';
 import 'services/database_service.dart';
 import 'services/storage_service.dart';
 import 'models/user_model.dart';
@@ -17,6 +20,8 @@ import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/live_detection_screen.dart';
 import 'screens/history_screen.dart';
+import 'screens/premium_screen.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,19 +30,39 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // Inisialisasi Firebase
   await Firebase.initializeApp();
 
-  // Inisialisasi providers sebelum runApp
   final localeProvider = LocaleProvider();
   final themeProvider = ThemeProvider();
   final authProvider = AuthProvider();
+  final premiumProvider = PremiumProvider();
 
   await Future.wait([
     localeProvider.init(),
     themeProvider.init(),
     authProvider.init(),
   ]);
+  premiumProvider.init();
+
+  final adService = AdService();
+  adService.setProductionIds(
+    bannerTop: 'ca-app-pub-1119296580292407/3050744323',
+    bannerBottom: 'ca-app-pub-1119296580292407/9420711553',
+    interstitial: 'ca-app-pub-1119296580292407/1598061850',
+    appOpen: 'ca-app-pub-1119296580292407/6736057059',
+  );
+  await adService.init(premiumProvider);
+
+  final subscriptionService = SubscriptionService();
+  await subscriptionService.init(premiumProvider);
+
+  // Fallback: load premium dari Firestore jika RevenueCat gagal
+  if (!premiumProvider.isPremium && authProvider.isLoggedIn) {
+    final status = await DatabaseService.loadPremiumStatus();
+    if (status.isPremium) {
+      premiumProvider.setPremium(value: true, expiry: status.expiry);
+    }
+  }
 
   runApp(
     MultiProvider(
@@ -45,6 +70,7 @@ void main() async {
         ChangeNotifierProvider.value(value: localeProvider),
         ChangeNotifierProvider.value(value: themeProvider),
         ChangeNotifierProvider.value(value: authProvider),
+        ChangeNotifierProvider.value(value: premiumProvider),
       ],
       child: const FemPhysicsMonitorApp(),
     ),
@@ -52,16 +78,49 @@ void main() async {
 }
 
 /// Root aplikasi Fem-PhysicsMonitor
-class FemPhysicsMonitorApp extends StatelessWidget {
+class FemPhysicsMonitorApp extends StatefulWidget {
   const FemPhysicsMonitorApp({super.key});
+
+  @override
+  State<FemPhysicsMonitorApp> createState() => _FemPhysicsMonitorAppState();
+}
+
+class _FemPhysicsMonitorAppState extends State<FemPhysicsMonitorApp>
+    with WidgetsBindingObserver {
+  bool _isFirstResume = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (_isFirstResume) {
+        _isFirstResume = false;
+        return;
+      }
+
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.isLoggedIn) {
+        AdService().showAppOpenAd();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    // Watch locale agar rebuild saat bahasa berubah
     context.watch<LocaleProvider>();
 
-    // Update system UI overlay sesuai tema
     final isDark = themeProvider.isDark;
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
@@ -366,6 +425,21 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation>
     with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final premium = context.read<PremiumProvider>();
+      if (!premium.isPremium) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PremiumScreen()),
+        );
+      }
+    });
+  }
 
   void _navigateToRecording() {
     setState(() => _currentIndex = 1);

@@ -7,6 +7,8 @@ import 'package:fl_chart/fl_chart.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
+import '../providers/premium_provider.dart';
+import '../services/ad_service.dart';
 import '../services/audio_recorder_detection.dart';
 import '../services/database_service.dart';
 import '../services/suggestion_service.dart';
@@ -201,7 +203,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
           final user = await DatabaseService.getUser();
           final userId = user?.id ?? 1;
 
-          // Ambil saran dari saran.json berdasarkan MBTI + emosi
           final suggService = SuggestionService();
           await suggService.load();
           final mbtiType = user?.mbtiType ?? '';
@@ -221,7 +222,12 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
           );
 
           await DatabaseService.insertRecording(record);
-          
+
+          final premium = context.read<PremiumProvider>();
+          if (!premium.isPremium) {
+            await AdService().showInterstitialAd();
+          }
+
           if (mounted) {
             Navigator.push(
               context,
