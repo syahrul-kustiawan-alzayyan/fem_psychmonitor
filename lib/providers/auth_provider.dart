@@ -25,13 +25,6 @@ class AuthProvider extends ChangeNotifier {
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Inisialisasi Google Sign-In (wajib dipanggil sebelum authenticate)
-    try {
-      await GoogleSignIn.instance.initialize();
-    } catch (e) {
-      debugPrint('GoogleSignIn init error (mungkin sudah diinisialisasi): $e');
-    }
-
     // Cek apakah ada user yang sedang login di Firebase
     final currentUser = _auth.currentUser;
     if (currentUser != null) {
@@ -204,15 +197,18 @@ class AuthProvider extends ChangeNotifier {
   ///   'error' — gagal
   Future<String> signInWithGoogle({bool isLogin = false}) async {
     try {
-      // Trigger the Google authentication flow (v7 API)
-      final GoogleSignInAccount? googleUser =
-          await GoogleSignIn.instance.authenticate();
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        serverClientId: '637727281592-5lk5ga4di62olc97u47g56ohfe1m44dh.apps.googleusercontent.com',
+      );
+      
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
       // User membatalkan proses
       if (googleUser == null) return 'cancelled';
 
-      // Dapatkan idToken dari authentication (v7 API)
-      final idToken = googleUser.authentication.idToken;
+      // Dapatkan idToken dari authentication
+      final auth = await googleUser.authentication;
+      final idToken = auth.idToken;
 
       // Buat credential untuk Firebase (hanya butuh idToken)
       final credential = GoogleAuthProvider.credential(
@@ -275,7 +271,8 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     // Sign out dari Google juga
     try {
-      await GoogleSignIn.instance.disconnect();
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      await googleSignIn.disconnect();
     } catch (_) {}
 
     await _auth.signOut();
