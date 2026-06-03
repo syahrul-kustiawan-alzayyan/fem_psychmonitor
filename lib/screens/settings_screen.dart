@@ -207,7 +207,7 @@ class SettingsScreen extends StatelessWidget {
                               : 'Upgrade ke Premium'),
                       subtitle: premium.isPremium
                           ? (premium.expiryDate != null
-                              ? '${AppLocalizations.locale.startsWith('en') ? "Expires" : "Berakhir"}: ${premium.expiryDate!.day}/${premium.expiryDate!.month}/${premium.expiryDate!.year}'
+                              ? _formatRemainingTime(premium.expiryDate!)
                               : (AppLocalizations.locale.startsWith('en')
                                   ? 'Active'
                                   : 'Aktif'))
@@ -835,5 +835,34 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatRemainingTime(DateTime expiry) {
+    final now = DateTime.now();
+    final diff = expiry.difference(now);
+
+    if (diff.isNegative) {
+      return AppLocalizations.locale.startsWith('en')
+          ? 'Expired'
+          : 'Kedaluwarsa';
+    }
+
+    if (diff.inDays > 0) {
+      return AppLocalizations.locale.startsWith('en')
+          ? '${diff.inDays} day${diff.inDays > 1 ? 's' : ''} remaining'
+          : 'Sisa ${diff.inDays} hari';
+    } else if (diff.inHours > 0) {
+      return AppLocalizations.locale.startsWith('en')
+          ? '${diff.inHours} hour${diff.inHours > 1 ? 's' : ''} remaining'
+          : 'Sisa ${diff.inHours} jam';
+    } else if (diff.inMinutes > 0) {
+      return AppLocalizations.locale.startsWith('en')
+          ? '${diff.inMinutes} minute${diff.inMinutes > 1 ? 's' : ''} remaining'
+          : 'Sisa ${diff.inMinutes} menit';
+    } else {
+      return AppLocalizations.locale.startsWith('en')
+          ? 'Expired'
+          : 'Kedaluwarsa';
+    }
   }
 }

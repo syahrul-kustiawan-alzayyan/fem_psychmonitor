@@ -19,7 +19,9 @@ class SubscriptionService {
     if (_isInitialized) return;
     try {
       await Purchases.setLogLevel(LogLevel.debug);
-      await Purchases.configure(PurchasesConfiguration('test_hMfwtNxLDmiBbsANAXlvbWAwvRv'));
+      await Purchases.configure(
+        PurchasesConfiguration('test_hMfwtNxLDmiBbsANAXlvbWAwvRv'),
+      );
       final customerInfo = await Purchases.getCustomerInfo();
       _checkEntitlements(customerInfo, premiumProvider);
       _isInitialized = true;
@@ -35,10 +37,7 @@ class SubscriptionService {
       if (premium.expirationDate != null) {
         expiry = DateTime.tryParse(premium.expirationDate!);
       }
-      premiumProvider.setPremium(
-        value: true,
-        expiry: expiry,
-      );
+      premiumProvider.setPremium(value: true, expiry: expiry);
       DatabaseService.updatePremiumStatus(true, expiry);
     } else {
       premiumProvider.clearPremium();
@@ -59,7 +58,10 @@ class SubscriptionService {
     }
   }
 
-  Future<bool> purchasePackage(Package package, PremiumProvider premiumProvider) async {
+  Future<bool> purchasePackage(
+    Package package,
+    PremiumProvider premiumProvider,
+  ) async {
     try {
       final customerInfo = await Purchases.purchasePackage(package);
       _checkEntitlements(customerInfo, premiumProvider);

@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:637727281592:android:4c76260f7b37b4198a3f4d",
         "android_client_info": {
-          "package_name": "com.example.fem_physicsmonitor"
+          "package_name": "com.femphysicsmonitor.app"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "637727281592-75m3icjatat7f9njfqrp768a0kl7fbu0.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.fem_physicsmonitor",
+            "package_name": "com.femphysicsmonitor.app",
             "certificate_hash": "a915647c0e7c28f5bdedf31a08941611653d0729"
           }
         },
