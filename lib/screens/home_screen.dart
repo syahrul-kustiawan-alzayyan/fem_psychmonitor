@@ -493,14 +493,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         final user = snapshot.data;
         final basePsychScore = user?.psychologicalScore; // 0-60 (tinggi = buruk)
 
-        // Hitung skor emosi dari semua sesi deteksi
+        // Gunakan skor emosi terakhir (paling baru)
         double emotionAdjustment = 0;
         if (history.isNotEmpty) {
-          final avgEmotionScore = history.fold<double>(
-            0, (sum, r) => sum + r.emotionScore,
-          ) / history.length;
-          // Normalisasi: avgEmotionScore range -5..+5
-          emotionAdjustment = avgEmotionScore;
+          emotionAdjustment = history.first.emotionScore;
         }
 
         // Konversi ke skala 0-100 (tinggi = sehat)

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/user_model.dart';
 import '../services/database_service.dart';
 import '../screens/onboarding_screen.dart';
 
@@ -101,7 +102,14 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
 
         if (appUser == null && !hasPending) {
-          return 'new_user';
+          final minimalUser = AppUser(
+            name: _username,
+            mbtiType: '',
+            mbtiScores: {},
+            createdAt: DateTime.now(),
+          );
+          await DatabaseService.insertUser(minimalUser);
+          return 'success';
         }
 
         return 'success';
@@ -241,9 +249,16 @@ class AuthProvider extends ChangeNotifier {
         }
 
         if (isNewUser) {
-          // User baru via Google (hanya di tab register) — perlu onboarding
+          // User baru via Google — auto-create minimal record
+          final minimalUser = AppUser(
+            name: _username,
+            mbtiType: '',
+            mbtiScores: {},
+            createdAt: DateTime.now(),
+          );
+          await DatabaseService.insertUser(minimalUser);
           notifyListeners();
-          return 'new_user';
+          return 'success';
         }
 
         // User lama — cek dan sync pending onboarding data

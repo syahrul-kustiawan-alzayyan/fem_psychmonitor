@@ -14,7 +14,6 @@ import 'services/ad_service.dart';
 import 'services/subscription_service.dart';
 import 'services/database_service.dart';
 import 'services/storage_service.dart';
-import 'models/user_model.dart';
 import 'screens/auth_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
@@ -183,36 +182,9 @@ class AppRouter extends StatelessWidget {
           return const AuthScreen();
         }
 
-        // Jika sudah login, cek apakah user sudah ada di database (selesai onboarding)
-        return FutureBuilder<AppUser?>(
-          future: DatabaseService.getUser(),
-          builder: (context, userSnapshot) {
-            if (userSnapshot.connectionState == ConnectionState.waiting) {
-              return const _SplashScreen();
-            }
-
-            // Jika user belum ada di database, arahkan ke OnboardingScreen
-            if (userSnapshot.data == null) {
-              return OnboardingScreen(
-                onCompleted: () {
-                  // Setelah onboarding selesai, langsung masuk ke aplikasi.
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) => MainNavigation(
-                        key: ValueKey('main_nav_${authProvider.username}'),
-                      ),
-                    ),
-                  );
-                },
-              );
-            }
-
-            // Jika sudah ada data user, langsung ke main navigation
-            // Gunakan key unik berdasarkan username untuk memastikan state direset
-            return MainNavigation(
-              key: ValueKey('main_nav_${authProvider.username}'),
-            );
-          },
+        // Jika sudah login, langsung ke main navigation
+        return MainNavigation(
+          key: ValueKey('main_nav_${authProvider.username}'),
         );
       },
     );
