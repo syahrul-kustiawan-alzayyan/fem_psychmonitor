@@ -28,6 +28,104 @@ class HistoryScreen extends StatefulWidget {
 // ── Enum filter waktu ──
 enum TimeFilter { all, today, week7, month30, custom }
 
+// ── Custom Dot Painters with data labels ──
+
+class _ScoreLabelDotPainter extends FlDotCirclePainter {
+  _ScoreLabelDotPainter({
+    required this.label,
+    required super.radius,
+    required super.color,
+    super.strokeWidth,
+    super.strokeColor,
+  });
+
+  final String label;
+
+  @override
+  void draw(Canvas canvas, FlSpot spot, Offset offset) {
+    super.draw(canvas, spot, offset);
+
+    if (label.isEmpty) return;
+
+    final glowPaint = Paint()
+      ..color = color.withValues(alpha: 0.2)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawCircle(offset, radius + 5, glowPaint);
+
+    final tp = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          shadows: [Shadow(color: Colors.black38, blurRadius: 4)],
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final dx = offset.dx - tp.width / 2;
+    final dy = offset.dy - radius - tp.height - 4;
+
+    final bgRect = Rect.fromLTWH(dx - 4, dy - 2, tp.width + 8, tp.height + 4);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(bgRect, const Radius.circular(6)),
+      Paint()..color = Colors.black.withValues(alpha: 0.55),
+    );
+
+    tp.paint(canvas, Offset(dx, dy));
+  }
+}
+
+class _EmotionLabelDotPainter extends FlDotCirclePainter {
+  _EmotionLabelDotPainter({
+    required this.label,
+    required super.radius,
+    required super.color,
+    super.strokeWidth,
+    super.strokeColor,
+  });
+
+  final String label;
+
+  @override
+  void draw(Canvas canvas, FlSpot spot, Offset offset) {
+    super.draw(canvas, spot, offset);
+
+    if (label.isEmpty) return;
+
+    final glowPaint = Paint()
+      ..color = color.withValues(alpha: 0.25)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawCircle(offset, radius + 5, glowPaint);
+
+    final tp = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          shadows: [Shadow(color: Colors.black38, blurRadius: 4)],
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final dx = offset.dx - tp.width / 2;
+    final dy = offset.dy - radius - tp.height - 4;
+
+    final bgRect = Rect.fromLTWH(dx - 4, dy - 2, tp.width + 8, tp.height + 4);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(bgRect, const Radius.circular(6)),
+      Paint()..color = Colors.black.withValues(alpha: 0.55),
+    );
+
+    tp.paint(canvas, Offset(dx, dy));
+  }
+}
+
 class _HistoryScreenState extends State<HistoryScreen>
     with SingleTickerProviderStateMixin {
   EmotionType? _selectedFilter;
@@ -156,6 +254,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     if (_isLoading) {
       return Scaffold(
         backgroundColor: Colors.transparent,
+        extendBodyBehindAppBar: true,
         appBar: _buildAppBar(context),
         body: GradientBackground(
           child: Center(
@@ -167,6 +266,7 @@ class _HistoryScreenState extends State<HistoryScreen>
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: _buildAppBar(context),
       body: GradientBackground(
         useOverlay: true,
@@ -268,13 +368,13 @@ class _HistoryScreenState extends State<HistoryScreen>
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                            color: AppTheme.iconColor(context).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                           ),
                           child: Text(
                             AppLocalizations.tr('see_all'),
                             style: GoogleFonts.poppins(
-                              color: AppTheme.primaryColor,
+                              color: AppTheme.iconColor(context),
                               fontWeight: FontWeight.w600,
                               fontSize: 12.5,
                             ),
@@ -334,27 +434,41 @@ class _HistoryScreenState extends State<HistoryScreen>
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight),
       child: AppBar(
-        backgroundColor: AppTheme.bg(context),
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
+            ShaderMask(
+              shaderCallback: (bounds) =>
+                  AppTheme.primaryGradient.createShader(bounds),
               child: const Icon(
                 Icons.bar_chart_rounded,
-                color: AppTheme.primaryColor,
-                size: 16,
+                color: Colors.white,
+                size: 22,
               ),
             ),
-            const SizedBox(width: 8),
-            Text(AppLocalizations.tr('nav_history')),
+            const SizedBox(width: 10),
+            ShaderMask(
+              shaderCallback: (bounds) =>
+                  AppTheme.primaryGradient.createShader(
+                    Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                  ),
+              child: Text(
+                AppLocalizations.tr('nav_history'),
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
           ],
         ),
-        iconTheme: IconThemeData(color: AppTheme.textP(context)),
+        iconTheme: IconThemeData(
+          color: AppTheme.textP(context),
+        ),
       ),
     );
   }
@@ -490,7 +604,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         value: '${history.length}',
         label: AppLocalizations.tr('total'),
         icon: Icons.bar_chart_rounded,
-        color: AppTheme.primaryColor,
+        color: AppTheme.iconColor(context),
       ),
       (
         value: '$positiveCount',
@@ -685,6 +799,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                           child: _buildChart(
                             context, history, spots, emotionColors,
                             showLeftTitles: false,
+                            showDataLabels: false,
                           ),
                         ),
                       ),
@@ -714,8 +829,6 @@ class _HistoryScreenState extends State<HistoryScreen>
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(e.emoji, style: const TextStyle(fontSize: 11)),
-              const SizedBox(width: 3),
               Container(
                 width: 8,
                 height: 8,
@@ -843,16 +956,24 @@ class _HistoryScreenState extends State<HistoryScreen>
             boxShadow: AppTheme.cardShadow,
           ),
           child: history.length > 10
-              ? SizedBox(
-                  height: 260,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: SizedBox(
-                      width: (MediaQuery.of(context).size.width - 48) * (history.length / 10),
+              ? Row(
+                  children: [
+                    SizedBox(
+                      width: 32,
                       height: 260,
-                      child: _buildMentalScoreChartData(context, history, spots, scoreColor),
+                      child: _buildMentalScoreYAxisLabels(context),
                     ),
-                  ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SizedBox(
+                          width: (MediaQuery.of(context).size.width - 48 - 32) * (history.length / 10),
+                          height: 260,
+                          child: _buildMentalScoreChartData(context, history, spots, scoreColor, showLeftTitles: false, showDataLabels: false),
+                        ),
+                      ),
+                    ),
+                  ],
                 )
               : SizedBox(
                   height: 260,
@@ -928,6 +1049,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     List<FlSpot> spots,
     Color Function(double) scoreColor, {
     bool showLeftTitles = true,
+    bool showDataLabels = true,
   }) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 20, 16, 8),
@@ -937,11 +1059,13 @@ class _HistoryScreenState extends State<HistoryScreen>
             show: true,
             drawVerticalLine: false,
             getDrawingHorizontalLine: (v) {
+              Color lineColor;
               if (v == 25 || v == 50 || v == 75) {
+                lineColor = scoreColor(v).withValues(alpha: 0.5);
                 return FlLine(
-                  color: AppTheme.textH(context).withValues(alpha: 0.35),
-                  strokeWidth: 1.2,
-                  dashArray: [5, 4],
+                  color: lineColor,
+                  strokeWidth: 1.5,
+                  dashArray: [6, 4],
                 );
               }
               return FlLine(
@@ -962,6 +1086,29 @@ class _HistoryScreenState extends State<HistoryScreen>
             rightTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: false),
             ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: showLeftTitles && history.length <= 10,
+                interval: history.length > 1 ? (history.length - 1) / 3 : 1,
+                reservedSize: 24,
+                getTitlesWidget: (v, _) {
+                  final idx = v.toInt();
+                  if (idx < 0 || idx >= history.length) return const SizedBox.shrink();
+                  final date = history[idx].timestamp;
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      '${date.day}/${date.month}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.textH(context).withValues(alpha: 0.5),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: showLeftTitles,
@@ -972,7 +1119,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                     style: GoogleFonts.poppins(
                       fontSize: 9,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textH(context),
+                      color: AppTheme.textH(context).withValues(alpha: 0.7),
                     ),
                   );
                 },
@@ -984,17 +1131,17 @@ class _HistoryScreenState extends State<HistoryScreen>
             LineChartBarData(
               spots: spots,
               isCurved: true,
-              curveSmoothness: 0.25,
-              color: const Color(0xFF6366F1),
-              barWidth: 2.5,
+              curveSmoothness: 0.3,
+              barWidth: 3,
               isStrokeCapRound: true,
               dotData: FlDotData(
                 show: true,
                 getDotPainter: (spot, pct, bar, idx) {
-                  return FlDotCirclePainter(
-                    radius: 5,
+                  return _ScoreLabelDotPainter(
+                    label: showDataLabels ? spot.y.toStringAsFixed(0) : '',
+                    radius: 6,
                     color: scoreColor(spot.y),
-                    strokeWidth: 2.5,
+                    strokeWidth: 3,
                     strokeColor: Colors.white,
                   );
                 },
@@ -1008,11 +1155,40 @@ class _HistoryScreenState extends State<HistoryScreen>
                 ],
                 stops: const [0.0, 0.25, 0.5, 0.75],
               ),
+              aboveBarData: BarAreaData(
+                show: true,
+                applyCutOffY: true,
+                cutOffY: 25,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF10B981).withValues(alpha: 0.08),
+                    const Color(0xFF10B981).withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+              belowBarData: BarAreaData(
+                show: true,
+                applyCutOffY: true,
+                cutOffY: 25,
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    const Color(0xFFEF4444).withValues(alpha: 0.06),
+                    const Color(0xFFEF4444).withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
             ),
           ],
           lineTouchData: LineTouchData(
             enabled: true,
             touchTooltipData: LineTouchTooltipData(
+              getTooltipColor: (spot) {
+                return scoreColor(spot.y).withValues(alpha: 0.92);
+              },
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   final i = spot.spotIndex;
@@ -1031,10 +1207,11 @@ class _HistoryScreenState extends State<HistoryScreen>
                       : '';
                   return LineTooltipItem(
                     '${spot.y.toStringAsFixed(0)}\n$date • $label',
-                    TextStyle(
-                      color: scoreColor(spot.y),
-                      fontWeight: FontWeight.w600,
+                    GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
                       fontSize: 12,
+                      height: 1.4,
                     ),
                   );
                 }).toList();
@@ -1069,6 +1246,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     List<FlSpot> spots,
     List<Color> emotionColors, {
     bool showLeftTitles = true,
+    bool showDataLabels = true,
   }) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 20, 16, 8),
@@ -1081,13 +1259,13 @@ class _HistoryScreenState extends State<HistoryScreen>
               if (v == 0) {
                 return FlLine(
                   color: AppTheme.textH(context).withValues(alpha: 0.5),
-                  strokeWidth: 1.5,
+                  strokeWidth: 2,
                   dashArray: [4, 4],
                 );
               }
               return FlLine(
-                color: AppTheme.textH(context).withValues(alpha: 0.1),
-                strokeWidth: 0.8,
+                color: AppTheme.textH(context).withValues(alpha: 0.08),
+                strokeWidth: 0.6,
               );
             },
           ),
@@ -1103,6 +1281,29 @@ class _HistoryScreenState extends State<HistoryScreen>
             rightTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: false),
             ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: showLeftTitles && history.length <= 10,
+                interval: history.length > 1 ? (history.length - 1) / 3 : 1,
+                reservedSize: 24,
+                getTitlesWidget: (v, _) {
+                  final idx = v.toInt();
+                  if (idx < 0 || idx >= history.length) return const SizedBox.shrink();
+                  final date = history[idx].timestamp;
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      '${date.day}/${date.month}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.textH(context).withValues(alpha: 0.5),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: showLeftTitles,
@@ -1114,10 +1315,10 @@ class _HistoryScreenState extends State<HistoryScreen>
                     style: GoogleFonts.poppins(
                       fontSize: 9,
                       color: v > 0
-                          ? const Color(0xFF10B981)
+                          ? const Color(0xFF10B981).withValues(alpha: 0.8)
                           : v < 0
-                              ? const Color(0xFFEF4444)
-                              : AppTheme.textH(context),
+                              ? const Color(0xFFEF4444).withValues(alpha: 0.8)
+                              : AppTheme.textH(context).withValues(alpha: 0.6),
                       fontWeight: FontWeight.w600,
                     ),
                   );
@@ -1130,11 +1331,11 @@ class _HistoryScreenState extends State<HistoryScreen>
             LineChartBarData(
               spots: spots,
               isCurved: true,
-              curveSmoothness: 0.25,
+              curveSmoothness: 0.3,
               gradient: const LinearGradient(
                 colors: [Color(0xFF10B981), Color(0xFF6366F1)],
               ),
-              barWidth: 2.5,
+              barWidth: 3,
               isStrokeCapRound: true,
               dotData: FlDotData(
                 show: true,
@@ -1142,10 +1343,14 @@ class _HistoryScreenState extends State<HistoryScreen>
                   final dotColor = idx < emotionColors.length
                       ? emotionColors[idx]
                       : AppTheme.primaryColor;
-                  return FlDotCirclePainter(
-                    radius: 5,
+                  final label = spot.y > 0
+                      ? '+${spot.y.toStringAsFixed(1)}'
+                      : spot.y.toStringAsFixed(1);
+                  return _EmotionLabelDotPainter(
+                    label: showDataLabels ? label : '',
+                    radius: 6,
                     color: dotColor,
-                    strokeWidth: 2.5,
+                    strokeWidth: 3,
                     strokeColor: Colors.white,
                   );
                 },
@@ -1257,16 +1462,6 @@ class _HistoryScreenState extends State<HistoryScreen>
             padding: const EdgeInsets.symmetric(vertical: 5),
             child: Row(
               children: [
-                // Emotion icon + name
-                Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: emotion.color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(7),
-                  ),
-                  child: Icon(emotion.icon, color: emotion.color, size: 14),
-                ),
-                const SizedBox(width: 8),
                 SizedBox(
                   width: 60,
                   child: Text(
@@ -1338,7 +1533,7 @@ class _HistoryScreenState extends State<HistoryScreen>
           final isSelected = _selectedFilter == e;
           final label = e == null
               ? AppLocalizations.tr('all_filter')
-              : '${e.emoji} ${e.displayName}';
+                  : e.displayName;
           final color = e == null ? AppTheme.primaryColor : e.color;
 
           return GestureDetector(
@@ -1408,28 +1603,18 @@ class _HistoryScreenState extends State<HistoryScreen>
                     child: Row(
                       children: [
                         // Icon
-                        Container(
-                          padding: const EdgeInsets.all(9),
-                          decoration: BoxDecoration(
-                            color: record.emotion.color.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(
-                              AppTheme.radiusSm,
-                            ),
-                          ),
-                          child: Icon(
-                            record.emotion.icon,
-                            color: record.emotion.color,
-                            size: 22,
-                          ),
+                        Image.asset(
+                          record.emotion.assetIconPath,
+                          width: 48,
+                          height: 48,
                         ),
-                        const SizedBox(width: 12),
-                        // Name + time + score
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${record.emotion.emoji} ${record.emotion.displayName}',
+                                record.emotion.displayName,
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
@@ -1556,10 +1741,10 @@ class _HistoryScreenState extends State<HistoryScreen>
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+            color: AppTheme.iconColor(context).withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: AppTheme.primaryColor, size: 16),
+          child: Icon(icon, color: AppTheme.iconColor(context), size: 16),
         ),
         const SizedBox(width: 8),
         Text(
@@ -1641,10 +1826,10 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                color: AppTheme.iconColor(context).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.list_alt_rounded, color: AppTheme.primaryColor, size: 16),
+              child: Icon(Icons.list_alt_rounded, color: AppTheme.iconColor(context), size: 16),
             ),
             const SizedBox(width: 8),
             Text(AppLocalizations.tr('detection_log'),
@@ -1698,11 +1883,11 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                         children: [
                           Icon(
                             _sortOrder == 'newest' ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
-                            size: 16, color: AppTheme.primaryColor,
+                            size: 16, color: AppTheme.iconColor(context),
                           ),
                           const SizedBox(width: 4),
                           Text(_sortOrder == 'newest' ? AppLocalizations.tr('sort_newest') : AppLocalizations.tr('sort_oldest'),
-                              style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.primaryColor)),
+                              style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.iconColor(context))),
                         ],
                       ),
                     ),
@@ -1719,7 +1904,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                   _buildChip(null, AppLocalizations.tr('all_filter'), widget.allHistory.length),
                   ...EmotionType.values.map((e) {
                     final count = widget.allHistory.where((r) => r.emotion == e).length;
-                    return _buildChip(e, '${e.emoji} ${e.displayName}', count);
+                    return _buildChip(e, e.displayName, count);
                   }),
                 ],
               ),
@@ -1837,21 +2022,20 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(9),
-                        decoration: BoxDecoration(
-                          color: record.emotion.color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                        ),
-                        child: Icon(record.emotion.icon, color: record.emotion.color, size: 22),
+                      Image.asset(
+                        record.emotion.assetIconPath,
+                        width: 56,
+                        height: 56,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('${record.emotion.emoji} ${record.emotion.displayName}',
-                                style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14, color: AppTheme.textP(context))),
+                            Text(
+                              record.emotion.displayName,
+                              style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14, color: AppTheme.textP(context)),
+                            ),
                             const SizedBox(height: 3),
                             Row(
                               children: [

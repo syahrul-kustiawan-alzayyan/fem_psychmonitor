@@ -306,7 +306,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: AppTheme.primaryColor,
+                        color: AppTheme.textS(context),
                       ),
                     ),
                     TextSpan(
@@ -426,7 +426,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     Text(
                       AppLocalizations.tr('login_signup'),
                       style: GoogleFonts.poppins(
-                        color: AppTheme.primaryColor,
+                        color: AppTheme.primaryDark,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -493,13 +493,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         final user = snapshot.data;
         final basePsychScore = user?.psychologicalScore; // 0-60 (tinggi = buruk)
 
-        // Hitung skor emosi dari deteksi terbaru (max 10 sesi terakhir)
+        // Hitung skor emosi dari semua sesi deteksi
         double emotionAdjustment = 0;
         if (history.isNotEmpty) {
-          final recentSessions = history.take(10).toList();
-          final avgEmotionScore = recentSessions.fold<double>(
+          final avgEmotionScore = history.fold<double>(
             0, (sum, r) => sum + r.emotionScore,
-          ) / recentSessions.length;
+          ) / history.length;
           // Normalisasi: avgEmotionScore range -5..+5
           emotionAdjustment = avgEmotionScore;
         }
@@ -709,7 +708,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     // Skor besar: 0-100 scale
                     Row(
                       children: [
-                        Text(emoji, style: const TextStyle(fontSize: 32)),
+                        Image.asset(
+                          _mentalLevelIcon(displayScore100),
+                          width: 56,
+                          height: 56,
+                        ),
                         const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -759,40 +762,40 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ],
 
                     // Deskripsi/saran
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.25),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.lightbulb_outline_rounded,
-                            color: Colors.white.withValues(alpha: 0.9),
-                            size: 16,
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            width: 1,
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              description,
-                              style: GoogleFonts.poppins(
-                                fontSize: 11.5,
-                                color: Colors.white.withValues(alpha: 0.95),
-                                height: 1.5,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.lightbulb_outline_rounded,
+                              color: Colors.white.withValues(alpha: 0.9),
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                description,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11.5,
+                                  color: Colors.white.withValues(alpha: 0.95),
+                                  height: 1.5,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
 
-                    // Indikator dampak emosi terbaru
+                    // Indikator dampak emosi
                     if (history.isNotEmpty && displayScore100 != null) ...[
                       const SizedBox(height: 10),
                       Container(
@@ -875,9 +878,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                         child: Row(
                           children: [
-                            Text(
-                              latest.emotion.emoji,
-                              style: const TextStyle(fontSize: 18),
+                            Image.asset(
+                              latest.emotion.assetIconPath,
+                              width: 36,
+                              height: 36,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -889,9 +893,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     style: GoogleFonts.poppins(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w500,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.75,
-                                      ),
+                                      color: Colors.white.withValues(alpha: 0.75),
                                     ),
                                   ),
                                   Text(
@@ -924,6 +926,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         );
       },
     );
+  }
+
+  // Path aset level mental berdasarkan skor
+  String _mentalLevelIcon(int? score) {
+    if (score == null) return 'assets/icon/level mental/butuh perhatian.png';
+    if (score >= 75) return 'assets/icon/level mental/baik.png';
+    if (score >= 50) return 'assets/icon/level mental/cukup.png';
+    if (score >= 25) return 'assets/icon/level mental/rentan.png';
+    return 'assets/icon/level mental/butuh perhatian.png';
   }
 
   // Helper untuk kategori skor 0-100 (tinggi = baik)
@@ -963,7 +974,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         value: '${history.length}',
         label: AppLocalizations.tr('recordings'),
         icon: Icons.analytics_rounded,
-        color: AppTheme.primaryColor,
+        color: AppTheme.iconColor(context),
       ),
       (
         value: '$positiveCount',
@@ -1261,15 +1272,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: dominant.color.withValues(alpha: 0.15),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(dominant.icon, color: dominant.color, size: 18),
+                      Image.asset(
+                        dominant.assetIconPath,
+                        width: 60,
+                        height: 60,
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: RichText(
                           text: TextSpan(
@@ -1283,7 +1291,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 ),
                               ),
                               TextSpan(
-                                text: '${dominant.emoji} ${dominant.displayName}',
+                                text: dominant.displayName,
                                 style: GoogleFonts.poppins(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w700,
@@ -1305,7 +1313,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   title: title,
                   suggestions: suggestions,
                   icon: Icons.tips_and_updates_rounded,
-                  color: AppTheme.primaryColor,
+                  color: AppTheme.iconColor(context),
                   isCollapsible: true,
                 ),
               ],
@@ -1344,13 +1352,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  color: AppTheme.iconColor(context).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 ),
                 child: Text(
                   AppLocalizations.tr('see_all'),
                   style: GoogleFonts.poppins(
-                    color: AppTheme.primaryColor,
+                    color: AppTheme.iconColor(context),
                     fontWeight: FontWeight.w600,
                     fontSize: 12.5,
                   ),
@@ -1399,28 +1407,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   child: Row(
                     children: [
                       // Ikon emosi
-                      Container(
-                        padding: const EdgeInsets.all(9),
-                        decoration: BoxDecoration(
-                          color: record.emotion.color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(
-                            AppTheme.radiusSm,
-                          ),
-                        ),
-                        child: Icon(
-                          record.emotion.icon,
-                          color: record.emotion.color,
-                          size: 22,
-                        ),
+                      Image.asset(
+                        record.emotion.assetIconPath,
+                        width: 48,
+                        height: 48,
                       ),
-                      const SizedBox(width: 12),
-                      // Nama + waktu
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${record.emotion.emoji} ${record.emotion.displayName}',
+                              record.emotion.displayName,
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
@@ -1485,10 +1483,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+            color: AppTheme.iconColor(context).withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: AppTheme.primaryColor, size: 16),
+          child: Icon(icon, color: AppTheme.iconColor(context), size: 16),
         ),
         const SizedBox(width: 8),
         Text(title, style: Theme.of(context).textTheme.titleLarge),

@@ -355,15 +355,11 @@ class _PsySectionState extends State<PsySection> {
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF4A90E2), Color(0xFFFF6B9D)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: AppTheme.primaryGradient,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFF6B9D).withValues(alpha: 0.3),
+                    color: AppTheme.secondaryColor.withValues(alpha: 0.3),
                     blurRadius: 15,
                     offset: const Offset(0, 8),
                   ),
@@ -651,32 +647,25 @@ class _PsySectionState extends State<PsySection> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            gradient: isDisabled
-                ? null
-                : const LinearGradient(
-                    colors: [Color(0xFF4A90E2), Color(0xFFFF6B9D)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+            gradient: isDisabled ? null : AppTheme.primaryGradient,
             color: isDisabled ? AppTheme.surfVar(context) : null,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: isDisabled
-                ? null
-                : [
-                    BoxShadow(
-                      color: const Color(0xFFFF6B9D).withValues(alpha: 0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+            shape: BoxShape.circle,
+            boxShadow: isDisabled ? null : [
+              BoxShadow(
+                color: AppTheme.secondaryColor.withValues(alpha: 0.35),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: Icon(
             icon,
-            size: 24,
+            size: 22,
             color: isDisabled ? AppTheme.textS(context) : Colors.white,
           ),
         ),

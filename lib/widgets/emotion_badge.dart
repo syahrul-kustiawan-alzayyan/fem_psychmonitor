@@ -21,7 +21,7 @@ class EmotionBadge extends StatelessWidget {
     this.confidence,
     this.showLabel = true,
     this.showConfidence = false,
-    this.iconSize = 18,
+    this.iconSize = 34,
   });
 
   @override
@@ -39,11 +39,11 @@ class EmotionBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(emotion.icon, color: emotion.color, size: iconSize),
+              Image.asset(emotion.assetIconPath, width: iconSize, height: iconSize),
           if (showLabel) ...[
             const SizedBox(width: 5),
             Text(
-              '${emotion.emoji} ${emotion.displayName}',
+              emotion.displayName,
               style: GoogleFonts.poppins(
                 color: emotion.color,
                 fontWeight: FontWeight.w600,
@@ -173,20 +173,11 @@ class EmotionResultCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        // Inner circle + icon
-                        Container(
+                        // Icon
+                        Image.asset(
+                          emotion.assetIconPath,
                           width: 76,
                           height: 76,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: emotion.color.withValues(alpha: 0.15),
-                          ),
-                          child: Center(
-                            child: Text(
-                              emotion.emoji,
-                              style: const TextStyle(fontSize: 34),
-                            ),
-                          ),
                         ),
                       ],
                     ),

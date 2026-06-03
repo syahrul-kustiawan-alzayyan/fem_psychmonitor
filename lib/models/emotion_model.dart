@@ -33,6 +33,18 @@ extension EmotionTypeExtension on EmotionType {
     }
   }
 
+  /// Path aset PNG dari folder assets/icon/emosi/
+  String get assetIconPath {
+    switch (this) {
+      case EmotionType.happy:   return 'assets/icon/emosi/happy.png';
+      case EmotionType.sad:     return 'assets/icon/emosi/sad.png';
+      case EmotionType.angry:   return 'assets/icon/emosi/anger.png';
+      case EmotionType.disgust: return 'assets/icon/emosi/disgust.png';
+      case EmotionType.neutral: return 'assets/icon/emosi/neutral.png';
+      case EmotionType.fear:    return 'assets/icon/emosi/fear.png';
+    }
+  }
+
   /// Ikon Material Icons
   IconData get icon {
     switch (this) {

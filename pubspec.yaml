@@ -84,6 +84,8 @@ flutter:
     - assets/psych_en.json
     - assets/saran.json
     - assets/saran_en.json
+    - assets/icon/emosi/
+    - assets/icon/level mental/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

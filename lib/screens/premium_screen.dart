@@ -185,16 +185,16 @@ class _PremiumScreenState extends State<PremiumScreen> with SingleTickerProvider
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                                  color: AppTheme.iconColor(context).withValues(alpha: 0.2),
                                   blurRadius: 24,
                                   spreadRadius: 8,
                                 )
                               ],
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.diamond_rounded,
                               size: 48,
-                              color: AppTheme.primaryColor,
+                              color: AppTheme.iconColor(context),
                             ),
                           ),
                         ),
@@ -355,12 +355,12 @@ class _PremiumScreenState extends State<PremiumScreen> with SingleTickerProvider
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                color: AppTheme.iconColor(context).withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icons[i],
-                color: AppTheme.primaryColor,
+                color: AppTheme.iconColor(context),
                 size: 18,
               ),
             ),

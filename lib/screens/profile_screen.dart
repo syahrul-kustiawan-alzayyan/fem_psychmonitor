@@ -91,10 +91,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    color: AppTheme.iconColor(context).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.camera_alt_rounded, color: AppTheme.primaryColor),
+                  child: Icon(Icons.camera_alt_rounded, color: AppTheme.iconColor(context)),
                 ),
                 title: Text(AppLocalizations.tr('camera'), style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
                 onTap: () {
@@ -242,12 +242,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: EdgeInsets.zero,
         content: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF2563EB), Color(0xFFDB2777)],
-            ),
-            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-            boxShadow: [
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 8,
@@ -280,12 +278,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                color: AppTheme.iconColor(context).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.person_rounded,
-                color: AppTheme.primaryColor,
+                color: AppTheme.iconColor(context),
                 size: 16,
               ),
             ),
@@ -307,14 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     height: 140,
                     width: double.infinity,
                     decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color(0xFF3B82F6),
-                          Color(0xFFEC4899),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
+                      gradient: AppTheme.primaryGradient,
                     ),
                   ),
                   Positioned(
@@ -495,7 +486,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           Icon(
                             Icons.verified_user_rounded,
-                            color: AppTheme.primaryColor,
+                            color: AppTheme.iconColor(context),
                             size: 18,
                           ),
                           const SizedBox(width: 10),
@@ -503,7 +494,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             '${AppLocalizations.tr('member_since')}: ${_formatDate(DateTime.now())}',
                             style: GoogleFonts.poppins(
                               fontSize: 12.5,
-                              color: AppTheme.primaryColor,
+                              color: AppTheme.iconColor(context),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -518,9 +509,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     width: double.infinity,
                     height: 52,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF3B82F6), Color(0xFFEC4899)],
-                      ),
+                      gradient: AppTheme.primaryGradient,
                       borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                     ),
                     child: ElevatedButton(
@@ -581,14 +570,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: hasMBTI
-                ? [const Color(0xFF3B82F6), const Color(0xFFEC4899)]
+                ? [AppTheme.primaryColor, AppTheme.secondaryColor]
                 : [const Color(0xFF64748B), const Color(0xFF94A3B8)],
           ),
           borderRadius: BorderRadius.circular(AppTheme.radiusLg),
           boxShadow: [
             BoxShadow(
               color:
-                  (hasMBTI ? const Color(0xFF3B82F6) : const Color(0xFF64748B))
+                  (hasMBTI ? AppTheme.primaryColor : const Color(0xFF64748B))
                       .withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
@@ -677,104 +666,106 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     await showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface(context),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        ),
-        title: Row(
-          children: [
-            Icon(Icons.psychology_rounded, color: AppTheme.primaryColor),
-            const SizedBox(width: 8),
-            Text(
-              'Pilih Tipe MBTI',
-              style: GoogleFonts.poppins(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textP(context),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppTheme.surface(context),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.psychology_rounded, color: AppTheme.iconColor(context)),
+              const SizedBox(width: 8),
+              Text(
+                'Pilih Tipe MBTI',
+                style: GoogleFonts.poppins(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textP(context),
+                ),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: mbtiTypes.map((type) {
+                  final isSelected = selectedType == type;
+                  return ChoiceChip(
+                    label: Text(
+                      type,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    selected: isSelected,
+                    selectedColor: AppTheme.primaryColor,
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : AppTheme.textP(context),
+                    ),
+                    onSelected: (value) {
+                      setDialogState(() => selectedType = type);
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                AppLocalizations.tr('cancel'),
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textS(context),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+              ),
+              onPressed: selectedType == null
+                  ? null
+                  : () async {
+                      await DatabaseService.updateUser(
+                        user.copyWith(mbtiType: selectedType!),
+                      );
+                      await _loadUserData();
+                      if (ctx.mounted) {
+                        Navigator.pop(ctx);
+                      }
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'MBTI berhasil diubah menjadi $selectedType!',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          backgroundColor: AppTheme.primaryColor,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusSm,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+              child: Text(
+                'Simpan',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
               ),
             ),
           ],
         ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: mbtiTypes.map((type) {
-                final isSelected = selectedType == type;
-                return ChoiceChip(
-                  label: Text(
-                    type,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  selected: isSelected,
-                  selectedColor: AppTheme.primaryColor,
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.textP(context),
-                  ),
-                  onSelected: (value) {
-                    setState(() => selectedType = type);
-                  },
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              AppLocalizations.tr('cancel'),
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w500,
-                color: AppTheme.textS(context),
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-            ),
-            onPressed: selectedType == null
-                ? null
-                : () async {
-                    await DatabaseService.updateUser(
-                      user.copyWith(mbtiType: selectedType!),
-                    );
-                    await _loadUserData();
-                    if (ctx.mounted) {
-                      Navigator.pop(ctx);
-                    }
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'MBTI berhasil diubah menjadi $selectedType!',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        backgroundColor: AppTheme.primaryColor,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppTheme.radiusSm,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-            child: Text(
-              'Simpan',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
       ),
     );
   }

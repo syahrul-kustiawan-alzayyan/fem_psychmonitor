@@ -68,20 +68,69 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
   Widget build(BuildContext context) {
     final emotion = _record.emotion;
     return Scaffold(
-      backgroundColor: AppTheme.bg(context),
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(
-          AppLocalizations.tr('detail_title'),
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            color: AppTheme.textP(context),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Row(
+          children: [
+            ShaderMask(
+              shaderCallback: (bounds) =>
+                  AppTheme.primaryGradient.createShader(bounds),
+              child: const Icon(
+                Icons.article_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 10),
+            ShaderMask(
+              shaderCallback: (bounds) =>
+                  AppTheme.primaryGradient.createShader(
+                    Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                  ),
+              child: Text(
+                AppLocalizations.tr('detail_title'),
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
+          ],
+        ),
+        leading: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: ShaderMask(
+                shaderCallback: (bounds) =>
+                    AppTheme.primaryGradient.createShader(bounds),
+                child: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
         ),
-        backgroundColor: AppTheme.bg(context),
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: IconThemeData(color: AppTheme.textP(context)),
       ),
       body: GradientBackground(
         useOverlay: true,
@@ -114,16 +163,10 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
   Widget _buildHeader(BuildContext context, EmotionType emotion) {
     return Row(
       children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: emotion.color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Center(
-            child: Text(emotion.emoji, style: const TextStyle(fontSize: 32)),
-          ),
+        Image.asset(
+          emotion.assetIconPath,
+          width: 76,
+          height: 76,
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -290,7 +333,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
               padding: const EdgeInsets.symmetric(vertical: 3),
               child: Row(
                 children: [
-                  Text(e.emoji, style: const TextStyle(fontSize: 14)),
+                  Image.asset(e.assetIconPath, width: 40, height: 40),
                   const SizedBox(width: 8),
                   Text(
                     e.displayName,
@@ -424,7 +467,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
   ) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: AppTheme.primaryColor),
+        Icon(icon, size: 18, color: AppTheme.iconColor(context)),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -472,7 +515,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
       ),
       child: Row(
         children: [
-          Text(e.emoji, style: const TextStyle(fontSize: 20)),
+          Image.asset(e.assetIconPath, width: 48, height: 48),
           const SizedBox(width: 10),
           Expanded(
             child: Text(

@@ -60,20 +60,69 @@ class _ResultScreenState extends State<ResultScreen> {
   Widget build(BuildContext context) {
     final domEmotion = widget.recordingData.dominantEmotion;
     return Scaffold(
-      backgroundColor: AppTheme.bg(context),
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(
-          'Hasil Deteksi',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-            color: AppTheme.textP(context),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Row(
+          children: [
+            ShaderMask(
+              shaderCallback: (bounds) =>
+                  AppTheme.primaryGradient.createShader(bounds),
+              child: const Icon(
+                Icons.analytics_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 10),
+            ShaderMask(
+              shaderCallback: (bounds) =>
+                  AppTheme.primaryGradient.createShader(
+                    Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                  ),
+              child: Text(
+                'Hasil Deteksi',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
+          ],
+        ),
+        leading: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: ShaderMask(
+                shaderCallback: (bounds) =>
+                    AppTheme.primaryGradient.createShader(bounds),
+                child: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
         ),
-        backgroundColor: AppTheme.bg(context),
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: IconThemeData(color: AppTheme.textP(context)),
       ),
       body: GradientBackground(
         useOverlay: true,
@@ -113,10 +162,10 @@ class _ResultScreenState extends State<ResultScreen> {
                       color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      domEmotion.icon,
-                      size: 48,
-                      color: Colors.white,
+                    child: Image.asset(
+                      domEmotion.assetIconPath,
+                      width: 68,
+                      height: 68,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -183,10 +232,10 @@ class _ResultScreenState extends State<ResultScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          color: AppTheme.iconColor(context).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(Icons.radar_rounded, color: AppTheme.primaryColor, size: 20),
+                        child: Icon(Icons.radar_rounded, color: AppTheme.iconColor(context), size: 20),
                       ),
                       const SizedBox(width: 12),
                       Text(

@@ -386,12 +386,12 @@ class _SplashScreenState extends State<_SplashScreen>
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: [
-              Icon(icon, color: AppTheme.primaryColor, size: 24),
+                          color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(icon, color: AppTheme.primaryColor, size: 24),
               const SizedBox(height: 4),
               Text(
                 label,
@@ -561,7 +561,7 @@ class _PremiumBottomNavBar extends StatelessWidget {
                         width: isActive ? 40 : 0,
                         height: 3,
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
+                          color: AppTheme.primaryDark,
                           borderRadius: BorderRadius.circular(
                             AppTheme.radiusFull,
                           ),
@@ -576,7 +576,7 @@ class _PremiumBottomNavBar extends StatelessWidget {
                           isActive ? item.activeIcon : item.icon,
                           key: ValueKey(isActive),
                           color: isActive
-                              ? AppTheme.primaryColor
+                              ? AppTheme.primaryDark
                               : (isDark
                                     ? const Color(0xFF616161)
                                     : const Color(0xFFCBD5E1)),
@@ -592,7 +592,7 @@ class _PremiumBottomNavBar extends StatelessWidget {
                               ? FontWeight.w600
                               : FontWeight.w400,
                           color: isActive
-                              ? AppTheme.primaryColor
+                              ? AppTheme.primaryDark
                               : (isDark
                                     ? const Color(0xFF616161)
                                     : const Color(0xFFCBD5E1)),

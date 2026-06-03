@@ -26,7 +26,7 @@ class SuggestionCard extends StatelessWidget {
     required this.title,
     required this.suggestions,
     this.icon = Icons.lightbulb_rounded,
-    this.color = AppTheme.primaryColor,
+    this.color = AppTheme.primaryDark,
     this.isCollapsible = false,
   });
 

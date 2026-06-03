@@ -14,6 +14,7 @@ import '../services/database_service.dart';
 import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/emotion_badge.dart';
+import '../widgets/gradient_background.dart';
 import 'result_screen.dart';
 
 class LiveDetectionScreen extends StatefulWidget {
@@ -271,29 +272,45 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bg(context),
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: AppTheme.bg(context),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
+            ShaderMask(
+              shaderCallback: (bounds) =>
+                  AppTheme.primaryGradient.createShader(bounds),
               child: const Icon(
                 Icons.mic_rounded,
-                color: AppTheme.primaryColor,
-                size: 16,
+                color: Colors.white,
+                size: 22,
               ),
             ),
-            const SizedBox(width: 8),
-            Text(AppLocalizations.tr('live_detection_title')),
+            const SizedBox(width: 10),
+            ShaderMask(
+              shaderCallback: (bounds) =>
+                  AppTheme.primaryGradient.createShader(
+                    Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                  ),
+              child: Text(
+                AppLocalizations.tr('live_detection_title'),
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
           ],
         ),
       ),
-      body: SafeArea(
+      body: GradientBackground(
+        useOverlay: true,
+        child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
           child: Column(
@@ -316,7 +333,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            AppTheme.primaryColor,
+                            AppTheme.iconColor(context),
                           ),
                         ),
                       ),
@@ -352,6 +369,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
               const SizedBox(height: 100),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -478,9 +496,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               )
-                            : const LinearGradient(
-                                colors: [Color(0xFF3B82F6), Color(0xFFEC4899)],
-                              ),
+                            : AppTheme.primaryGradient,
                         boxShadow: [
                           BoxShadow(
                             color: (_isRecording ? Colors.red : AppTheme.primaryColor)
@@ -601,7 +617,7 @@ Widget _buildStoryPrompts() {
             children: [
               Icon(
                 Icons.chat_bubble_outline_rounded,
-                color: AppTheme.primaryColor,
+                color: AppTheme.iconColor(context),
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -667,17 +683,17 @@ Widget _buildStoryPrompts() {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.08),
+              color: AppTheme.iconColor(context).withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                color: AppTheme.iconColor(context).withValues(alpha: 0.2),
               ),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.lightbulb_outline_rounded,
-                  color: AppTheme.primaryColor,
+                  color: AppTheme.iconColor(context),
                   size: 18,
                 ),
                 const SizedBox(width: 8),
@@ -686,7 +702,7 @@ Widget _buildStoryPrompts() {
                     '💡 ${AppLocalizations.tr('press_mic_tip')}',
                     style: GoogleFonts.poppins(
                       fontSize: 12.5,
-                      color: AppTheme.primaryColor,
+                      color: AppTheme.iconColor(context),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -710,7 +726,7 @@ Widget _buildStoryPrompts() {
         children: [
           Icon(
             Icons.info_outline_rounded,
-            color: AppTheme.primaryColor,
+            color: AppTheme.iconColor(context),
             size: 32,
           ),
           const SizedBox(height: 12),

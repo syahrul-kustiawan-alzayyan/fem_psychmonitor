@@ -4,10 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 /// ─────────────────────────────────────────────────────────────
 /// AppTheme — Sistem Desain Premium Fem-Psych Monitor
 ///
-/// Panduan Warna (Blue-Pink Gradient dari Logo):
+/// Panduan Warna (Pink Pastel — feminine & warm):
 ///   • Background  : Off-white #F8FAFC  → bersih, tidak melelahkan mata
-///   • Primary     : Blue #3B82F6       → modern, teknologi, profesional
-///   • Secondary   : Pink #EC4899       → feminin, energik, hangat
+///   • Primary     : Pink #F8C8DC       → pastel pink, feminin, lembut
+///   • Secondary   : Pink #EC4899       → hot pink aksen, energik
 ///   • Emotion     : Palet pastel/muted agar tidak memicu kecemasan
 ///
 /// Tipografi: Poppins (Google Fonts) — modern, premium, rounded
@@ -15,12 +15,12 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   AppTheme._(); // Prevent instantiation
 
-  // ── Warna Utama (Blue-Pink Gradient) ────────────────────────
-  static const Color primaryColor = Color(0xFF3B82F6); // Blue
-  static const Color primaryLight = Color(0xFF60A5FA); // Light Blue
-  static const Color primaryDark = Color(0xFF2563EB); // Dark Blue
-  static const Color secondaryColor = Color(0xFFEC4899); // Pink
-  static const Color accentColor = Color(0xFFF472B6); // Light Pink
+  // ── Warna Utama (Pink Pastel) ───────────────────────────────
+  static const Color primaryColor = Color(0xFFF8C8DC); // Pastel Pink
+  static const Color primaryLight = Color(0xFFFBD7E8); // Lighter Pastel Pink
+  static const Color primaryDark = Color(0xFFC48098); // Dusky Rose (for buttons/contrast)
+  static const Color secondaryColor = Color(0xFFEC4899); // Hot Pink
+  static const Color accentColor = Color(0xFFFFB6C1); // Light Pink
 
   // ── Warna Surface & Background ──────────────────────────────
   static const Color backgroundColor = Color(0xFFF8FAFC); // Off-white
@@ -33,41 +33,41 @@ class AppTheme {
   static const Color textSecondary = Color(0xFF64748B); // Slate-500
   static const Color textHint = Color(0xFF94A3B8); // Slate-400
 
-  // ── Warna Emosi (Pastel/Muted — ramah psikologis) ───────────
+  // ── Warna Emosi (Pastel — lembut, feminin, ramah) ───────────
   static const Map<String, Color> emotionColors = {
-    'Happy': Color(0xFFF59E0B), // Amber-warm (bukan kuning neon)
-    'Sad': Color(0xFF60A5FA), // Sky Blue (lembut, bukan biru tua)
-    'Angry': Color(0xFFF87171), // Coral-red (bukan merah terang)
-    'Disgust': Color(0xFF34D399), // Emerald-muted
-    'Neutral': Color(0xFF94A3B8), // Slate-muted-gray
-    'Fear': Color(0xFFA78BFA), // Soft Lavender (bukan ungu gelap)
+    'Happy': Color(0xFFFCD34D), // Pastel Yellow
+    'Sad': Color(0xFF93C5FD), // Pastel Blue
+    'Angry': Color(0xFFFCA5A5), // Pastel Red
+    'Disgust': Color(0xFF6EE7B7), // Pastel Green
+    'Neutral': Color(0xFFCBD5E1), // Pastel Slate
+    'Fear': Color(0xFFC4B5FD), // Pastel Lavender
   };
 
-  // ── Warna Emosi Background (versi lebih terang untuk card) ──
+  // ── Warna Emosi Background (pastel lebih terang) ─────────────
   static const Map<String, Color> emotionBgColors = {
-    'Happy': Color(0xFFFEF3C7), // Amber-50
-    'Sad': Color(0xFFEFF6FF), // Blue-50
-    'Angry': Color(0xFFFEF2F2), // Red-50
-    'Disgust': Color(0xFFECFDF5), // Emerald-50
-    'Neutral': Color(0xFFF8FAFC), // Slate-50
-    'Fear': Color(0xFFF5F3FF), // Violet-50
+    'Happy': Color(0xFFFEF9C3), // Yellow-50
+    'Sad': Color(0xFFDBEAFE), // Blue-50
+    'Angry': Color(0xFFFEE2E2), // Red-50
+    'Disgust': Color(0xFFD1FAE5), // Emerald-50
+    'Neutral': Color(0xFFF1F5F9), // Slate-50
+    'Fear': Color(0xFFEDE9FE), // Violet-50
   };
 
-  // ── Gradien Utama (Blue-Pink sesuai Logo) ────────────────────
+  // ── Gradien Utama (Pink Pastel → Hot Pink) ──────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF3B82F6), Color(0xFFEC4899)],
+    colors: [Color(0xFFF8C8DC), Color(0xFFEC4899)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient warmGradient = LinearGradient(
-    colors: [Color(0xFF60A5FA), Color(0xFFF472B6)],
+    colors: [Color(0xFFFBD7E8), Color(0xFFFFB6C1)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient recordingGradient = LinearGradient(
-    colors: [Color(0xFFEC4899), Color(0xFFF472B6)],
+    colors: [Color(0xFFEC4899), Color(0xFFF8C8DC)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -75,8 +75,8 @@ class AppTheme {
   // Gradient Background untuk seluruh screen
   static const LinearGradient lightGradientBackground = LinearGradient(
     colors: [
-      Color(0xFFF0F7FF), // Very light blue
-      Color(0xFFFFF0F7), // Very light pink
+      Color(0xFFFFF0F5), // Lavender blush
+      Color(0xFFFFE4EC), // Light pink
       Color(0xFFF8FAFC), // Off-white
     ],
     begin: Alignment.topLeft,
@@ -86,8 +86,8 @@ class AppTheme {
 
   static const LinearGradient darkGradientBackground = LinearGradient(
     colors: [
-      Color(0xFF0F172A), // Dark slate blue
-      Color(0xFF1E0F2E), // Dark purple-pink
+      Color(0xFF0F172A), // Dark slate
+      Color(0xFF2D1B2E), // Dark purple-pink
       Color(0xFF0F172A), // Dark slate
     ],
     begin: Alignment.topLeft,
@@ -240,7 +240,7 @@ class AppTheme {
       // ── Elevated Button ────────────────────────────────────
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
+          backgroundColor: primaryDark,
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -258,8 +258,8 @@ class AppTheme {
       // ── Outlined Button ────────────────────────────────────
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: primaryColor,
-          side: const BorderSide(color: primaryColor, width: 1.5),
+          foregroundColor: primaryDark,
+          side: const BorderSide(color: primaryDark, width: 1.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusMd),
           ),
@@ -274,7 +274,7 @@ class AppTheme {
       // ── Bottom Navigation Bar ──────────────────────────────
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: surfaceColor,
-        selectedItemColor: primaryColor,
+        selectedItemColor: primaryDark,
         unselectedItemColor: Color(0xFFCBD5E1), // Slate-300
         type: BottomNavigationBarType.fixed,
         elevation: 0,
@@ -298,6 +298,7 @@ class AppTheme {
           letterSpacing: -0.3,
         ),
         iconTheme: const IconThemeData(color: textPrimary),
+        foregroundColor: textPrimary,
       ),
 
       // ── Input Decoration ───────────────────────────────────
@@ -435,7 +436,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
+          foregroundColor: const Color(0xFF1E293B),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusMd),
@@ -489,6 +490,7 @@ class AppTheme {
           letterSpacing: -0.3,
         ),
         iconTheme: const IconThemeData(color: darkTextPrimary),
+        foregroundColor: darkTextPrimary,
       ),
 
       inputDecorationTheme: InputDecorationTheme(
@@ -545,6 +547,9 @@ class AppTheme {
 
   static Color textH(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark ? darkTextHint : textHint;
+
+  static Color iconColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? primaryColor : primaryDark;
 
   static Color surfVar(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark

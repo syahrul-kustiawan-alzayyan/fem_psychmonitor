@@ -43,12 +43,12 @@ class SettingsScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                color: AppTheme.iconColor(context).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.settings_rounded,
-                color: AppTheme.primaryColor,
+                color: AppTheme.iconColor(context),
                 size: 16,
               ),
             ),
