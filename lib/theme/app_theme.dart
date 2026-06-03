@@ -16,8 +16,8 @@ class AppTheme {
   AppTheme._(); // Prevent instantiation
 
   // ── Warna Utama (Pink Pastel) ───────────────────────────────
-  static const Color primaryColor = Color(0xFFF8C8DC); // Pastel Pink
-  static const Color primaryLight = Color(0xFFFBD7E8); // Lighter Pastel Pink
+  static const Color primaryColor = Color(0xFFF2A4B8); // Pink Medium (less pastel)
+  static const Color primaryLight = Color(0xFFFAD0DC); // Lighter Pink
   static const Color primaryDark = Color(0xFFC48098); // Dusky Rose (for buttons/contrast)
   static const Color secondaryColor = Color(0xFFEC4899); // Hot Pink
   static const Color accentColor = Color(0xFFFFB6C1); // Light Pink

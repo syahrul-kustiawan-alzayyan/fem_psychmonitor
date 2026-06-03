@@ -495,95 +495,80 @@ class _AuthScreenState extends State<AuthScreen>
     return Scaffold(
       backgroundColor: AppTheme.bg(context),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXl),
-          child: Column(
-            children: [
-              const SizedBox(height: 48),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceXl),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 48),
 
-              // ── Logo ────────────────────────────────────────
-              Container(
-                width: 90,
-                height: 90,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  boxShadow: AppTheme.primaryShadow,
-                  border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    width: 1,
-                  ),
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Image.asset(
-                  'assets/logo.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Fem-Psych Monitor',
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textP(context),
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                AppLocalizations.tr('app_subtitle'),
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: AppTheme.textS(context),
-                ),
-              ),
+                    // ── Logo ────────────────────────────────────────
+                    Image.asset(
+                      'assets/logo.png',
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Fem-Psych Monitor',
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textP(context),
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      AppLocalizations.tr('app_subtitle'),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: AppTheme.textS(context),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
-              const SizedBox(height: 36),
+                    // ── Tab Bar ─────────────────────────────────────
+                    PreferredSize(
+                      preferredSize: const Size.fromHeight(48),
+                      child: TabBar(
+                        controller: _tabCtrl,
+                        indicatorColor: AppTheme.primaryColor,
+                        indicatorWeight: 3,
+                        unselectedLabelColor: AppTheme.textH(context),
+                        labelColor: AppTheme.primaryColor,
+                        labelStyle: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                        unselectedLabelStyle: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                        tabs: [
+                          Tab(text: AppLocalizations.tr('login')),
+                          Tab(text: AppLocalizations.tr('register')),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
 
-              // ── Tab Bar ─────────────────────────────────────
-              Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.surfVar(context),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                ),
-                child: TabBar(
-                  controller: _tabCtrl,
-                  indicator: BoxDecoration(
-                    color: AppTheme.primaryColor,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                  ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  dividerColor: Colors.transparent,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: AppTheme.textS(context),
-                  labelStyle: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                  unselectedLabelStyle: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                  ),
-                  tabs: [
-                    Tab(text: AppLocalizations.tr('login')),
-                    Tab(text: AppLocalizations.tr('register')),
+                    // ── Tab Content ─────────────────────────────────
+                    SizedBox(
+                      height: 500,
+                      child: TabBarView(
+                        controller: _tabCtrl,
+                        children: [_buildLoginTab(), _buildRegisterTab()],
+                      ),
+                    ),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 28),
-
-              // ── Tab Content ─────────────────────────────────
-              SizedBox(
-                height: 600,
-                child: TabBarView(
-                  controller: _tabCtrl,
-                  children: [_buildLoginTab(), _buildRegisterTab()],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

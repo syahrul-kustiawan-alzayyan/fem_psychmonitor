@@ -93,15 +93,9 @@ class AuthProvider extends ChangeNotifier {
 
         // Link onboarding records safely
         final hasPending = prefs.getBool('pending_onboarding_data') ?? false;
-        if (hasPending) {
-          try {
-            await OnboardingScreen.savePendingOnboardingToFirestore();
-          } catch (_) {}
-        }
-
-        notifyListeners();
 
         if (appUser == null && !hasPending) {
+          // Brand new user — create minimal user and redirect to onboarding
           final minimalUser = AppUser(
             name: _username,
             mbtiType: '',
@@ -109,9 +103,26 @@ class AuthProvider extends ChangeNotifier {
             createdAt: DateTime.now(),
           );
           await DatabaseService.insertUser(minimalUser);
+          notifyListeners();
+          return 'new_user';
+        }
+
+        if (hasPending) {
+          // User completed onboarding offline — sync to Firestore
+          try {
+            await OnboardingScreen.savePendingOnboardingToFirestore();
+          } catch (_) {}
+          notifyListeners();
           return 'success';
         }
 
+        // Existing user with Firestore record
+        if (appUser!.mbtiType.isEmpty) {
+          notifyListeners();
+          return 'new_user';
+        }
+
+        notifyListeners();
         return 'success';
       }
       return 'error';
@@ -258,7 +269,13 @@ class AuthProvider extends ChangeNotifier {
           );
           await DatabaseService.insertUser(minimalUser);
           notifyListeners();
-          return 'success';
+          return 'new_user';
+        }
+
+        // User lama — cek apakah sudah punya data onboarding
+        final existingUser = await DatabaseService.getUser();
+        if (existingUser == null || existingUser.mbtiType.isEmpty) {
+          return 'new_user';
         }
 
         // User lama — cek dan sync pending onboarding data
