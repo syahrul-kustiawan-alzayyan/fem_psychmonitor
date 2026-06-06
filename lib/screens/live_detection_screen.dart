@@ -309,7 +309,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
         ),
       ),
       body: GradientBackground(
-        useOverlay: true,
+        useOverlay: false,
         child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),

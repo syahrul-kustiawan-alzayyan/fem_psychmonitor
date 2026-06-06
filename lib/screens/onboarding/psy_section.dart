@@ -296,7 +296,7 @@ class _PsySectionState extends State<PsySection> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.favorite_rounded, size: 14, color: Colors.pink),
+                          Icon(Icons.favorite_rounded, size: 14, color: AppTheme.primaryColor),
                           const SizedBox(width: 6),
                           Text(
                             '$questionNum / $totalQuestions',

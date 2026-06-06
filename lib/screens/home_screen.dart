@@ -6,7 +6,9 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../models/user_model.dart';
+import '../main.dart';
 import '../providers/auth_provider.dart';
+import '../providers/premium_provider.dart';
 import '../services/database_service.dart';
 import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
@@ -14,7 +16,6 @@ import '../utils/animations.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/suggestion_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'auth_screen.dart';
 
@@ -341,18 +342,70 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           color: AppTheme.surface(context),
           onSelected: (val) async {
-            if (val == 'profile') {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              );
-              _loadProfilePhoto();
-            } else if (val == 'settings') {
+            if (val == 'settings') {
               await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
               );
               _loadProfilePhoto();
+            } else if (val == 'logout') {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  backgroundColor: AppTheme.surface(ctx),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                  ),
+                  title: Text(
+                    AppLocalizations.tr('logout_confirm'),
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textP(ctx),
+                    ),
+                  ),
+                  content: Text(
+                    AppLocalizations.tr('logout_confirm_desc'),
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: AppTheme.textS(ctx),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: Text(
+                        AppLocalizations.tr('cancel'),
+                        style: GoogleFonts.poppins(
+                          color: AppTheme.textS(ctx),
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: Text(
+                        AppLocalizations.tr('logout'),
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFFF87171),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm == true) {
+                if (!context.mounted) return;
+                DatabaseService.resetInstance();
+                context.read<PremiumProvider>().clearPremium();
+                await context.read<AuthProvider>().logout();
+                if (context.mounted) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AppRouter()),
+                    (route) => false,
+                  );
+                }
+              }
             } else if (val == 'login') {
               await Navigator.push(
                 context,
@@ -362,27 +415,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             }
           },
           itemBuilder: (ctx) => [
-            PopupMenuItem(
-              value: 'profile',
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.person_outline_rounded,
-                    color: AppTheme.textP(context),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    AppLocalizations.tr('profile_menu'),
-                    style: GoogleFonts.poppins(
-                      color: AppTheme.textP(context),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
             PopupMenuItem(
               value: 'settings',
               child: Row(
@@ -404,6 +436,37 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ],
               ),
             ),
+            if (auth.isLoggedIn) ...[
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF87171).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Icon(
+                        Icons.logout_rounded,
+                        color: Color(0xFFF87171),
+                        size: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      AppLocalizations.tr('logout'),
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFFF87171),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (!auth.isLoggedIn) ...[
               const PopupMenuDivider(),
               PopupMenuItem(
@@ -506,8 +569,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         int? displayScore100;
         if (basePsychScore != null) {
           final baseScore100 = ((60 - basePsychScore) / 60 * 100).round();
-          final adjustment100 = (emotionAdjustment / 5 * 17).round();
-          displayScore100 = (baseScore100 + adjustment100).clamp(0, 100);
+          final adjustment100 = emotionAdjustment;
+          displayScore100 = ((baseScore100 + adjustment100).clamp(0, 100)).round();
         }
 
         // Tentukan warna dan info berdasarkan skor (0-100, tinggi = baik)

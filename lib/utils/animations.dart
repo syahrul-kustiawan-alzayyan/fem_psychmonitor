@@ -232,7 +232,7 @@ class _AnimatedCounterState extends State<AnimatedCounter>
       animation: _animation,
       builder: (context, child) {
         return Text(
-          '${_animation.value.toStringAsFixed(1)}${widget.suffix}',
+          '${_animation.value.toStringAsFixed(0)}${widget.suffix}',
           style: widget.style,
         );
       },

@@ -55,19 +55,19 @@ class AppTheme {
 
   // ── Gradien Utama (Pink Pastel → Hot Pink) ──────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFFF8C8DC), Color(0xFFEC4899)],
+    colors: [primaryLight, secondaryColor],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient warmGradient = LinearGradient(
-    colors: [Color(0xFFFBD7E8), Color(0xFFFFB6C1)],
+    colors: [Color(0xFFFBD7E8), accentColor],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient recordingGradient = LinearGradient(
-    colors: [Color(0xFFEC4899), Color(0xFFF8C8DC)],
+    colors: [secondaryColor, primaryLight],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

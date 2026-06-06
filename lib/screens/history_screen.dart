@@ -891,7 +891,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     final spots = List.generate(
       history.length,
       (i) {
-        final adjustment = (history[i].emotionScore / 5 * 17);
+        final adjustment = history[i].emotionScore;
         final score = (baseScore100 + adjustment).clamp(0.0, 100.0);
         return FlSpot(i.toDouble(), score);
       },
@@ -1332,8 +1332,8 @@ class _HistoryScreenState extends State<HistoryScreen>
               spots: spots,
               isCurved: true,
               curveSmoothness: 0.3,
-              gradient: const LinearGradient(
-                colors: [Color(0xFF10B981), Color(0xFF6366F1)],
+              gradient: LinearGradient(
+                colors: [const Color(0xFF10B981), AppTheme.primaryDark],
               ),
               barWidth: 3,
               isStrokeCapRound: true,

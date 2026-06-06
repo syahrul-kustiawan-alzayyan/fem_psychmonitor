@@ -1,9 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../main.dart';
+import '../models/emotion_model.dart';
+import '../models/user_model.dart';
 import '../providers/locale_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
@@ -13,6 +19,7 @@ import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import 'onboarding_screen.dart';
 import 'premium_screen.dart';
+import 'profile_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SettingsScreen — Halaman Pengaturan
@@ -36,25 +43,73 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppTheme.bg(context),
-      appBar: AppBar(
-        backgroundColor: AppTheme.bg(context),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
+      extendBodyBehindAppBar: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          leading: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Container(
               decoration: BoxDecoration(
-                color: AppTheme.iconColor(context).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.white.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: Icon(
-                Icons.settings_rounded,
-                color: AppTheme.iconColor(context),
-                size: 16,
+              child: IconButton(
+                icon: ShaderMask(
+                  shaderCallback: (bounds) =>
+                      AppTheme.primaryGradient.createShader(bounds),
+                  child: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
-            const SizedBox(width: 8),
-            Text(AppLocalizations.tr('settings_title')),
-          ],
+          ),
+          title: Row(
+            children: [
+              ShaderMask(
+                shaderCallback: (bounds) =>
+                    AppTheme.primaryGradient.createShader(bounds),
+                child: const Icon(
+                  Icons.settings_rounded,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 10),
+              ShaderMask(
+                shaderCallback: (bounds) =>
+                    AppTheme.primaryGradient.createShader(
+                      Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                    ),
+                child: Text(
+                  AppLocalizations.tr('settings_title'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          iconTheme: IconThemeData(
+            color: AppTheme.textP(context),
+          ),
         ),
       ),
       body: SafeArea(
@@ -66,6 +121,52 @@ class SettingsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── Section: Profil ─────────────────────────────
+              _buildSectionLabel(context, AppLocalizations.tr('profile_menu')),
+              const SizedBox(height: 10),
+
+              _buildSettingsCard(
+                context,
+                children: [
+                  // Profile
+                  _buildSettingsTile(
+                    context,
+                    icon: Icons.person_outline_rounded,
+                    iconColor: AppTheme.primaryColor,
+                    title: AppLocalizations.tr('profile_menu'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              Consumer<PremiumProvider>(
+                builder: (context, premium, _) {
+                  if (premium.isPremium) {
+                    return _buildSettingsCard(
+                      context,
+                      children: [
+                        _buildPremiumActiveTile(context, premium),
+                      ],
+                    );
+                  }
+                  return _buildSettingsCard(
+                    context,
+                    children: [
+                      _buildPremiumUpgradeTile(context),
+                    ],
+                  );
+                },
+              ),
+
+              const SizedBox(height: 24),
+
               // ── Section: Umum ──────────────────────────────
               _buildSectionLabel(context, AppLocalizations.tr('general')),
               const SizedBox(height: 10),
@@ -77,7 +178,7 @@ class SettingsScreen extends StatelessWidget {
                   _buildSettingsTile(
                     context,
                     icon: Icons.language_rounded,
-                    iconColor: const Color(0xFF60A5FA),
+                    iconColor: AppTheme.primaryColor,
                     title: AppLocalizations.tr('language'),
                     trailing: _buildSegmentedControl(
                       context,
@@ -95,10 +196,7 @@ class SettingsScreen extends StatelessWidget {
                     icon: isDark
                         ? Icons.dark_mode_rounded
                         : Icons.light_mode_rounded,
-                    iconColor: isDark
-                        ? AppTheme
-                              .secondaryColor // Pink
-                        : const Color(0xFFF59E0B),
+                    iconColor: AppTheme.primaryColor,
                     title: AppLocalizations.tr('theme_mode'),
                     trailing: _buildSegmentedControl(
                       context,
@@ -140,107 +238,13 @@ class SettingsScreen extends StatelessWidget {
                   _buildSettingsTile(
                     context,
                     icon: Icons.description_outlined,
-                    iconColor: const Color(0xFFF59E0B),
+                    iconColor: AppTheme.primaryColor,
                     title: AppLocalizations.tr('terms_services'),
                     subtitle: AppLocalizations.tr('terms_desc'),
                     onTap: () => _showTerms(context),
                   ),
-                  _buildDivider(context),
-                  // License
-                  _buildSettingsTile(
-                    context,
-                    icon: Icons.policy_rounded,
-                    iconColor: const Color(0xFF34D399),
-                    title: AppLocalizations.tr('license'),
-                    subtitle: AppLocalizations.tr('license_desc'),
-                    onTap: () {
-                      showLicensePage(
-                        context: context,
-                        applicationName: AppLocalizations.tr('app_name'),
-                        applicationVersion: '1.0.0',
-                        applicationIcon: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Container(
-                            width: 64,
-                            height: 64,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.transparent,
-                            ),
-                            padding: const EdgeInsets.all(8),
-                            child: Image.asset(
-                              'assets/logo.png',
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+
                 ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // ── Section: Premium ────────────────────────────
-              _buildSectionLabel(context, 'Premium'),
-              const SizedBox(height: 10),
-
-              Consumer<PremiumProvider>(
-                builder: (context, premium, _) => _buildSettingsCard(
-                  context,
-                  children: [
-                    _buildSettingsTile(
-                      context,
-                      icon: premium.isPremium
-                          ? Icons.verified_rounded
-                          : Icons.star_border_rounded,
-                      iconColor: premium.isPremium
-                          ? const Color(0xFFF59E0B)
-                          : AppTheme.primaryColor,
-                      title: premium.isPremium
-                          ? (AppLocalizations.locale.startsWith('en')
-                              ? 'Premium Active'
-                              : 'Premium Aktif')
-                          : (AppLocalizations.locale.startsWith('en')
-                              ? 'Upgrade to Premium'
-                              : 'Upgrade ke Premium'),
-                      subtitle: premium.isPremium
-                          ? (premium.expiryDate != null
-                              ? _formatRemainingTime(premium.expiryDate!)
-                              : (AppLocalizations.locale.startsWith('en')
-                                  ? 'Active'
-                                  : 'Aktif'))
-                          : (AppLocalizations.locale.startsWith('en')
-                              ? 'Remove ads & unlock features'
-                              : 'Hilangkan iklan & buka fitur'),
-                      trailing: premium.isPremium
-                          ? Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF10B981),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                'ACTIVE',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  letterSpacing: 1,
-                                ),
-                              ),
-                            )
-                          : null,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const PremiumScreen()),
-                        );
-                      },
-                    ),
-                  ],
-                ),
               ),
 
               const SizedBox(height: 24),
@@ -256,19 +260,30 @@ class SettingsScreen extends StatelessWidget {
                   _buildSettingsTile(
                     context,
                     icon: Icons.restart_alt_rounded,
-                    iconColor: const Color(0xFF60A5FA),
+                    iconColor: AppTheme.primaryColor,
                     title: AppLocalizations.tr('show_onboarding_again'),
                     subtitle: AppLocalizations.tr('app_guide_desc'),
                     onTap: () => _handleResetOnboarding(context),
                   ),
                   _buildDivider(context),
+                  // Backup Data
                   _buildSettingsTile(
                     context,
-                    icon: Icons.logout_rounded,
-                    iconColor: const Color(0xFFF87171),
-                    title: AppLocalizations.tr('logout'),
-                    titleColor: const Color(0xFFF87171),
-                    onTap: () => _handleLogout(context),
+                    icon: Icons.cloud_upload_rounded,
+                    iconColor: AppTheme.primaryColor,
+                    title: AppLocalizations.tr('backup_data'),
+                    subtitle: AppLocalizations.tr('backup_data_desc'),
+                    onTap: () => _handleBackupData(context),
+                  ),
+                  _buildDivider(context),
+                  // Restore Data
+                  _buildSettingsTile(
+                    context,
+                    icon: Icons.cloud_download_rounded,
+                    iconColor: AppTheme.primaryColor,
+                    title: AppLocalizations.tr('restore_data'),
+                    subtitle: AppLocalizations.tr('restore_data_desc'),
+                    onTap: () => _handleRestoreData(context),
                   ),
                   _buildDivider(context),
                   // Delete Account
@@ -307,13 +322,19 @@ class SettingsScreen extends StatelessWidget {
   // ─── Helper Widgets ────────────────────────────────────────────
 
   Widget _buildSectionLabel(BuildContext context, String label) {
-    return Text(
-      label.toUpperCase(),
-      style: GoogleFonts.poppins(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        color: AppTheme.textH(context),
-        letterSpacing: 1.2,
+    return ShaderMask(
+      shaderCallback: (bounds) =>
+          AppTheme.primaryGradient.createShader(
+            Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+          ),
+      child: Text(
+        label.toUpperCase(),
+        style: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          letterSpacing: 1.2,
+        ),
       ),
     );
   }
@@ -326,6 +347,9 @@ class SettingsScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(
+          color: AppTheme.primaryColor.withValues(alpha: 0.08),
+        ),
         boxShadow: AppTheme.cardShadow,
       ),
       child: Column(children: children),
@@ -409,7 +433,7 @@ class SettingsScreen extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surfVar(context),
+        color: AppTheme.primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppTheme.radiusFull),
       ),
       child: Row(
@@ -430,13 +454,101 @@ class SettingsScreen extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isSelected ? Colors.white : AppTheme.textS(context),
+                  color: isSelected ? Colors.white : AppTheme.primaryDark,
                 ),
               ),
             ),
           );
         }),
       ),
+    );
+  }
+
+  Widget _buildPremiumActiveTile(BuildContext context, PremiumProvider premium) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.verified_rounded,
+              color: AppTheme.primaryColor,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.locale.startsWith('en')
+                      ? 'Premium Active'
+                      : 'Premium Aktif',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  premium.expiryDate != null
+                      ? _formatRemainingTime(premium.expiryDate!)
+                      : (AppLocalizations.locale.startsWith('en')
+                          ? 'Lifetime'
+                          : 'Seumur Hidup'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppTheme.textS(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              'ACTIVE',
+              style: GoogleFonts.poppins(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: 1,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumUpgradeTile(BuildContext context) {
+    return _buildSettingsTile(
+      context,
+      icon: Icons.star_border_rounded,
+      iconColor: AppTheme.primaryColor,
+      title: AppLocalizations.locale.startsWith('en')
+          ? 'Upgrade to Premium'
+          : 'Upgrade ke Premium',
+      subtitle: AppLocalizations.locale.startsWith('en')
+          ? 'Remove ads & unlock features'
+          : 'Hilangkan iklan & buka fitur',
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PremiumScreen()),
+        );
+      },
     );
   }
 
@@ -454,19 +566,19 @@ class SettingsScreen extends StatelessWidget {
         icon: Icons.psychology_rounded,
         title: AppLocalizations.tr('guide_step2_title'),
         desc: AppLocalizations.tr('guide_step2_desc'),
-        color: AppTheme.secondaryColor, // Pink
+        color: AppTheme.secondaryColor,
       ),
       (
         icon: Icons.bar_chart_rounded,
         title: AppLocalizations.tr('guide_step3_title'),
         desc: AppLocalizations.tr('guide_step3_desc'),
-        color: const Color(0xFF60A5FA),
+        color: AppTheme.primaryDark,
       ),
       (
         icon: Icons.tips_and_updates_rounded,
         title: AppLocalizations.tr('guide_step4_title'),
         desc: AppLocalizations.tr('guide_step4_desc'),
-        color: const Color(0xFFF59E0B),
+        color: AppTheme.primaryColor,
       ),
     ];
 
@@ -698,72 +810,274 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _handleLogout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface(context),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        ),
-        title: Text(
-          AppLocalizations.tr('logout_confirm'),
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textP(context),
+  Future<void> _handleBackupData(BuildContext context) async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final user = await DatabaseService.getUser();
+      final recordings = await DatabaseService.getRecordings();
+
+      final backupData = {
+        'app': 'Fem-Psych Monitor',
+        'backup_date': DateTime.now().toIso8601String(),
+        'user': user != null
+            ? {
+                'name': user.name,
+                'mbti_type': user.mbtiType,
+                'mbti_scores': user.mbtiScores,
+                'psychological_score': user.psychologicalScore,
+                'created_at': user.createdAt.toIso8601String(),
+              }
+            : {},
+        'recordings': recordings.map((r) => {
+              'date': r.date.toIso8601String(),
+              'dominant_emotion': r.dominantEmotion.name,
+              'confidence': r.confidence,
+              'suggestion': r.suggestion,
+              'audio_emotions':
+                  r.audioEmotions.map((k, v) => MapEntry(k.name, v)),
+              'transcript_emotions':
+                  r.transcriptEmotions.map((k, v) => MapEntry(k.name, v)),
+              'transcript_text': r.transcriptText,
+              'duration_seconds': r.durationSeconds,
+            }).toList(),
+      };
+
+      final jsonString = const JsonEncoder.withIndent('  ').convert(backupData);
+
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // tutup loading
+
+      final outputFile = await FilePicker.platform.saveFile(
+        dialogTitle: AppLocalizations.tr('save_backup'),
+        fileName: 'fem_psych_backup.json',
+        bytes: utf8.encode(jsonString),
+      );
+
+      if (outputFile == null) return; // user cancelled
+
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppTheme.surface(context),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.cloud_done_rounded,
+                  color: AppTheme.primaryColor,
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                AppLocalizations.tr('backup_success'),
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textP(context),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${recordings.length} rekaman dibackup',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: AppTheme.textS(context),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                    ),
+                  ),
+                  child: Text(AppLocalizations.tr('close')),
+                ),
+              ),
+            ],
           ),
         ),
-        content: Text(
-          AppLocalizations.tr('logout_confirm_desc'),
-          style: GoogleFonts.poppins(
-            fontSize: 13,
-            color: AppTheme.textS(context),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Backup gagal: $e')),
+      );
+    }
+  }
+
+  Future<void> _handleRestoreData(BuildContext context) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        dialogTitle: AppLocalizations.tr('select_backup_file'),
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      if (result == null || result.files.isEmpty) return;
+
+      final filePath = result.files.single.path;
+      if (filePath == null) return;
+
+      final file = File(filePath);
+      final jsonString = await file.readAsString();
+      final data = jsonDecode(jsonString) as Map<String, dynamic>;
+
+      if (!context.mounted) return;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppTheme.surface(context),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              AppLocalizations.tr('cancel'),
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w500,
-                color: AppTheme.textS(context),
+          title: Text(
+            AppLocalizations.tr('restore_confirm'),
+            style: GoogleFonts.poppins(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textP(context),
+            ),
+          ),
+          content: Text(
+            AppLocalizations.tr('restore_confirm_desc'),
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: AppTheme.textS(context),
+              height: 1.5,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                AppLocalizations.tr('cancel'),
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textS(context),
+                ),
               ),
             ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFF87171),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(
+                AppLocalizations.tr('restore'),
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              ),
             ),
-            onPressed: () async {
-              // Reset database singleton to clear cached data
-              DatabaseService.resetInstance();
+          ],
+        ),
+      );
 
-              // Hapus status premium lokal
-              ctx.read<PremiumProvider>().clearPremium();
+      if (confirmed != true) return;
 
-              // Logout user
-              await ctx.read<AuthProvider>().logout();
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(child: CircularProgressIndicator()),
+      );
 
-              if (ctx.mounted) {
-                Navigator.pop(ctx); // tutup dialog
+      // Restore user data
+      final userData = data['user'] as Map<String, dynamic>?;
+      if (userData != null && userData.isNotEmpty) {
+        final appUser = AppUser(
+          name: userData['name'] as String? ?? '',
+          mbtiType: userData['mbti_type'] as String? ?? '',
+          mbtiScores: (userData['mbti_scores'] as Map<String, dynamic>?)
+                  ?.map((k, v) => MapEntry(k, (v as num).toInt())) ??
+              {},
+          psychologicalScore: userData['psychological_score'] as int?,
+          createdAt: DateTime.tryParse(userData['created_at'] as String? ?? '') ?? DateTime.now(),
+        );
+        await DatabaseService.insertUser(appUser);
+      }
 
-                // Gunakan MaterialPageRoute untuk menghindari animasi curve issues
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const AppRouter()),
-                  (route) => false,
-                );
-              }
-            },
-            child: Text(
-              AppLocalizations.tr('logout'),
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-            ),
+      // Restore recordings
+      final recordingsList = data['recordings'] as List<dynamic>? ?? [];
+      for (final r in recordingsList) {
+        final rec = r as Map<String, dynamic>;
+        final audioMap = (rec['audio_emotions'] as Map<String, dynamic>?)
+                ?.map((k, v) => MapEntry(
+                      EmotionType.values.firstWhere(
+                        (e) => e.name == k,
+                        orElse: () => EmotionType.neutral,
+                      ),
+                      (v as num).toDouble(),
+                    )) ??
+            {};
+        final textMap = (rec['transcript_emotions'] as Map<String, dynamic>?)
+                ?.map((k, v) => MapEntry(
+                      EmotionType.values.firstWhere(
+                        (e) => e.name == k,
+                        orElse: () => EmotionType.neutral,
+                      ),
+                      (v as num).toDouble(),
+                    )) ??
+            {};
+
+        final recordingData = RecordingData(
+          userId: 0,
+          date: DateTime.tryParse(rec['date'] as String? ?? '') ?? DateTime.now(),
+          dominantEmotion: EmotionType.values.firstWhere(
+            (e) => e.name == rec['dominant_emotion'],
+            orElse: () => EmotionType.neutral,
           ),
-        ],
-      ),
-    );
+          confidence: (rec['confidence'] as num?)?.toDouble() ?? 0.0,
+          suggestion: rec['suggestion'] as String? ?? '',
+          audioEmotions: audioMap,
+          transcriptEmotions: textMap,
+          transcriptText: rec['transcript_text'] as String? ?? '',
+          durationSeconds: (rec['duration_seconds'] as num?)?.toInt() ?? 0,
+        );
+        await DatabaseService.insertRecording(recordingData);
+      }
+
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // tutup loading
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Restore selesai: ${recordingsList.length} rekaman dipulihkan',
+          ),
+          backgroundColor: AppTheme.primaryColor,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Restore gagal: $e')),
+      );
+    }
   }
 
   void _handleDeleteAccount(BuildContext context) {

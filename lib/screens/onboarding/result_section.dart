@@ -191,7 +191,7 @@ class ResultSection extends StatelessWidget {
                     const SizedBox(height: 12),
                     _buildMbtiScoreBar(context, 'T', 'F', state.mbtiScores['T'] ?? 0, state.mbtiScores['F'] ?? 0, Colors.orange),
                     const SizedBox(height: 12),
-                    _buildMbtiScoreBar(context, 'J', 'P', state.mbtiScores['J'] ?? 0, state.mbtiScores['P'] ?? 0, Colors.purple),
+                    _buildMbtiScoreBar(context, 'J', 'P', state.mbtiScores['J'] ?? 0, state.mbtiScores['P'] ?? 0, AppTheme.primaryColor),
                   ],
                 ),
               ),
