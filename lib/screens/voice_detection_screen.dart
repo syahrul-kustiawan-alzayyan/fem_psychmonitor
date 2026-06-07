@@ -259,12 +259,14 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: _buildAppBar(context),
-      body: GradientBackground(
-        useOverlay: true,
-        child: SafeArea(
+    return GradientBackground(
+      useOverlay: true,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBodyBehindAppBar: true,
+        extendBody: true,
+        appBar: _buildAppBar(context),
+        body: SafeArea(
           bottom: false,
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(
@@ -296,7 +298,7 @@ class _VoiceDetectionScreenState extends State<VoiceDetectionScreen>
             ),
           ),
         ),
-      ), // End GradientBackground
+      ),
     );
   }
 

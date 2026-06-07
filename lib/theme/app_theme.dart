@@ -77,11 +77,12 @@ class AppTheme {
     colors: [
       Color(0xFFFFF0F5), // Lavender blush
       Color(0xFFFFE4EC), // Light pink
+      Color(0xFFFFF5F7), // Very light pink
       Color(0xFFF8FAFC), // Off-white
     ],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    stops: [0.0, 0.5, 1.0],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    stops: [0.0, 0.35, 0.7, 1.0],
   );
 
   static const LinearGradient darkGradientBackground = LinearGradient(

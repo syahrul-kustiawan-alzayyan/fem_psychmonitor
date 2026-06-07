@@ -62,8 +62,8 @@ class GradientBackground extends StatelessWidget {
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          AppTheme.secondaryColor.withValues(alpha: 0.12),
-                          AppTheme.secondaryColor.withValues(alpha: 0.04),
+                          AppTheme.secondaryColor.withValues(alpha: 0.06),
+                          AppTheme.secondaryColor.withValues(alpha: 0.02),
                           Colors.transparent,
                         ],
                       ),

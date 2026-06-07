@@ -1,7 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(flutter *)"
+      "Bash(flutter *)",
+      "Bash(taskkill *)",
+      "Bash(del *)",
+      "Bash(copy *)",
+      "Bash(findstr *)",
+      "Bash(cmd *)",
+      "Bash(powershell *)",
+      "Bash(select-object *)",
+      "Bash(timeout *)",
+      "Bash(select-string *)",
+      "Bash(dart *)"
     ]
-  }
+  },
+  "$version": 3
 }

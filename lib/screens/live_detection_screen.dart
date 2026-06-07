@@ -309,67 +309,70 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
         ),
       ),
       body: GradientBackground(
-        useOverlay: false,
+        useOverlay: true,
         child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
-          child: Column(
-            children: [
-              const SizedBox(height: AppTheme.spaceMd),
+          bottom: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
+            child: Column(
+              children: [
+                const SizedBox(height: AppTheme.spaceMd),
 
-              if (_isModelLoading)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfVar(context),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppTheme.iconColor(context),
+                if (_isModelLoading)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfVar(context),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppTheme.iconColor(context),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        AppLocalizations.tr('loading_model'),
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: AppTheme.textS(context),
+                        const SizedBox(width: 12),
+                        Text(
+                          AppLocalizations.tr('loading_model'),
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: AppTheme.textS(context),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
-              _buildWaveVisualizer(),
+                _buildWaveVisualizer(),
 
-              const SizedBox(height: AppTheme.space2xl),
+                const SizedBox(height: AppTheme.space2xl),
 
-              _buildRecordingSection(context),
+                _buildRecordingSection(context),
 
-              const SizedBox(height: AppTheme.spaceXl),
+                const SizedBox(height: AppTheme.spaceXl),
 
-              if (_isRecording) ...[
-                const SizedBox(height: AppTheme.spaceMd),
+                if (_isRecording) ...[
+                  const SizedBox(height: AppTheme.spaceMd),
+                ],
+
+                if (!_isRecording) _buildStoryPrompts(),
+
+                if (!_isRecording && !_isModelLoading) ...[
+                  const SizedBox(height: 24),
+                  _buildIdleGuide(),
+                ],
+
+                const SizedBox(height: 100),
               ],
-
-              if (!_isRecording) _buildStoryPrompts(),
-
-              if (!_isRecording && !_isModelLoading)
-                _buildIdleGuide(),
-
-              const SizedBox(height: 100),
-            ],
+            ),
           ),
-        ),
         ),
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/emotion_model.dart';
+import '../l10n/app_localizations.dart';
 import '../services/database_service.dart';
 import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
@@ -95,34 +96,7 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
           ],
         ),
-        leading: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: IconButton(
-              icon: ShaderMask(
-                shaderCallback: (bounds) =>
-                    AppTheme.primaryGradient.createShader(bounds),
-                child: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        ),
+        leading: const SizedBox.shrink(),
       ),
       body: GradientBackground(
         useOverlay: true,
@@ -275,6 +249,34 @@ class _ResultScreenState extends State<ResultScreen> {
                 ),
               ),
             
+            const SizedBox(height: 32),
+
+            // Selesai Button
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 4,
+                  shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
+                ),
+                child: Text(
+                  AppLocalizations.tr('done'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+
             const SizedBox(height: 48),
           ],
         ),
