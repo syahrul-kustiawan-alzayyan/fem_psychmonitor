@@ -50,34 +50,8 @@ class SettingsScreen extends StatelessWidget {
           backgroundColor: Colors.transparent,
           elevation: 0,
           scrolledUnderElevation: 0,
-          leading: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: IconButton(
-                icon: ShaderMask(
-                  shaderCallback: (bounds) =>
-                      AppTheme.primaryGradient.createShader(bounds),
-                  child: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-          ),
+          automaticallyImplyLeading: false,
+          leadingWidth: 0,
           title: Row(
             children: [
               ShaderMask(
@@ -107,9 +81,7 @@ class SettingsScreen extends StatelessWidget {
               ),
             ],
           ),
-          iconTheme: IconThemeData(
-            color: AppTheme.textP(context),
-          ),
+          iconTheme: IconThemeData(color: AppTheme.textP(context)),
         ),
       ),
       body: SafeArea(
@@ -132,12 +104,14 @@ class SettingsScreen extends StatelessWidget {
                   _buildSettingsTile(
                     context,
                     icon: Icons.person_outline_rounded,
-                    iconColor: AppTheme.primaryColor,
+                    iconColor: const Color.fromARGB(255, 251, 115, 142),
                     title: AppLocalizations.tr('profile_menu'),
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const ProfileScreen(),
+                        ),
                       );
                     },
                   ),
@@ -151,16 +125,12 @@ class SettingsScreen extends StatelessWidget {
                   if (premium.isPremium) {
                     return _buildSettingsCard(
                       context,
-                      children: [
-                        _buildPremiumActiveTile(context, premium),
-                      ],
+                      children: [_buildPremiumActiveTile(context, premium)],
                     );
                   }
                   return _buildSettingsCard(
                     context,
-                    children: [
-                      _buildPremiumUpgradeTile(context),
-                    ],
+                    children: [_buildPremiumUpgradeTile(context)],
                   );
                 },
               ),
@@ -243,7 +213,6 @@ class SettingsScreen extends StatelessWidget {
                     subtitle: AppLocalizations.tr('terms_desc'),
                     onTap: () => _showTerms(context),
                   ),
-
                 ],
               ),
 
@@ -323,10 +292,9 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildSectionLabel(BuildContext context, String label) {
     return ShaderMask(
-      shaderCallback: (bounds) =>
-          AppTheme.primaryGradient.createShader(
-            Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-          ),
+      shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(
+        Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+      ),
       child: Text(
         label.toUpperCase(),
         style: GoogleFonts.poppins(
@@ -464,7 +432,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPremiumActiveTile(BuildContext context, PremiumProvider premium) {
+  Widget _buildPremiumActiveTile(
+    BuildContext context,
+    PremiumProvider premium,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -501,8 +472,8 @@ class SettingsScreen extends StatelessWidget {
                   premium.expiryDate != null
                       ? _formatRemainingTime(premium.expiryDate!)
                       : (AppLocalizations.locale.startsWith('en')
-                          ? 'Lifetime'
-                          : 'Seumur Hidup'),
+                            ? 'Lifetime'
+                            : 'Seumur Hidup'),
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: AppTheme.textS(context),
@@ -833,18 +804,24 @@ class SettingsScreen extends StatelessWidget {
                 'created_at': user.createdAt.toIso8601String(),
               }
             : {},
-        'recordings': recordings.map((r) => {
-              'date': r.date.toIso8601String(),
-              'dominant_emotion': r.dominantEmotion.name,
-              'confidence': r.confidence,
-              'suggestion': r.suggestion,
-              'audio_emotions':
-                  r.audioEmotions.map((k, v) => MapEntry(k.name, v)),
-              'transcript_emotions':
-                  r.transcriptEmotions.map((k, v) => MapEntry(k.name, v)),
-              'transcript_text': r.transcriptText,
-              'duration_seconds': r.durationSeconds,
-            }).toList(),
+        'recordings': recordings
+            .map(
+              (r) => {
+                'date': r.date.toIso8601String(),
+                'dominant_emotion': r.dominantEmotion.name,
+                'confidence': r.confidence,
+                'suggestion': r.suggestion,
+                'audio_emotions': r.audioEmotions.map(
+                  (k, v) => MapEntry(k.name, v),
+                ),
+                'transcript_emotions': r.transcriptEmotions.map(
+                  (k, v) => MapEntry(k.name, v),
+                ),
+                'transcript_text': r.transcriptText,
+                'duration_seconds': r.durationSeconds,
+              },
+            )
+            .toList(),
       };
 
       final jsonString = const JsonEncoder.withIndent('  ').convert(backupData);
@@ -924,9 +901,9 @@ class SettingsScreen extends StatelessWidget {
     } catch (e) {
       if (!context.mounted) return;
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Backup gagal: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Backup gagal: $e')));
     }
   }
 
@@ -1010,11 +987,15 @@ class SettingsScreen extends StatelessWidget {
         final appUser = AppUser(
           name: userData['name'] as String? ?? '',
           mbtiType: userData['mbti_type'] as String? ?? '',
-          mbtiScores: (userData['mbti_scores'] as Map<String, dynamic>?)
-                  ?.map((k, v) => MapEntry(k, (v as num).toInt())) ??
+          mbtiScores:
+              (userData['mbti_scores'] as Map<String, dynamic>?)?.map(
+                (k, v) => MapEntry(k, (v as num).toInt()),
+              ) ??
               {},
           psychologicalScore: userData['psychological_score'] as int?,
-          createdAt: DateTime.tryParse(userData['created_at'] as String? ?? '') ?? DateTime.now(),
+          createdAt:
+              DateTime.tryParse(userData['created_at'] as String? ?? '') ??
+              DateTime.now(),
         );
         await DatabaseService.insertUser(appUser);
       }
@@ -1023,28 +1004,33 @@ class SettingsScreen extends StatelessWidget {
       final recordingsList = data['recordings'] as List<dynamic>? ?? [];
       for (final r in recordingsList) {
         final rec = r as Map<String, dynamic>;
-        final audioMap = (rec['audio_emotions'] as Map<String, dynamic>?)
-                ?.map((k, v) => MapEntry(
-                      EmotionType.values.firstWhere(
-                        (e) => e.name == k,
-                        orElse: () => EmotionType.neutral,
-                      ),
-                      (v as num).toDouble(),
-                    )) ??
+        final audioMap =
+            (rec['audio_emotions'] as Map<String, dynamic>?)?.map(
+              (k, v) => MapEntry(
+                EmotionType.values.firstWhere(
+                  (e) => e.name == k,
+                  orElse: () => EmotionType.neutral,
+                ),
+                (v as num).toDouble(),
+              ),
+            ) ??
             {};
-        final textMap = (rec['transcript_emotions'] as Map<String, dynamic>?)
-                ?.map((k, v) => MapEntry(
-                      EmotionType.values.firstWhere(
-                        (e) => e.name == k,
-                        orElse: () => EmotionType.neutral,
-                      ),
-                      (v as num).toDouble(),
-                    )) ??
+        final textMap =
+            (rec['transcript_emotions'] as Map<String, dynamic>?)?.map(
+              (k, v) => MapEntry(
+                EmotionType.values.firstWhere(
+                  (e) => e.name == k,
+                  orElse: () => EmotionType.neutral,
+                ),
+                (v as num).toDouble(),
+              ),
+            ) ??
             {};
 
         final recordingData = RecordingData(
           userId: 0,
-          date: DateTime.tryParse(rec['date'] as String? ?? '') ?? DateTime.now(),
+          date:
+              DateTime.tryParse(rec['date'] as String? ?? '') ?? DateTime.now(),
           dominantEmotion: EmotionType.values.firstWhere(
             (e) => e.name == rec['dominant_emotion'],
             orElse: () => EmotionType.neutral,
@@ -1074,9 +1060,9 @@ class SettingsScreen extends StatelessWidget {
     } catch (e) {
       if (!context.mounted) return;
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Restore gagal: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Restore gagal: $e')));
     }
   }
 
@@ -1127,7 +1113,7 @@ class SettingsScreen extends StatelessWidget {
               if (ctx.mounted) {
                 await ctx.read<AuthProvider>().deleteAccount();
               }
-              
+
               // Reset status onboarding
               await StorageService.resetOnboarding();
 

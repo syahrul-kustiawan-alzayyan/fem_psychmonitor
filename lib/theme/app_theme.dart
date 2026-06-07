@@ -4,10 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 /// ─────────────────────────────────────────────────────────────
 /// AppTheme — Sistem Desain Premium Fem-Psych Monitor
 ///
-/// Panduan Warna (Pink Pastel — feminine & warm):
+/// Panduan Warna (Rose Pink — warm & sophisticated):
 ///   • Background  : Off-white #F8FAFC  → bersih, tidak melelahkan mata
-///   • Primary     : Pink #F8C8DC       → pastel pink, feminin, lembut
-///   • Secondary   : Pink #EC4899       → hot pink aksen, energik
+///   • Primary     : Rose #E8728A       → warm pink elegan
+///   • Secondary   : Coral #F4A7B5      → aksen lembut
 ///   • Emotion     : Palet pastel/muted agar tidak memicu kecemasan
 ///
 /// Tipografi: Poppins (Google Fonts) — modern, premium, rounded
@@ -15,27 +15,37 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   AppTheme._(); // Prevent instantiation
 
-  // ── Warna Utama (Pink Pastel) ───────────────────────────────
+  // ── Warna Utama (Rose Pink) ───────────────────────────────
   static const Color primaryColor = Color.fromARGB(
     255,
+    253,
+    81,
+    115,
+  ); // Warm rose
+  static const Color primaryLight = Color.fromARGB(
     255,
-    85,
-    128,
-  ); // Pink Medium (less pastel)
-  static const Color primaryLight = Color(0xFFFAD0DC); // Lighter Pink
+    255,
+    194,
+    214,
+  ); // Soft blush
   static const Color primaryDark = Color.fromARGB(
     255,
-    248,
-    107,
-    156,
-  ); // Dusky Rose (for buttons/contrast)
+    211,
+    84,
+    111,
+  ); // Deep rose
   static const Color secondaryColor = Color.fromARGB(
     255,
-    220,
-    114,
-    167,
-  ); // Hot Pink
-  static const Color accentColor = Color(0xFFFFB6C1); // Light Pink
+    238,
+    138,
+    156,
+  ); // Coral pink
+  static const Color accentColor = Color.fromARGB(
+    255,
+    252,
+    162,
+    175,
+  ); // Light pink
 
   // ── Warna Surface & Background ──────────────────────────────
   static const Color backgroundColor = Color(0xFFF8FAFC); // Off-white
@@ -68,21 +78,21 @@ class AppTheme {
     'Fear': Color(0xFFEDE9FE), // Violet-50
   };
 
-  // ── Gradien Utama (Pink Pastel → Hot Pink) ──────────────────
+  // ── Gradien Utama (Rose → Coral) ──────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primaryLight, secondaryColor],
+    colors: [primaryLight, primaryColor],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient warmGradient = LinearGradient(
-    colors: [Color(0xFFFBD7E8), accentColor],
+    colors: [primaryLight, accentColor],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient recordingGradient = LinearGradient(
-    colors: [secondaryColor, primaryLight],
+    colors: [primaryColor, primaryLight],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -91,7 +101,7 @@ class AppTheme {
   static const LinearGradient lightGradientBackground = LinearGradient(
     colors: [
       Color(0xFFFFF0F5), // Lavender blush
-      Color(0xFFFFE4EC), // Light pink
+      Color(0xFFFCE4EC), // Pink-50
       Color(0xFFFFF5F7), // Very light pink
       Color(0xFFF8FAFC), // Off-white
     ],

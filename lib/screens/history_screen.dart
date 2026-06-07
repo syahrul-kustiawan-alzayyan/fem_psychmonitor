@@ -437,6 +437,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false,
         title: Row(
           children: [
             ShaderMask(

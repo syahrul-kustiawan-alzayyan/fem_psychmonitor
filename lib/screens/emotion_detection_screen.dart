@@ -50,6 +50,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
   Timer? _waveformTimer;
   final _rand = Random();
   final List<double> _waveHeights = List.generate(30, (_) => 0.3);
+  int _waveformFrame = 0;
 
   late AnimationController _pulseCtrl;
   late Animation<double> _pulseAnim;
@@ -122,6 +123,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         (_) {
           if (_isRecording && mounted) {
             setState(() {
+              _waveformFrame++;
               for (int i = 0; i < _waveHeights.length; i++) {
                 _waveHeights[i] = 0.2 + (_rand.nextDouble() * 0.6);
               }
@@ -291,18 +293,9 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false,
+        leadingWidth: 0,
         centerTitle: false,
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: Colors.white),
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: ShaderMask(
           shaderCallback: (bounds) =>
               AppTheme.primaryGradient.createShader(bounds),
@@ -325,12 +318,15 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 130),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 12),
-                      _buildWaveform(),
+                      const SizedBox(height: 8),
+                      _buildTimerIndicator(),
                       const SizedBox(height: 16),
+                      _buildWaveform(),
+                      const SizedBox(height: 20),
                       _buildEmotionRow(),
+                      const SizedBox(height: 20),
+                      _buildEmotionScoreBars(),
                     ],
                   ),
                 ),
@@ -372,6 +368,91 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  String _formatDuration(Duration d) {
+    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
+  Widget _buildTimerIndicator() {
+    final elapsed = _recordingStartTime != null
+        ? DateTime.now().difference(_recordingStartTime!)
+        : Duration.zero;
+    final dotCount = (_waveformFrame ~/ 5) % 4;
+    final dots = '.' * dotCount;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.red.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8, height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Mendengarkan$dots',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.red.shade700,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        _buildChip(
+          Icons.timer_outlined,
+          _formatDuration(elapsed),
+          AppTheme.primaryColor,
+        ),
+        const SizedBox(width: 10),
+        _buildChip(
+          Icons.mood_outlined,
+          _currentEmotion?.displayName ?? '-',
+          _currentEmotion?.color ?? AppTheme.textHint,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -436,6 +517,114 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
           child: _buildRadarChart(),
         ),
       ],
+    );
+  }
+
+  Widget _buildEmotionScoreBars() {
+    final scores = _currentScores;
+    final sorted = scores.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppTheme.primaryColor.withValues(alpha: 0.12),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Skor Emosi',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textS(context),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...sorted.map((e) => _buildScoreBarRow(e.key, e.value)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScoreBarRow(EmotionType emotion, double score) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 16, height: 16,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: Image.asset(
+                emotion.assetIconPath,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => Icon(
+                  emotion.icon, size: 14, color: emotion.color,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 56,
+            child: Text(
+              emotion.displayName,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textP(context),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                height: 8,
+                decoration: BoxDecoration(
+                  color: AppTheme.surfVar(context),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: score,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [emotion.color, emotion.color.withValues(alpha: 0.7)],
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 36,
+            child: Text(
+              '${(score * 100).toStringAsFixed(0)}%',
+              textAlign: TextAlign.right,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: emotion.color,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -92,6 +92,8 @@ class _ResultScreenState extends State<ResultScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        centerTitle: false,
+        leadingWidth: 0,
         title: Row(
           children: [
             ShaderMask(

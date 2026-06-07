@@ -107,6 +107,8 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false,
+        leadingWidth: 0,
         title: Row(
           children: [
             ShaderMask(
@@ -126,19 +128,6 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
               ),
             ),
           ],
-        ),
-        leading: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
         ),
       ),
       body: GradientBackground(
