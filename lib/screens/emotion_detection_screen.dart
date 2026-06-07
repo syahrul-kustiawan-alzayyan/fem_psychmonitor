@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:record/record.dart';
+import 'package:whisper_kit/whisper_kit.dart';
+import 'package:path_provider/path_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
@@ -28,8 +30,9 @@ class EmotionDetectionScreen extends StatefulWidget {
 
 class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     with TickerProviderStateMixin {
-  final stt.SpeechToText _speech = stt.SpeechToText();
-  bool _speechAvailable = false;
+  final AudioRecorder _audioRecorder = AudioRecorder();
+  Whisper? _whisper;
+  String? _wavPath;
 
   bool _isRecording = false;
   bool _isProcessing = false;
@@ -40,7 +43,6 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     for (final e in EmotionType.values) e: 1.0 / EmotionType.values.length,
   };
 
-  String _transcript = '';
   Map<EmotionType, double> _finalAudioScores = {};
   DateTime? _recordingStartTime;
 
@@ -76,33 +78,20 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     }
 
     try {
-      _speechAvailable = await _speech.initialize();
-      if (_speechAvailable) {
-        await _speech.listen(
-          onResult: (result) {
-            if (mounted) {
-              setState(() => _transcript = result.recognizedWords);
-            }
-          },
-          listenOptions: stt.SpeechListenOptions(
-            localeId: 'id_ID',
-            listenMode: stt.ListenMode.dictation,
-            partialResults: true,
-          ),
-        );
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Fitur transkrip tidak tersedia di perangkat ini.'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-      }
+      _whisper = Whisper(model: WhisperModel.tiny);
+
+      final dir = await getTemporaryDirectory();
+      _wavPath = '${dir.path}/recording_${DateTime.now().millisecondsSinceEpoch}.wav';
+      await _audioRecorder.start(
+        const RecordConfig(
+          encoder: AudioEncoder.wav,
+          sampleRate: 16000,
+          numChannels: 1,
+        ),
+        path: _wavPath!,
+      );
 
       _recordingStartTime = DateTime.now();
-
       setState(() => _isRecording = true);
       _pulseCtrl.repeat(reverse: true);
 
@@ -119,7 +108,6 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
           }
         },
       );
-      // fire immediately
       if (mounted) {
         setState(() {
           _currentScores = _generateMockScores();
@@ -173,17 +161,36 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
 
     _finalAudioScores = Map.from(_currentScores);
 
-    // Step 1: Stop speech recognition
-    if (_speechAvailable) {
+    // Step 1: Stop recording
+    String? recordedPath;
+    try {
+      recordedPath = await _audioRecorder.stop();
+    } catch (e) {
+      debugPrint('🎙️ Stop recording error: $e');
+    }
+    final path = recordedPath ?? _wavPath;
+
+    // Step 2: Transcribe with Whisper (offline, no Google Services)
+    String transcript = '';
+    if (path != null && _whisper != null) {
       if (mounted) {
-        setState(() => _processingMessage = 'Menyelesaikan transkripsi...');
+        setState(() => _processingMessage = 'Memproses transkripsi...\n(Pertama kali muat model bisa lebih lama)');
       }
-      await _speech.stop();
+      try {
+        final result = await _whisper!.transcribe(
+          transcribeRequest: TranscribeRequest(
+            audio: path,
+            language: 'id',
+          ),
+        );
+        transcript = result.text.trim();
+        debugPrint('📝 Whisper transcript: "$transcript"');
+      } catch (e) {
+        debugPrint('🎙️ Whisper transcribe error: $e');
+      }
     }
 
-    final transcript = _transcript;
-
-    // Step 2: Analyze emotion from transcript text (local, no API)
+    // Step 3: Analyze emotion from transcript text (local, no API)
     if (mounted) {
       setState(() => _processingMessage = 'Menganalisis emosi dari teks...');
     }
@@ -270,9 +277,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     _emotionUpdateTimer?.cancel();
     _waveformTimer?.cancel();
     _pulseCtrl.dispose();
-    if (_speechAvailable) {
-      _speech.stop();
-    }
+    _audioRecorder.dispose();
     super.dispose();
   }
 
@@ -286,6 +291,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        centerTitle: false,
         leading: IconButton(
           icon: Container(
             padding: const EdgeInsets.all(8),
@@ -296,6 +302,18 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
             child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: Colors.white),
           ),
           onPressed: () => Navigator.pop(context),
+        ),
+        title: ShaderMask(
+          shaderCallback: (bounds) =>
+              AppTheme.primaryGradient.createShader(bounds),
+          child: Text(
+            AppLocalizations.tr('emotion_detection'),
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
         ),
       ),
       body: GradientBackground(
@@ -309,13 +327,10 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTitle(),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildWaveform(),
                       const SizedBox(height: 16),
                       _buildEmotionRow(),
-                      const SizedBox(height: 16),
-                      _buildTranscriptBox(),
                     ],
                   ),
                 ),
@@ -356,24 +371,6 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
                 ),
               ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTitle() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: ShaderMask(
-        shaderCallback: (bounds) =>
-            AppTheme.primaryGradient.createShader(bounds),
-        child: Text(
-          AppLocalizations.tr('emotion_detection'),
-          style: GoogleFonts.poppins(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
         ),
       ),
     );
@@ -569,58 +566,6 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
           ],
         ),
         duration: const Duration(milliseconds: 400),
-      ),
-    );
-  }
-
-  Widget _buildTranscriptBox() {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      width: double.infinity,
-      constraints: const BoxConstraints(
-        minHeight: 60,
-        maxHeight: 200,
-      ),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.12),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.text_fields_rounded,
-              color: Colors.white,
-              size: 16,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              _transcript.isEmpty
-                  ? AppLocalizations.tr('transcript_placeholder')
-                  : _transcript,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                height: 1.5,
-                color: _transcript.isEmpty
-                    ? AppTheme.textHint
-                    : AppTheme.textP(context),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

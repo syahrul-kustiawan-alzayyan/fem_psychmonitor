@@ -8,6 +8,7 @@ plugins {
 
 android {
     namespace = "com.femphysicsmonitor.app"
+    ndkVersion = "28.2.13676358"
     compileSdk = flutter.compileSdkVersion
 
     compileOptions {

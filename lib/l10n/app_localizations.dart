@@ -541,6 +541,7 @@ class AppLocalizations {
       // ── Emotion Detection Screen ──
       'emotion_detection': 'Deteksi Emosi',
       'transcript_placeholder': 'Transkrip akan muncul di sini...',
+      'transcript_label': 'Transkrip',
     },
 
     // ════════════════════════════════════════════
@@ -1058,6 +1059,7 @@ class AppLocalizations {
       // ── Emotion Detection Screen ──
       'emotion_detection': 'Emotion Detection',
       'transcript_placeholder': 'Transcript will appear here...',
+      'transcript_label': 'Transcript',
     },
   };
 }

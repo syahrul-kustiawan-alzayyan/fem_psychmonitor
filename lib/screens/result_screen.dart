@@ -424,7 +424,7 @@ class _ResultScreenState extends State<ResultScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(e.icon, size: 16, color: e.color),
+                      Image.asset(e.assetIconPath, width: 16, height: 16),
                       const SizedBox(width: 8),
                       Text(
                         e.displayName,
@@ -699,7 +699,7 @@ class _ResultScreenState extends State<ResultScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(e.key.icon, size: 11, color: e.key.color),
+                      Image.asset(e.key.assetIconPath, width: 11, height: 11),
                       const SizedBox(width: 4),
                       Text(
                         '${e.key.displayName}: ${(e.value * 100).toStringAsFixed(0)}%',
@@ -887,7 +887,7 @@ class _ResultScreenState extends State<ResultScreen> {
                   color: dominantEmotion.color.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(dominantEmotion.icon, size: 20, color: dominantEmotion.color),
+                child: Image.asset(dominantEmotion.assetIconPath, width: 20, height: 20),
               ),
               const SizedBox(height: 4),
               Text(

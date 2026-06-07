@@ -16,10 +16,25 @@ class AppTheme {
   AppTheme._(); // Prevent instantiation
 
   // ── Warna Utama (Pink Pastel) ───────────────────────────────
-  static const Color primaryColor = Color(0xFFF2A4B8); // Pink Medium (less pastel)
+  static const Color primaryColor = Color.fromARGB(
+    255,
+    255,
+    85,
+    128,
+  ); // Pink Medium (less pastel)
   static const Color primaryLight = Color(0xFFFAD0DC); // Lighter Pink
-  static const Color primaryDark = Color(0xFFC48098); // Dusky Rose (for buttons/contrast)
-  static const Color secondaryColor = Color(0xFFEC4899); // Hot Pink
+  static const Color primaryDark = Color.fromARGB(
+    255,
+    248,
+    107,
+    156,
+  ); // Dusky Rose (for buttons/contrast)
+  static const Color secondaryColor = Color.fromARGB(
+    255,
+    220,
+    114,
+    167,
+  ); // Hot Pink
   static const Color accentColor = Color(0xFFFFB6C1); // Light Pink
 
   // ── Warna Surface & Background ──────────────────────────────
@@ -550,7 +565,9 @@ class AppTheme {
       Theme.of(context).brightness == Brightness.dark ? darkTextHint : textHint;
 
   static Color iconColor(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? primaryColor : primaryDark;
+      Theme.of(context).brightness == Brightness.dark
+      ? primaryColor
+      : primaryDark;
 
   static Color surfVar(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
