@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../services/database_service.dart';
+import '../services/config_service.dart';
 import '../screens/onboarding_screen.dart';
 
 /// Provider autentikasi menggunakan Firebase Authentication.
@@ -217,7 +218,7 @@ class AuthProvider extends ChangeNotifier {
   Future<String> signInWithGoogle({bool isLogin = false}) async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn(
-        serverClientId: '637727281592-5lk5ga4di62olc97u47g56ohfe1m44dh.apps.googleusercontent.com',
+        serverClientId: ConfigService.googleServerClientId,
       );
       
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();

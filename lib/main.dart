@@ -13,6 +13,7 @@ import 'theme/app_theme.dart';
 import 'services/ad_service.dart';
 import 'services/subscription_service.dart';
 import 'services/database_service.dart';
+import 'services/config_service.dart';
 import 'services/storage_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/onboarding_screen.dart';
@@ -29,6 +30,7 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  await ConfigService.load();
   await Firebase.initializeApp();
 
   final localeProvider = LocaleProvider();
@@ -45,10 +47,10 @@ void main() async {
 
   final adService = AdService();
   adService.setProductionIds(
-    bannerTop: 'ca-app-pub-1119296580292407/3050744323',
-    bannerBottom: 'ca-app-pub-1119296580292407/9420711553',
-    interstitial: 'ca-app-pub-1119296580292407/1598061850',
-    appOpen: 'ca-app-pub-1119296580292407/6736057059',
+    bannerTop: ConfigService.admobBannerTop,
+    bannerBottom: ConfigService.admobBannerBottom,
+    interstitial: ConfigService.admobInterstitial,
+    appOpen: ConfigService.admobAppOpen,
   );
   await adService.init(premiumProvider);
 

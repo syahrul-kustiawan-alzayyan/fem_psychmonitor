@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../providers/premium_provider.dart';
 import 'database_service.dart';
+import 'config_service.dart';
 
 class SubscriptionService {
   static final SubscriptionService _instance = SubscriptionService._();
@@ -20,7 +21,7 @@ class SubscriptionService {
     try {
       await Purchases.setLogLevel(LogLevel.debug);
       await Purchases.configure(
-        PurchasesConfiguration('test_hMfwtNxLDmiBbsANAXlvbWAwvRv'),
+        PurchasesConfiguration(ConfigService.revenueCatApiKey),
       );
       final customerInfo = await Purchases.getCustomerInfo();
       _checkEntitlements(customerInfo, premiumProvider);
