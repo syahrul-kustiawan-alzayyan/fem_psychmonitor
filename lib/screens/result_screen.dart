@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../models/emotion_model.dart';
 import '../l10n/app_localizations.dart';
 import '../services/database_service.dart';
+import '../services/gemini_service.dart';
 import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gradient_background.dart';
@@ -12,7 +13,7 @@ import '../widgets/suggestion_card.dart';
 class ResultScreen extends StatefulWidget {
   final RecordingData recordingData;
 
-  const ResultScreen({Key? key, required this.recordingData}) : super(key: key);
+  const ResultScreen({super.key, required this.recordingData});
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -22,6 +23,21 @@ class _ResultScreenState extends State<ResultScreen> {
   List<String> _suggestions = [];
   String _title = '';
   bool _loaded = false;
+
+  Map<EmotionType, double> get _combinedScores {
+    return GeminiService.combineResults(
+      widget.recordingData.audioEmotions,
+      widget.recordingData.transcriptEmotions,
+      audioWeight: 0.6,
+      textWeight: 0.4,
+    );
+  }
+
+  Map<EmotionType, double> get _sortedScores {
+    final sorted = _combinedScores.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return {for (final e in sorted) e.key: e.value};
+  }
 
   @override
   void initState() {
@@ -35,17 +51,20 @@ class _ResultScreenState extends State<ResultScreen> {
     await service.load();
 
     final mbtiType = user?.mbtiType ?? '';
-    final emotion = widget.recordingData.dominantEmotion;
+    final combined = _combinedScores;
+    final dominant = combined.entries.reduce(
+      (a, b) => a.value >= b.value ? a : b,
+    ).key;
 
     List<String> suggestions;
     String title;
 
     if (mbtiType.isNotEmpty && mbtiType != 'XXXX') {
-      suggestions = service.getSuggestions(mbtiType, emotion);
-      title = service.buildTitle(mbtiType, emotion);
+      suggestions = service.getSuggestions(mbtiType, dominant);
+      title = service.buildTitle(mbtiType, dominant);
     } else {
-      suggestions = emotion.recordingSuggestions;
-      title = 'Saran untuk Emosi ${emotion.displayName}';
+      suggestions = dominant.recordingSuggestions;
+      title = 'Saran untuk Emosi ${dominant.displayName}';
     }
 
     if (mounted) {
@@ -59,9 +78,15 @@ class _ResultScreenState extends State<ResultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final domEmotion = widget.recordingData.dominantEmotion;
+    final combined = _combinedScores;
+    final sorted = _sortedScores;
+    final domEntry = sorted.entries.first;
+    final domEmotion = domEntry.key;
+    final domConf = domEntry.value;
+
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppTheme.bg(context),
+      extendBody: true,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -72,25 +97,16 @@ class _ResultScreenState extends State<ResultScreen> {
             ShaderMask(
               shaderCallback: (bounds) =>
                   AppTheme.primaryGradient.createShader(bounds),
-              child: const Icon(
-                Icons.analytics_rounded,
-                color: Colors.white,
-                size: 22,
-              ),
+              child: const Icon(Icons.analytics_rounded, color: Colors.white, size: 22),
             ),
             const SizedBox(width: 10),
             ShaderMask(
               shaderCallback: (bounds) =>
-                  AppTheme.primaryGradient.createShader(
-                    Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                  ),
+                  AppTheme.primaryGradient.createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
               child: Text(
                 'Hasil Deteksi',
                 style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: -0.3,
+                  fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: -0.3,
                 ),
               ),
             ),
@@ -103,223 +119,881 @@ class _ResultScreenState extends State<ResultScreen> {
         child: SafeArea(
           bottom: false,
           child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Dominant Emotion Hero Card
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    domEmotion.color.withValues(alpha: 0.8),
-                    domEmotion.color,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(32),
-                boxShadow: [
-                  BoxShadow(
-                    color: domEmotion.color.withValues(alpha: 0.4),
-                    blurRadius: 24,
-                    offset: const Offset(0, 10),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeroCard(domEmotion, domConf),
+                const SizedBox(height: 16),
+                _buildInsightRow(combined),
+                const SizedBox(height: 20),
+                _buildScoreBreakdown(sorted),
+                const SizedBox(height: 20),
+                _buildRadarChartCard(combined),
+                const SizedBox(height: 20),
+                _buildTranscriptCard(),
+                const SizedBox(height: 20),
+                _buildSourceComparison(),
+                const SizedBox(height: 20),
+                if (_loaded)
+                  SuggestionCard(
+                    title: _title,
+                    suggestions: _suggestions,
+                    icon: Icons.lightbulb_outline_rounded,
+                    color: domEmotion.color,
+                    isCollapsible: false,
                   )
-                ],
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Image.asset(
-                      domEmotion.assetIconPath,
-                      width: 68,
-                      height: 68,
+                else
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Emosi Dominan',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.9),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    domEmotion.displayName,
-                    style: GoogleFonts.poppins(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.analytics_rounded, color: Colors.white, size: 16),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Akurasi: ${(widget.recordingData.confidence * 100).toStringAsFixed(1)}%',
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              ),
+                const SizedBox(height: 24),
+                _buildDoneButton(context),
+              ],
             ),
-            const SizedBox(height: 32),
-            
-            // Radar Chart Section
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppTheme.surface(context),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: AppTheme.cardShadow,
-                border: Border.all(color: AppTheme.surfVar(context), width: 1),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppTheme.iconColor(context).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(Icons.radar_rounded, color: AppTheme.iconColor(context), size: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Distribusi Emosi',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textP(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    height: 240,
-                    child: _buildRadarChart(context),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // Suggestion Card — dynamic dari saran.json
-            if (_loaded)
-              SuggestionCard(
-                title: _title,
-                suggestions: _suggestions,
-                icon: Icons.lightbulb_outline_rounded,
-                color: domEmotion.color,
-                isCollapsible: false,
-              )
-            else
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-            
-            const SizedBox(height: 32),
-
-            // Selesai Button
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 4,
-                  shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
-                ),
-                child: Text(
-                  AppLocalizations.tr('done'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 48),
-          ],
-        ),
-        ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildRadarChart(BuildContext context) {
+  Widget _buildHeroCard(EmotionType emotion, double confidence) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            emotion.color.withValues(alpha: 0.85),
+            emotion.color,
+            emotion.color.withValues(blue: (emotion.color.b + 0.12).clamp(0.0, 1.0)),
+          ],
+          stops: const [0.0, 0.6, 1.0],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: emotion.color.withValues(alpha: 0.45),
+            blurRadius: 28,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Emosi Dominan',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.8),
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      emotion.displayName,
+                      style: GoogleFonts.poppins(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _confidenceBadge(confidence),
+                        const SizedBox(width: 8),
+                        _infoChip(Icons.access_time_rounded, '${widget.recordingData.durationSeconds}s'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Image.asset(
+                  emotion.assetIconPath,
+                  width: 48,
+                  height: 48,
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    emotion.icon,
+                    size: 42,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _confidenceBadge(double confidence) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.auto_awesome, size: 12, color: Colors.white.withValues(alpha: 0.9)),
+          const SizedBox(width: 5),
+          Text(
+            '${(confidence * 100).toStringAsFixed(1)}%',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: Colors.white.withValues(alpha: 0.8)),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.85),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInsightRow(Map<EmotionType, double> combined) {
+    final top3 = combined.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final hasTranscript = widget.recordingData.transcriptText.isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Row(
+        children: [
+          _insightTile(
+            Icons.emoji_emotions_outlined,
+            'Top Emosi',
+            top3.take(2).map((e) => '${e.key.displayName} (${(e.value * 100).toStringAsFixed(0)}%)').join(', '),
+            AppTheme.primaryColor,
+          ),
+          Container(
+            width: 1,
+            height: 36,
+            color: AppTheme.surfVar(context),
+          ),
+          _insightTile(
+            Icons.text_fields_rounded,
+            'Transkrip',
+            hasTranscript ? 'Tersedia' : 'Tidak ada',
+            hasTranscript ? Colors.green : Colors.orange,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _insightTile(IconData icon, String label, String value, Color color) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 14, color: color),
+                const SizedBox(width: 5),
+                Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textS(context),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textP(context),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScoreBreakdown(Map<EmotionType, double> sorted) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Icon(Icons.bar_chart_rounded, color: Colors.white, size: 16),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Skor Emosi',
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textP(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          ...sorted.entries.map((entry) {
+            final e = entry.key;
+            final val = entry.value;
+            final isDominant = identical(e, sorted.entries.first.key);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(e.icon, size: 16, color: e.color),
+                      const SizedBox(width: 8),
+                      Text(
+                        e.displayName,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: isDominant ? FontWeight.w700 : FontWeight.w500,
+                          color: isDominant ? e.color : AppTheme.textP(context),
+                        ),
+                      ),
+                      if (isDominant)
+                        Container(
+                          margin: const EdgeInsets.only(left: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: e.color.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'DOMINAN',
+                            style: GoogleFonts.poppins(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w700,
+                              color: e.color,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      const Spacer(),
+                      Text(
+                        '${(val * 100).toStringAsFixed(1)}%',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: e.color,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(5),
+                        child: LinearProgressIndicator(
+                          value: 1.0,
+                          backgroundColor: AppTheme.surfVar(context),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.surfVar(context)),
+                          minHeight: isDominant ? 10 : 8,
+                        ),
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(5),
+                        child: LinearProgressIndicator(
+                          value: val,
+                          backgroundColor: Colors.transparent,
+                          valueColor: AlwaysStoppedAnimation<Color>(e.color),
+                          minHeight: isDominant ? 10 : 8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRadarChartCard(Map<EmotionType, double> combined) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: AppTheme.iconColor(context).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Icon(Icons.radar_rounded, color: AppTheme.iconColor(context), size: 16),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Distribusi Emosi',
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textP(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            height: 240,
+            child: _buildRadarChart(combined),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Gabungan deteksi suara (60%) + analisis teks (40%)',
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              color: AppTheme.textHint,
+              letterSpacing: 0.3,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTranscriptCard() {
+    final hasTranscript = widget.recordingData.transcriptText.isNotEmpty;
+    final hasTextEmotions = widget.recordingData.transcriptEmotions.values.any((v) => v > 0.05);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: AppTheme.cardShadow,
+        border: Border.all(
+          color: hasTranscript
+              ? AppTheme.primaryColor.withValues(alpha: 0.10)
+              : Colors.orange.withValues(alpha: 0.15),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  gradient: hasTranscript ? AppTheme.primaryGradient : const LinearGradient(
+                    colors: [Colors.orange, Colors.orangeAccent],
+                  ),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Icon(
+                  hasTranscript ? Icons.text_fields_rounded : Icons.warning_amber_rounded,
+                  color: Colors.white, size: 16,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Transkrip',
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textP(context),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: hasTranscript
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      hasTranscript ? Icons.check_circle : Icons.hourglass_empty_rounded,
+                      size: 12,
+                      color: hasTranscript ? Colors.green.shade600 : Colors.orange.shade600,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      hasTranscript ? 'Terdeteksi' : 'Tidak ada',
+                      style: GoogleFonts.poppins(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        color: hasTranscript ? Colors.green.shade600 : Colors.orange.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          if (hasTranscript) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppTheme.surfVar(context),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(
+                widget.recordingData.transcriptText,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  height: 1.6,
+                  color: AppTheme.textP(context),
+                ),
+              ),
+            ),
+          ] else ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 14),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.1)),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.mic_off_rounded, size: 32, color: Colors.orange.withValues(alpha: 0.5)),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Transkrip tidak tersedia',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textP(context),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Pastikan Anda berbicara dengan jelas dan\nGemini API key sudah benar di file .env',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: AppTheme.textS(context),
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (hasTextEmotions) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Emosi dari teks:',
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textS(context),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: widget.recordingData.transcriptEmotions.entries
+                .where((e) => (e.value) > 0.05)
+                .map((e) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: e.key.color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(e.key.icon, size: 11, color: e.key.color),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${e.key.displayName}: ${(e.value * 100).toStringAsFixed(0)}%',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: e.key.color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ))
+                .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSourceComparison() {
+    final audio = widget.recordingData.audioEmotions;
+    final text = widget.recordingData.transcriptEmotions;
+    final hasTextData = text.values.any((v) => v > 0);
+
+    final audioDominant = audio.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final textDominant = text.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: AppTheme.iconColor(context).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Icon(Icons.compare_arrows_rounded, color: AppTheme.iconColor(context), size: 16),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Sumber Deteksi',
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textP(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _sourceCard(
+                  'Suara',
+                  60,
+                  Icons.mic_rounded,
+                  AppTheme.primaryColor,
+                  audioDominant.first.key,
+                  audioDominant.first.value,
+                  audioDominant.length > 1 ? audioDominant[1].key : null,
+                  audioDominant.length > 1 ? audioDominant[1].value : null,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _sourceCard(
+                  'Teks',
+                  40,
+                  Icons.text_fields_rounded,
+                  Colors.green.shade600,
+                  hasTextData ? textDominant.first.key : EmotionType.neutral,
+                  hasTextData ? textDominant.first.value : 0,
+                  hasTextData && textDominant.length > 1 ? textDominant[1].key : null,
+                  hasTextData && textDominant.length > 1 ? textDominant[1].value : null,
+                  disabled: !hasTextData,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.08),
+                  Colors.green.withValues(alpha: 0.08),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline_rounded, size: 14, color: AppTheme.iconColor(context)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Hasil akhir adalah gabungan deteksi suara (60%) dan analisis teks (40%)',
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.5,
+                      height: 1.4,
+                      color: AppTheme.textS(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sourceCard(
+    String label,
+    int weight,
+    IconData icon,
+    Color color,
+    EmotionType dominantEmotion,
+    double dominantScore,
+    EmotionType? secondEmotion,
+    double? secondScore, {
+    bool disabled = false,
+  }) {
+    final opacity = disabled ? 0.4 : 1.0;
+
+    return Opacity(
+      opacity: opacity,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppTheme.surfVar(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: color.withValues(alpha: disabled ? 0.08 : 0.2),
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: disabled ? 0.08 : 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 18, color: color.withValues(alpha: disabled ? 0.4 : 1.0)),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textP(context),
+              ),
+            ),
+            Text(
+              '($weight%)',
+              style: GoogleFonts.poppins(
+                fontSize: 10,
+                color: AppTheme.textS(context),
+              ),
+            ),
+            const SizedBox(height: 10),
+            if (!disabled) ...[
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: dominantEmotion.color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(dominantEmotion.icon, size: 20, color: dominantEmotion.color),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                dominantEmotion.displayName,
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: dominantEmotion.color,
+                ),
+              ),
+              Text(
+                '${(dominantScore * 100).toStringAsFixed(0)}%',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textS(context),
+                ),
+              ),
+            ] else
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(
+                  'Tidak tersedia',
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    color: AppTheme.textHint,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDoneButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton.icon(
+        onPressed: () => Navigator.pop(context),
+        icon: const Icon(Icons.check_rounded, size: 20),
+        label: Text(
+          AppLocalizations.tr('done'),
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.primaryColor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          elevation: 6,
+          shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRadarChart(Map<EmotionType, double> combined) {
     final emotions = EmotionType.values;
+    final dominant = _sortedScores.entries.first.key;
+    final entries = emotions.map((e) {
+      return RadarEntry(value: (combined[e] ?? 0) * 100);
+    }).toList();
 
     return RadarChart(
       RadarChartData(
         dataSets: [
           RadarDataSet(
-            fillColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-            borderColor: AppTheme.primaryColor,
-            entryRadius: 4,
-            dataEntries: emotions.map((e) {
-              return RadarEntry(value: widget.recordingData.audioEmotions[e] ?? 0.0);
-            }).toList(),
+            fillColor: dominant.color.withValues(alpha: 0.15),
+            borderColor: dominant.color,
             borderWidth: 2.5,
+            entryRadius: 4,
+            dataEntries: entries,
           ),
         ],
         radarBackgroundColor: Colors.transparent,
         borderData: FlBorderData(show: false),
         radarBorderData: const BorderSide(color: Colors.transparent),
-        tickCount: 3,
-        ticksTextStyle: const TextStyle(color: Colors.transparent, fontSize: 10),
-        tickBorderData: BorderSide(color: AppTheme.surfVar(context), width: 1),
-        gridBorderData: BorderSide(color: AppTheme.surfVar(context), width: 1.5),
+        tickCount: 4,
+        ticksTextStyle: GoogleFonts.poppins(
+          fontSize: 9,
+          color: AppTheme.textHint,
+        ),
+        tickBorderData: BorderSide(color: AppTheme.surfVar(context), width: 0.5),
+        gridBorderData: BorderSide(color: AppTheme.surfVar(context), width: 0.8),
+        titlePositionPercentageOffset: 0.18,
+        titleTextStyle: GoogleFonts.poppins(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: AppTheme.textS(context),
+        ),
         getTitle: (index, angle) {
-          final emotion = emotions[index];
+          final e = emotions[index];
+          final isDom = identical(e, dominant);
           return RadarChartTitle(
-            text: emotion.displayName,
-            angle: 0,
-            positionPercentageOffset: 0.15,
+            text: isDom ? '★ ${e.displayName}' : e.displayName,
           );
         },
       ),
-      swapAnimationDuration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 600),
     );
   }
 }
-

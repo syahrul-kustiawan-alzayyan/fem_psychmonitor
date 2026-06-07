@@ -24,6 +24,8 @@ class GradientBackground extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
+      width: double.infinity,
+      height: double.infinity,
       decoration: BoxDecoration(
         gradient: gradient ??
             (isDark

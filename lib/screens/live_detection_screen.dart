@@ -3,19 +3,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
-import '../providers/premium_provider.dart';
-import '../services/ad_service.dart';
-import '../services/audio_recorder_detection.dart';
-import '../services/database_service.dart';
-import '../services/suggestion_service.dart';
+import '../services/audio_recorder_detection.dart' show AudioRecorderWithDetection, DetectionResult;
 import '../theme/app_theme.dart';
-import '../widgets/emotion_badge.dart';
 import '../widgets/gradient_background.dart';
-import 'result_screen.dart';
+import 'emotion_detection_screen.dart';
 
 class LiveDetectionScreen extends StatefulWidget {
   const LiveDetectionScreen({super.key});
@@ -28,23 +22,19 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
     with TickerProviderStateMixin {
   bool _isRecording = false;
   bool _isModelLoading = true;
-  bool _isModelReady = false;
-  bool _hasPermission = false;
 
   late AnimationController _pulseCtrl;
   late Animation<double> _pulseAnim;
   late AnimationController _waveCtrl;
 
   EmotionType? _detectedEmotion;
-  double? _detectedConfidence;
-  Map<EmotionType, double>? _detectedScores;
 
   final AudioRecorderWithDetection _recorder =
       AudioRecorderWithDetection.instance;
   StreamSubscription? _detectionSubscription;
 
   final _rand = Random();
-  List<double> _waveHeights = List.generate(20, (_) => 0.3);
+  final List<double> _waveHeights = List.generate(20, (_) => 0.3);
 
   @override
   void initState() {
@@ -71,11 +61,10 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
   Future<void> _loadModel() async {
     setState(() => _isModelLoading = true);
     try {
-      _hasPermission = await _recorder.checkAndRequestPermission();
+      await _recorder.checkAndRequestPermission();
       await _recorder.loadModel();
 
       setState(() {
-        _isModelReady = true;
         _isModelLoading = false;
       });
 
@@ -85,7 +74,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
     } catch (e) {
       setState(() {
         _isModelLoading = false;
-        _isModelReady = true;
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -98,12 +86,10 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
     }
   }
 
-  void _onDetectionResult(result) {
+  void _onDetectionResult(DetectionResult result) {
     if (mounted) {
       setState(() {
         _detectedEmotion = result.dominantEmotion;
-        _detectedConfidence = result.confidence;
-        _detectedScores = result.scores;
       });
     }
   }
@@ -138,135 +124,14 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
       return;
     }
 
-    if (!_isModelReady) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Model belum siap. Tunggu sebentar...'),
-          backgroundColor: Colors.orange,
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const EmotionDetectionScreen(),
         ),
       );
-      return;
     }
-
-    if (!_hasPermission) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.tr('mic_permission_required')),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    if (!_isRecording) {
-      // START RECORDING
-      try {
-        await _recorder.startRecording();
-        _startAudioSimulation();
-
-        setState(() {
-          _isRecording = true;
-          _detectedEmotion = null;
-          _detectedConfidence = null;
-          _detectedScores = null;
-          _pulseCtrl.repeat(reverse: true);
-          _waveCtrl.repeat();
-        });
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${AppLocalizations.tr("failed_start_recording")}: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } else {
-      // STOP RECORDING
-      final audioPath = await _recorder.stopRecording();
-      _stopAudioSimulation();
-
-      _pulseCtrl.stop();
-      _pulseCtrl.reset();
-      _waveCtrl.stop();
-      
-      setState(() {
-        _isRecording = false;
-      });
-
-      // Tunggu sebentar untuk hasil deteksi final dari stream
-      // karena result dikirim secara async melalui detectorStream
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      final hasEmotionData = _detectedEmotion != null && _detectedScores != null;
-
-      if (hasEmotionData && audioPath != null) {
-        try {
-          final user = await DatabaseService.getUser();
-          final userId = user?.id ?? 1;
-
-          final suggService = SuggestionService();
-          await suggService.load();
-          final mbtiType = user?.mbtiType ?? '';
-          final firstSugg = (mbtiType.isNotEmpty && mbtiType != 'XXXX')
-              ? suggService.getFirstSuggestion(mbtiType, _detectedEmotion!)
-              : _detectedEmotion!.recordingSuggestions.first;
-
-          final record = RecordingData(
-            userId: userId,
-            dominantEmotion: _detectedEmotion!,
-            confidence: _detectedConfidence ?? 0.0,
-            date: DateTime.now(),
-            suggestion: firstSugg,
-            audioEmotions: _detectedScores!,
-            transcriptEmotions: _detectedScores!,
-            transcriptText: '',
-          );
-
-          await DatabaseService.insertRecording(record);
-
-          final premium = context.read<PremiumProvider>();
-          if (!premium.isPremium) {
-            await AdService().showInterstitialAd();
-          }
-
-          if (mounted) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => ResultScreen(recordingData: record)),
-            );
-          }
-        } catch (e) {
-          debugPrint('❌ Error saving recording: $e');
-        }
-      } else if (mounted) {
-        // Fallback: tampilkan pesan jika tidak ada data emosi
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Data emosi tidak tersedia. Silakan coba rekam ulang.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    }
-  }
-
-  Timer? _audioSimulationTimer;
-
-  void _startAudioSimulation() {
-    final rand = Random();
-    _audioSimulationTimer?.cancel();
-    _audioSimulationTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      final samples = List.generate(
-        1600,
-        (_) => (rand.nextDouble() * 2 - 1) * 0.5,
-      );
-      _recorder.addAudioSamples(samples);
-    });
-  }
-
-  void _stopAudioSimulation() {
-    _audioSimulationTimer?.cancel();
-    _audioSimulationTimer = null;
   }
 
   @override
@@ -493,32 +358,20 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
                       height: 90,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: _isRecording
-                            ? const LinearGradient(
-                                colors: [Color(0xFFFF5252), Color(0xFFD32F2F)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              )
-                            : AppTheme.primaryGradient,
+                        gradient: AppTheme.primaryGradient,
                         boxShadow: [
                           BoxShadow(
-                            color: (_isRecording ? Colors.red : AppTheme.primaryColor)
-                                    .withValues(alpha: 0.4),
+                            color: AppTheme.primaryColor.withValues(alpha: 0.4),
                             blurRadius: 20,
                             spreadRadius: 2,
                             offset: const Offset(0, 8),
                           ),
                         ],
                       ),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
-                        child: Icon(
-                          _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
-                          key: ValueKey(_isRecording),
-                          color: Colors.white,
-                          size: 44,
-                        ),
+                      child: const Icon(
+                        Icons.mic_rounded,
+                        color: Colors.white,
+                        size: 44,
                       ),
                     ),
                   ],
@@ -531,43 +384,28 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: _isRecording ? Colors.red.withValues(alpha: 0.1) : AppTheme.surface(context),
+            color: AppTheme.surface(context),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: _isRecording ? Colors.red.withValues(alpha: 0.3) : AppTheme.surfVar(context),
+              color: AppTheme.surfVar(context),
               width: 1,
             )
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_isRecording)
-                Container(
-                  width: 8, height: 8,
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                ),
-              Text(
-                _isRecording
-                    ? AppLocalizations.tr('tap_to_stop')
-                    : _isModelLoading
-                    ? AppLocalizations.tr('loading_model_short')
-                    : AppLocalizations.tr('tap_to_start'),
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: _isRecording ? Colors.redAccent : AppTheme.textP(context),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          child: Text(
+            _isModelLoading
+                ? AppLocalizations.tr('loading_model_short')
+                : AppLocalizations.tr('tap_to_start'),
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: AppTheme.textP(context),
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
-        if (_isRecording) ...[
+        if (_detectedEmotion != null) ...[
           const SizedBox(height: 12),
           Text(
-            _detectedEmotion != null
-                ? '${AppLocalizations.tr("emotion_detected")} ${_detectedEmotion!.displayName}'
-                : AppLocalizations.tr('detecting_emotion'),
+            '${AppLocalizations.tr("emotion_detected")} ${_detectedEmotion!.displayName}',
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,

@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:io' show Platform, Directory;
+import 'dart:io' show Platform, Directory, File;
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:flutter_litert/flutter_litert.dart';
@@ -40,6 +41,11 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
   // Buffer audio
   List<double> _audioBuffer = [];
+
+  // Raw PCM bytes from stream (for WAV file creation)
+  List<int> _pcmBytes = [];
+  Stream<Uint8List>? _pcmStream;
+  StreamSubscription<Uint8List>? _pcmSubscription;
 
   // Configuration
   static const int sampleRate = 16000; // 16kHz
@@ -144,6 +150,7 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
       // Clear buffer
       _audioBuffer.clear();
+      _pcmBytes = [];
       _currentScores = null;
       _currentDominantEmotion = null;
       _currentConfidence = null;
@@ -158,14 +165,29 @@ class AudioRecorderWithDetection extends ChangeNotifier {
         noiseSuppress: true,
       );
 
-      // Start recording dengan path
-      final tempDir = Directory.systemTemp;
-      final tempPath = '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.wav';
-      await _recorder.start(config, path: tempPath);
+      // Start stream-based recording for real-time PCM data
+      _pcmStream = await _recorder.startStream(config);
       _isRecording = true;
 
+      _pcmSubscription = _pcmStream!.listen(
+        (data) {
+          _pcmBytes.addAll(data);
+          for (int i = 0; i + 1 < data.length; i += 2) {
+            final sample = (data[i + 1] << 8) | data[i];
+            final normalized = sample / 32768.0;
+            _audioBuffer.add(normalized.clamp(-1.0, 1.0));
+          }
+        },
+        onError: (error) {
+          debugPrint('❌ PCM stream error: $error');
+        },
+      );
+
+      // Start periodic detection for real-time emotion updates
+      _startPeriodicDetection();
+
       notifyListeners();
-      debugPrint('✅ Recording started');
+      debugPrint('✅ Recording started (stream mode)');
     } catch (e) {
       debugPrint('❌ Failed to start recording: $e');
       rethrow;
@@ -183,12 +205,24 @@ class AudioRecorderWithDetection extends ChangeNotifier {
       _detectionTimer?.cancel();
       _detectionTimer = null;
 
-      // Stop recorder
-      final path = await _recorder.stop();
+      // Cancel PCM stream subscription
+      await _pcmSubscription?.cancel();
+      _pcmSubscription = null;
 
-      // Proses audio setelah recording berhenti
-      if (path != null && _audioBuffer.length >= _targetAudioLength) {
-        // Pastikan model loaded sebelum deteksi
+      // Stop the recorder (stopStream)
+      await _recorder.stop();
+
+      // Save WAV file from accumulated PCM bytes
+      String? path;
+      if (_pcmBytes.isNotEmpty) {
+        final tempDir = Directory.systemTemp;
+        path = '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.wav';
+        _writeWavFile(path, _pcmBytes);
+        debugPrint('✅ WAV file saved to: $path');
+      }
+
+      // Proses audio untuk deteksi emosi final
+      if (_audioBuffer.length >= _targetAudioLength) {
         if (!_validateInterpreter()) {
           await _ensureModelLoaded();
         }
@@ -206,7 +240,8 @@ class AudioRecorderWithDetection extends ChangeNotifier {
           }
         }
       } else {
-        debugPrint('✅ Recording stopped. Saved to: $path');
+        debugPrint('⚠️ Audio buffer too short: ${_audioBuffer.length} / $_targetAudioLength');
+        _runMockDetection();
       }
 
       notifyListeners();
@@ -398,7 +433,7 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
       debugPrint('✅ Emotion detected: $dominant (${(maxScore * 100).toStringAsFixed(1)}%)');
 
-      // Reload model setelah inferensi selesai untuk menghindari crash di penggunaan berikutnya
+      // Reload model setelah inferensi untuk menghindari crash di penggunaan berikutnya
       _reloadModelInBackground();
 
       notifyListeners();
@@ -435,14 +470,14 @@ class AudioRecorderWithDetection extends ChangeNotifier {
     });
   }
 
-  /// Mulai deteksi periodik dari audio stream
+  /// Mulai deteksi periodik dari audio stream (mock only — aman untuk UI real-time)
   void _startPeriodicDetection() {
     // Deteksi setiap 500ms
     _detectionTimer = Timer.periodic(const Duration(milliseconds: 500), (
       timer,
     ) {
       if (_audioBuffer.isNotEmpty && !_isDetecting) {
-        _processAudio();
+        _runMockDetection();
       }
     });
   }
@@ -844,9 +879,54 @@ class AudioRecorderWithDetection extends ChangeNotifier {
     return zcr.sublist(0, _maxFrames);
   }
 
+  /// Simpan accumulated PCM bytes sebagai file WAV
+  void _writeWavFile(String path, List<int> pcmBytes) {
+    final file = File(path);
+    final sr = sampleRate;
+    const numChannels = 1;
+    const bitsPerSample = 16;
+    final byteRate = sr * numChannels * bitsPerSample ~/ 8;
+    const blockAlign = numChannels * bitsPerSample ~/ 8;
+    final dataSize = pcmBytes.length;
+    final fileSize = 36 + dataSize;
+
+    final header = ByteData(44);
+    // RIFF header
+    header.setUint8(0, 0x52);
+    header.setUint8(1, 0x49);
+    header.setUint8(2, 0x46);
+    header.setUint8(3, 0x46);
+    header.setUint32(4, fileSize, Endian.little);
+    header.setUint8(8, 0x57);
+    header.setUint8(9, 0x41);
+    header.setUint8(10, 0x56);
+    header.setUint8(11, 0x45);
+    // fmt chunk
+    header.setUint8(12, 0x66);
+    header.setUint8(13, 0x6D);
+    header.setUint8(14, 0x74);
+    header.setUint8(15, 0x20);
+    header.setUint32(16, 16, Endian.little);
+    header.setUint16(20, 1, Endian.little);
+    header.setUint16(22, numChannels, Endian.little);
+    header.setUint32(24, sr, Endian.little);
+    header.setUint32(28, byteRate, Endian.little);
+    header.setUint16(32, blockAlign, Endian.little);
+    header.setUint16(34, bitsPerSample, Endian.little);
+    // data chunk
+    header.setUint8(36, 0x64);
+    header.setUint8(37, 0x61);
+    header.setUint8(38, 0x74);
+    header.setUint8(39, 0x61);
+    header.setUint32(40, dataSize, Endian.little);
+
+    file.writeAsBytesSync([...header.buffer.asUint8List(), ...pcmBytes]);
+  }
+
   /// Reset semua data
   void reset() {
     _audioBuffer.clear();
+    _pcmBytes = [];
     _currentScores = null;
     _currentDominantEmotion = null;
     _currentConfidence = null;
@@ -925,6 +1005,7 @@ class AudioRecorderWithDetection extends ChangeNotifier {
   @override
   void dispose() {
     _detectionTimer?.cancel();
+    _pcmSubscription?.cancel();
     _recorder.dispose();
     _interpreter?.close();
     _detectionStream.close();

@@ -537,6 +537,10 @@ class AppLocalizations {
       'ready_to_listen': 'Siap Mendengarkan',
       'story_prompt_proud': 'Ceritakan hal yang membuatmu bangga akhir-akhir ini',
       'story_prompt_supporter': 'Siapa yang selalu mendukungmu? Ceritakan tentang mereka',
+
+      // ── Emotion Detection Screen ──
+      'emotion_detection': 'Deteksi Emosi',
+      'transcript_placeholder': 'Transkrip akan muncul di sini...',
     },
 
     // ════════════════════════════════════════════
@@ -1050,6 +1054,10 @@ class AppLocalizations {
       'ready_to_listen': 'Ready to Listen',
       'story_prompt_proud': 'Tell me about something that made you proud recently',
       'story_prompt_supporter': 'Who always supports you? Tell me about them',
+
+      // ── Emotion Detection Screen ──
+      'emotion_detection': 'Emotion Detection',
+      'transcript_placeholder': 'Transcript will appear here...',
     },
   };
 }

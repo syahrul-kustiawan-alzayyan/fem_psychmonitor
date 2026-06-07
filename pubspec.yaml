@@ -51,6 +51,8 @@ dependencies:
   purchases_ui_flutter: ^8.0.0
   file_picker: ^8.0.0
   flutter_dotenv: ^5.2.1
+  google_generative_ai: ^0.4.6
+  speech_to_text: ^7.0.0
 
 dev_dependencies:
   flutter_test:
