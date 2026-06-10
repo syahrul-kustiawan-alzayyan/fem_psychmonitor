@@ -10,6 +10,7 @@ import '../main.dart';
 import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
 import '../services/database_service.dart';
+import '../services/subscription_service.dart';
 import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/animations.dart';
@@ -396,7 +397,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               if (confirm == true) {
                 if (!context.mounted) return;
                 DatabaseService.resetInstance();
-                context.read<PremiumProvider>().clearPremium();
+                await SubscriptionService().logOut(context.read<PremiumProvider>());
                 await context.read<AuthProvider>().logout();
                 if (context.mounted) {
                   Navigator.pushAndRemoveUntil(

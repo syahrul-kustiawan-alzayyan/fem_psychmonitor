@@ -317,11 +317,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Stack(
                 alignment: Alignment.topCenter,
                 children: [
-                  Container(
+                  // Background image with gradient overlay
+                  SizedBox(
                     height: 140,
                     width: double.infinity,
-                    decoration: const BoxDecoration(
-                      gradient: AppTheme.primaryGradient,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: Image.asset(
+                            'assets/bgimage/wmremove-transformed.png',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  AppTheme.primaryColor.withValues(alpha: 0.25),
+                                  AppTheme.primaryColor.withValues(alpha: 0.45),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Positioned(

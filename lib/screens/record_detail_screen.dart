@@ -79,7 +79,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
       title = service.buildTitle(mbtiType, dominant);
     } else {
       suggestions = dominant.recordingSuggestions;
-      title = 'Saran untuk Emosi ${dominant.displayName}';
+      title = AppLocalizations.tr('suggestion_for_emotion_name').replaceFirst('{emotion}', dominant.displayName);
     }
 
     if (mounted) {
@@ -206,7 +206,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Emosi Dominan',
+                  AppLocalizations.tr('dominant_emotion'),
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -338,7 +338,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
         children: [
           _insightTile(
             Icons.emoji_emotions_outlined,
-            'Top Emosi',
+            AppLocalizations.tr('top_emotions'),
             top3.take(2).map((e) => '${e.key.displayName} (${(e.value * 100).toStringAsFixed(0)}%)').join(', '),
             AppTheme.primaryColor,
           ),
@@ -349,8 +349,8 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
           ),
           _insightTile(
             Icons.text_fields_rounded,
-            'Transkrip',
-            hasTranscript ? 'Tersedia' : 'Tidak ada',
+            AppLocalizations.tr('transcript_label'),
+            hasTranscript ? AppLocalizations.tr('available') : AppLocalizations.tr('none'),
             hasTranscript ? Colors.green : Colors.orange,
           ),
         ],
@@ -422,7 +422,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
               ),
               const SizedBox(width: 10),
               Text(
-                'Skor Emosi',
+                AppLocalizations.tr('emotion_score'),
                 style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -462,7 +462,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            'DOMINAN',
+                            AppLocalizations.tr('dominant_badge'),
                             style: GoogleFonts.poppins(
                               fontSize: 8,
                               fontWeight: FontWeight.w700,
@@ -538,7 +538,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
               ),
               const SizedBox(width: 10),
               Text(
-                'Distribusi Emosi',
+                AppLocalizations.tr('detail_emotion_distribution'),
                 style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -554,7 +554,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Gabungan deteksi suara (60%) + analisis teks (40%)',
+            AppLocalizations.tr('combined_source_desc'),
             style: GoogleFonts.poppins(
               fontSize: 10,
               color: AppTheme.textHint,
@@ -653,7 +653,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
               ),
               const SizedBox(width: 10),
               Text(
-                'Transkrip',
+                AppLocalizations.tr('transcript_label'),
                 style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -679,7 +679,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      hasTranscript ? 'Terdeteksi' : 'Tidak ada',
+                      hasTranscript ? AppLocalizations.tr('detected') : AppLocalizations.tr('none'),
                       style: GoogleFonts.poppins(
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
@@ -723,7 +723,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                   Icon(Icons.mic_off_rounded, size: 32, color: Colors.orange.withValues(alpha: 0.5)),
                   const SizedBox(height: 8),
                   Text(
-                    'Transkrip tidak tersedia',
+                    AppLocalizations.tr('transcript_unavailable'),
                     style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -732,7 +732,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Transkrip tidak terekam untuk sesi ini.',
+                    AppLocalizations.tr('transcript_not_recorded'),
                     style: GoogleFonts.poppins(
                       fontSize: 11,
                       color: AppTheme.textS(context),
@@ -747,7 +747,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
           if (hasTextEmotions) ...[
             const SizedBox(height: 12),
             Text(
-              'Emosi dari teks:',
+              AppLocalizations.tr('text_emotions_label'),
               style: GoogleFonts.poppins(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -829,7 +829,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
               ),
               const SizedBox(width: 10),
               Text(
-                'Sumber Deteksi',
+                AppLocalizations.tr('detection_source'),
                 style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -844,7 +844,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
             children: [
               Expanded(
                 child: _sourceCard(
-                  'Suara',
+                  AppLocalizations.tr('voice_source'),
                   60,
                   Icons.mic_rounded,
                   AppTheme.primaryColor,
@@ -857,7 +857,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _sourceCard(
-                  'Teks',
+                  AppLocalizations.tr('text_source'),
                   40,
                   Icons.text_fields_rounded,
                   Colors.green.shade600,
@@ -888,7 +888,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Hasil akhir adalah gabungan deteksi suara (60%) dan analisis teks (40%)',
+                    AppLocalizations.tr('combined_source_info'),
                     style: GoogleFonts.poppins(
                       fontSize: 10.5,
                       height: 1.4,
@@ -987,7 +987,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
-                  'Tidak tersedia',
+                  AppLocalizations.tr('not_available'),
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     color: AppTheme.textHint,

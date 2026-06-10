@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -87,15 +88,23 @@ class _AuthScreenState extends State<AuthScreen>
     setState(() => _isLoading = false);
 
     switch (result) {
-      case 'success':
-        await SubscriptionService().refresh(context.read<PremiumProvider>());
+      case 'success': {
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        if (uid != null) {
+          await SubscriptionService().identifyUser(uid, context.read<PremiumProvider>());
+        }
         _showInterstitialBeforeNavigation(() {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const AppRouter()),
           );
         });
         break;
-      case 'new_user':
+      }
+      case 'new_user': {
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        if (uid != null) {
+          await SubscriptionService().identifyUser(uid, context.read<PremiumProvider>());
+        }
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (routeContext) => OnboardingScreen(
@@ -108,6 +117,7 @@ class _AuthScreenState extends State<AuthScreen>
           ),
         );
         break;
+      }
       case 'email_not_verified':
         _showEmailNotVerifiedDialog();
         break;
@@ -174,16 +184,24 @@ class _AuthScreenState extends State<AuthScreen>
     setState(() => _isLoading = false);
 
     switch (result) {
-      case 'success':
-        await SubscriptionService().refresh(context.read<PremiumProvider>());
+      case 'success': {
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        if (uid != null) {
+          await SubscriptionService().identifyUser(uid, context.read<PremiumProvider>());
+        }
         _showInterstitialBeforeNavigation(() {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const AppRouter()),
           );
         });
         break;
-      case 'new_user':
+      }
+      case 'new_user': {
         // User baru via Google → langsung ke onboarding
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        if (uid != null) {
+          await SubscriptionService().identifyUser(uid, context.read<PremiumProvider>());
+        }
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (routeContext) => OnboardingScreen(
@@ -196,6 +214,7 @@ class _AuthScreenState extends State<AuthScreen>
           ),
         );
         break;
+      }
       case 'cancelled':
         // User membatalkan, tidak perlu notifikasi
         break;

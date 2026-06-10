@@ -134,7 +134,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memulai rekaman: $e')),
+          SnackBar(content: Text(AppLocalizations.tr('failed_start_recording_detail').replaceFirst('{error}', '$e'))),
         );
         Navigator.pop(context);
       }
@@ -176,7 +176,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     String transcript = '';
     if (path != null && _whisper != null) {
       if (mounted) {
-        setState(() => _processingMessage = 'Memproses transkripsi...\n(Pertama kali muat model bisa lebih lama)');
+        setState(() => _processingMessage = AppLocalizations.tr('processing_transcription_first'));
       }
       try {
         final result = await _whisper!.transcribe(
@@ -194,7 +194,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
 
     // Step 3: Analyze emotion from transcript text (local, no API)
     if (mounted) {
-      setState(() => _processingMessage = 'Menganalisis emosi dari teks...');
+      setState(() => _processingMessage = AppLocalizations.tr('analyzing_text_emotion'));
     }
     await Future.delayed(const Duration(milliseconds: 300));
 
@@ -262,10 +262,8 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
       setState(() => _isProcessing = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Data emosi tidak tersedia. Silakan coba rekam ulang.',
-            ),
+          SnackBar(
+            content: Text(AppLocalizations.tr('emotion_data_unavailable')),
             backgroundColor: Colors.orange,
           ),
         );
@@ -299,13 +297,19 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         title: ShaderMask(
           shaderCallback: (bounds) =>
               AppTheme.primaryGradient.createShader(bounds),
-          child: Text(
-            AppLocalizations.tr('emotion_detection'),
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
+          child: Row(
+            children: [
+              Icon(Icons.mic_rounded, size: 22, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(
+                AppLocalizations.tr('emotion_detection'),
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -336,33 +340,59 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
             if (_isProcessing)
               Positioned(
                 bottom: MediaQuery.of(context).padding.bottom + 40,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppTheme.primaryColor,
+                left: 20,
+                right: 20,
+                child: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface(context),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppTheme.primaryColor,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _processingMessage.isNotEmpty
-                            ? _processingMessage
-                            : AppLocalizations.tr('processing_result'),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: AppTheme.textS(context),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 250),
+                            child: Text(
+                              key: ValueKey(_processingMessage),
+                              _processingMessage.isNotEmpty
+                                  ? _processingMessage
+                                  : AppLocalizations.tr('processing_result'),
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.textS(context),
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -405,7 +435,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
               ),
               const SizedBox(width: 6),
               Text(
-                'Mendengarkan$dots',
+                '${AppLocalizations.tr('listening_label')}$dots',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -540,7 +570,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Skor Emosi',
+            AppLocalizations.tr('emotion_score'),
             style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w600,

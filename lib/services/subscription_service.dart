@@ -93,4 +93,30 @@ class SubscriptionService {
       DatabaseService.updatePremiumStatus(false, null);
     }
   }
+
+  /// Identifikasi user ke RevenueCat setelah Firebase login.
+  /// Ini memastikan RevenueCat menggunakan user ID yang benar,
+  /// bukan anonymous ID dari sesi sebelumnya.
+  Future<void> identifyUser(String uid, PremiumProvider premiumProvider) async {
+    try {
+      final result = await Purchases.logIn(uid);
+      _checkEntitlements(result.customerInfo, premiumProvider);
+    } catch (e) {
+      debugPrint('RevenueCat identifyUser error: $e');
+      premiumProvider.clearPremium();
+      DatabaseService.updatePremiumStatus(false, null);
+    }
+  }
+
+  /// Logout dari RevenueCat — panggil saat Firebase logout.
+  /// Mencegah bocornya entitlement user lama ke user baru.
+  Future<void> logOut(PremiumProvider premiumProvider) async {
+    try {
+      await Purchases.logOut();
+    } catch (e) {
+      debugPrint('RevenueCat logOut error: $e');
+    }
+    premiumProvider.clearPremium();
+    DatabaseService.updatePremiumStatus(false, null);
+  }
 }

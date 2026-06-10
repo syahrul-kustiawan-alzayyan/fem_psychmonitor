@@ -436,69 +436,77 @@ class SettingsScreen extends StatelessWidget {
     BuildContext context,
     PremiumProvider premium,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.verified_rounded,
-              color: AppTheme.primaryColor,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppLocalizations.locale.startsWith('en')
-                      ? 'Premium Active'
-                      : 'Premium Aktif',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryColor,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  premium.expiryDate != null
-                      ? _formatRemainingTime(premium.expiryDate!)
-                      : (AppLocalizations.locale.startsWith('en')
-                            ? 'Lifetime'
-                            : 'Seumur Hidup'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: AppTheme.textS(context),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              'ACTIVE',
-              style: GoogleFonts.poppins(
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                letterSpacing: 1,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PremiumScreen()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.verified_rounded,
+                color: AppTheme.primaryColor,
+                size: 24,
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.locale.startsWith('en')
+                        ? 'Premium Active'
+                        : 'Premium Aktif',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    premium.expiryDate != null
+                        ? _formatRemainingTime(premium.expiryDate!)
+                        : (AppLocalizations.locale.startsWith('en')
+                            ? 'Lifetime'
+                            : 'Seumur Hidup'),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: AppTheme.textS(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'ACTIVE',
+                style: GoogleFonts.poppins(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
