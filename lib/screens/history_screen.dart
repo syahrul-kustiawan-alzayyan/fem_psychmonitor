@@ -341,6 +341,16 @@ class _HistoryScreenState extends State<HistoryScreen>
 
                   const SizedBox(height: AppTheme.spaceXl),
 
+                  // ── Trigger Chart ────────────────────────────────
+                  _buildSectionHeader(
+                    context,
+                    icon: Icons.push_pin_rounded,
+                    title: AppLocalizations.tr('trigger_chart_title'),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTriggerChart(),
+                  const SizedBox(height: AppTheme.spaceXl),
+
                   // ── Filter Chip ──────────────────────────────────
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1510,6 +1520,111 @@ class _HistoryScreenState extends State<HistoryScreen>
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
                     color: emotion.color,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Widget: Trigger Distribution Chart
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildTriggerChart() {
+    final tagged = _dbHistory.where((r) => r.triggerTag.isNotEmpty).toList();
+    if (tagged.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.surface(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.push_pin_rounded, size: 32, color: AppTheme.textH(context)),
+            const SizedBox(height: 8),
+            Text(
+              AppLocalizations.tr('no_emotion_data'),
+              style: GoogleFonts.poppins(
+                fontSize: 13, color: AppTheme.textS(context),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final freq = <String, int>{};
+    for (final r in tagged) {
+      freq[r.triggerTag] = (freq[r.triggerTag] ?? 0) + 1;
+    }
+    final total = freq.values.fold(0, (a, b) => a + b);
+    final sorted = freq.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Column(
+        children: sorted.map((e) {
+          final tagEnum = TriggerTag.values.where((t) => t.name == e.key).firstOrNull;
+          final pct = e.value / total;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    if (tagEnum != null) ...[
+                      Text(tagEnum.emoji, style: const TextStyle(fontSize: 14)),
+                      const SizedBox(width: 6),
+                    ],
+                    Text(
+                      tagEnum?.displayName ?? e.key,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textP(context),
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${e.value}x',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '(${(pct * 100).toStringAsFixed(0)}%)',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        color: AppTheme.textS(context),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: pct,
+                    backgroundColor: AppTheme.surfVar(context),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppTheme.primaryColor.withValues(alpha: 0.6),
+                    ),
+                    minHeight: 6,
                   ),
                 ),
               ],

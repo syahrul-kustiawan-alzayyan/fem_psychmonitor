@@ -23,6 +23,7 @@ class _ResultScreenState extends State<ResultScreen> {
   List<String> _suggestions = [];
   String _title = '';
   bool _loaded = false;
+  String _selectedTrigger = '';
 
   Map<EmotionType, double> get _combinedScores {
     return GeminiService.combineResults(
@@ -127,6 +128,8 @@ class _ResultScreenState extends State<ResultScreen> {
               children: [
                 _buildHeroCard(domEmotion, domConf),
                 const SizedBox(height: 16),
+                _buildTriggerCard(),
+                const SizedBox(height: 20),
                 _buildInsightRow(combined),
                 const SizedBox(height: 20),
                 _buildScoreBreakdown(sorted),
@@ -136,6 +139,8 @@ class _ResultScreenState extends State<ResultScreen> {
                 _buildTranscriptCard(),
                 const SizedBox(height: 20),
                 _buildSourceComparison(),
+                const SizedBox(height: 20),
+                _buildScoreTrend(combined),
                 const SizedBox(height: 20),
                 if (_loaded)
                   SuggestionCard(
@@ -829,6 +834,267 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
+  Widget _buildScoreTrend(Map<EmotionType, double> combined) {
+    final sorted = combined.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final dom = sorted.first;
+    final emotion = dom.key;
+    final confidence = dom.value;
+    final baseVal = emotion.emotionValue;
+    final score = emotion.emotionValue * confidence;
+    final isPositive = score >= 0;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Icon(Icons.trending_up_rounded, color: Colors.white, size: 16),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                AppLocalizations.tr('score_trend_title'),
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textP(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Center(
+            child: Container(
+              width: 72,
+              height: 72,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: emotion.color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset(
+                emotion.assetIconPath,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => Icon(
+                  emotion.icon, size: 32, color: emotion.color,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: Text(
+              emotion.displayName,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: emotion.color,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Icon(Icons.info_outline_rounded, size: 12, color: AppTheme.textHint),
+              const SizedBox(width: 6),
+              Text(
+                AppLocalizations.tr('score_trend_desc'),
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  color: AppTheme.textS(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.surfVar(context),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isPositive
+                    ? Colors.green.withValues(alpha: 0.15)
+                    : Colors.red.withValues(alpha: 0.15),
+              ),
+            ),
+            child: Column(
+              children: [
+                _calcRow(
+                  AppLocalizations.tr('base_value'),
+                  baseVal > 0 ? '+$baseVal' : '$baseVal',
+                  AppTheme.textP(context),
+                ),
+                const SizedBox(height: 8),
+                _calcRow(
+                  AppLocalizations.tr('final_confidence'),
+                  '${(confidence * 100).toStringAsFixed(1)}%',
+                  AppTheme.textP(context),
+                ),
+                const SizedBox(height: 8),
+                Container(height: 1, color: AppTheme.textH(context).withValues(alpha: 0.1)),
+                const SizedBox(height: 8),
+                _calcRow(
+                  AppLocalizations.tr('emotion_score_result'),
+                  '${score > 0 ? "+" : ""}${score.toStringAsFixed(2)}',
+                  isPositive ? Colors.green.shade600 : Colors.red.shade600,
+                  isBold: true,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _calcRow(String label, String value, Color valueColor, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppTheme.textS(context),
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+            color: valueColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTriggerCard() {
+    final tags = TriggerTag.values;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Icon(Icons.push_pin_rounded, color: Colors.white, size: 16),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                AppLocalizations.tr('trigger_title'),
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textP(context),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _selectedTrigger.isEmpty
+                      ? Colors.red.withValues(alpha: 0.1)
+                      : Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  _selectedTrigger.isEmpty ? 'WAJIB' : 'OK',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    color: _selectedTrigger.isEmpty ? Colors.red.shade600 : Colors.green.shade600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: tags.map((tag) {
+              final isSelected = _selectedTrigger == tag.name;
+              return GestureDetector(
+                onTap: () => setState(() => _selectedTrigger = tag.name),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppTheme.primaryColor.withValues(alpha: 0.12)
+                        : AppTheme.surfVar(context),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppTheme.primaryColor.withValues(alpha: 0.4)
+                          : AppTheme.textH(context).withValues(alpha: 0.08),
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Text(
+                    '${tag.emoji}  ${tag.displayName}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected ? AppTheme.primaryColor : AppTheme.textP(context),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          if (_selectedTrigger.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(Icons.check_circle_rounded, size: 12, color: Colors.green.shade600),
+                const SizedBox(width: 6),
+                Text(
+                  AppLocalizations.tr('trigger_saved'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _sourceCard(
     String label,
     int weight,
@@ -926,14 +1192,28 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Widget _buildDoneButton(BuildContext context) {
+    final canProceed = _selectedTrigger.isNotEmpty;
     return SizedBox(
       width: double.infinity,
       height: 54,
       child: ElevatedButton.icon(
-        onPressed: () => Navigator.pop(context),
-        icon: const Icon(Icons.check_rounded, size: 20),
+        onPressed: canProceed
+            ? () {
+                DatabaseService.updateRecordingTrigger(
+                  widget.recordingData.id ?? 0,
+                  _selectedTrigger,
+                );
+                Navigator.pop(context);
+              }
+            : null,
+        icon: Icon(
+          canProceed ? Icons.check_rounded : Icons.lock_rounded,
+          size: 20,
+        ),
         label: Text(
-          AppLocalizations.tr('done'),
+          canProceed
+              ? AppLocalizations.tr('done')
+              : AppLocalizations.tr('trigger_title'),
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w700,
@@ -941,13 +1221,13 @@ class _ResultScreenState extends State<ResultScreen> {
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryColor,
-          foregroundColor: Colors.white,
+          backgroundColor: canProceed ? AppTheme.primaryColor : AppTheme.textH(context).withValues(alpha: 0.3),
+          foregroundColor: canProceed ? Colors.white : AppTheme.textS(context),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
-          elevation: 6,
-          shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
+          elevation: canProceed ? 6 : 0,
+          shadowColor: canProceed ? AppTheme.primaryColor.withValues(alpha: 0.4) : Colors.transparent,
         ),
       ),
     );

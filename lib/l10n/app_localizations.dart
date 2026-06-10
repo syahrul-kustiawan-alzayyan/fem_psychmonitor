@@ -568,6 +568,23 @@ class AppLocalizations {
       'not_available': 'Tidak tersedia',
       'combined_source_info':
           'Hasil akhir adalah gabungan deteksi suara (60%) dan analisis teks (40%)',
+      'score_trend_title': 'Skor Tren Emosi',
+      'score_trend_desc':
+          'Skor ini digunakan untuk grafik tren emosi di halaman Riwayat',
+      'base_value': 'Nilai Dasar',
+      'final_confidence': 'Keyakinan Akhir',
+      'emotion_score_result': 'Hasil Skor Emosi',
+      'trigger_title': 'Apa pemicunya?',
+      'trigger_not_selected': 'Tidak dipilih',
+      'trigger_work': 'Pekerjaan',
+      'trigger_romance': 'Asmara',
+      'trigger_finance': 'Keuangan',
+      'trigger_health': 'Kesehatan',
+      'trigger_family': 'Keluarga',
+      'trigger_social': 'Pertemanan',
+      'trigger_other': 'Lainnya',
+      'trigger_saved': 'Pemicu disimpan',
+      'trigger_chart_title': 'Pemicu Emosi',
     },
 
     // ════════════════════════════════════════════
@@ -1112,6 +1129,23 @@ class AppLocalizations {
       'not_available': 'Not available',
       'combined_source_info':
           'The final result combines voice detection (60%) and text analysis (40%)',
+      'score_trend_title': 'Emotion Trend Score',
+      'score_trend_desc':
+          'This score is used for the emotion trend chart in History',
+      'base_value': 'Base Value',
+      'final_confidence': 'Final Confidence',
+      'emotion_score_result': 'Emotion Score Result',
+      'trigger_title': 'What triggered this?',
+      'trigger_not_selected': 'Not selected',
+      'trigger_work': 'Work',
+      'trigger_romance': 'Romance',
+      'trigger_finance': 'Finance',
+      'trigger_health': 'Health',
+      'trigger_family': 'Family',
+      'trigger_social': 'Social',
+      'trigger_other': 'Other',
+      'trigger_saved': 'Trigger saved',
+      'trigger_chart_title': 'Emotion Triggers',
     },
   };
 }

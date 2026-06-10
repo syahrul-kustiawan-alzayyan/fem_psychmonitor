@@ -3,6 +3,37 @@ import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 
 // ==========================================
+// ENUM: Tag pemicu emosi
+// ==========================================
+enum TriggerTag { work, romance, finance, health, family, social, other }
+
+extension TriggerTagExtension on TriggerTag {
+  String get displayName {
+    switch (this) {
+      case TriggerTag.work:    return AppLocalizations.tr('trigger_work');
+      case TriggerTag.romance: return AppLocalizations.tr('trigger_romance');
+      case TriggerTag.finance: return AppLocalizations.tr('trigger_finance');
+      case TriggerTag.health:  return AppLocalizations.tr('trigger_health');
+      case TriggerTag.family:  return AppLocalizations.tr('trigger_family');
+      case TriggerTag.social:  return AppLocalizations.tr('trigger_social');
+      case TriggerTag.other:   return AppLocalizations.tr('trigger_other');
+    }
+  }
+
+  String get emoji {
+    switch (this) {
+      case TriggerTag.work:    return '\u{1F4BC}';
+      case TriggerTag.romance: return '\u{1F494}';
+      case TriggerTag.finance: return '\u{1F4B0}';
+      case TriggerTag.health:  return '\u{1FA78}';
+      case TriggerTag.family:  return '\u{1F468}\u200D\u{1F469}\u200D\u{1F467}\u200D\u{1F466}';
+      case TriggerTag.social:  return '\u{1F465}';
+      case TriggerTag.other:   return '\u{1F4CC}';
+    }
+  }
+}
+
+// ==========================================
 // ENUM: Jenis-jenis emosi yang dapat dideteksi
 // ==========================================
 enum EmotionType { happy, sad, angry, disgust, neutral, fear }
@@ -155,12 +186,14 @@ class EmotionRecord {
   final double confidence;        // Tingkat kepercayaan (0.0 - 1.0)
   final DateTime timestamp;       // Waktu deteksi
   final int? recordingId;         // ID recording di database (nullable untuk dummy)
+  final String triggerTag;        // Tag pemicu (nama TriggerTag atau '' jika tidak ada)
 
   const EmotionRecord({
     required this.emotion,
     required this.confidence,
     required this.timestamp,
     this.recordingId,
+    this.triggerTag = '',
   });
 
   /// Format waktu singkat: "14 Mar, 09:30"

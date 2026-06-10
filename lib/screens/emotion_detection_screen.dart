@@ -239,9 +239,23 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         transcriptEmotions: textScores,
         transcriptText: transcript,
         durationSeconds: durationSec,
+        triggerTag: '',
       );
 
-      await DatabaseService.insertRecording(record);
+      final recId = await DatabaseService.insertRecording(record);
+      final savedRecord = RecordingData(
+        id: recId,
+        userId: record.userId,
+        date: record.date,
+        dominantEmotion: record.dominantEmotion,
+        confidence: record.confidence,
+        suggestion: record.suggestion,
+        audioEmotions: record.audioEmotions,
+        transcriptEmotions: record.transcriptEmotions,
+        transcriptText: record.transcriptText,
+        durationSeconds: record.durationSeconds,
+        triggerTag: record.triggerTag,
+      );
 
       if (mounted) {
         final premium = context.read<PremiumProvider>();
@@ -253,7 +267,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (_) => ResultScreen(recordingData: record),
+              builder: (_) => ResultScreen(recordingData: savedRecord),
             ),
           );
         }

@@ -132,6 +132,7 @@ class DatabaseService {
       ),
       'transcript_text': recording.transcriptText,
       'duration_seconds': recording.durationSeconds,
+      'trigger_tag': recording.triggerTag,
     });
 
     return newDoc.id.hashCode;
@@ -176,6 +177,24 @@ class DatabaseService {
     } catch (e) {
       debugPrint('Error getting recording: $e');
       return null;
+    }
+  }
+
+  /// Update trigger tag untuk recording tertentu
+  static Future<void> updateRecordingTrigger(int recordingId, String triggerTag) async {
+    final docRef = _userDoc;
+    if (docRef == null) return;
+
+    try {
+      final querySnapshot = await docRef.collection('recordings').get();
+      for (final doc in querySnapshot.docs) {
+        if (doc.id.hashCode == recordingId) {
+          await doc.reference.update({'trigger_tag': triggerTag});
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error updating recording trigger: $e');
     }
   }
 
@@ -356,6 +375,7 @@ class RecordingData {
   final Map<EmotionType, double> transcriptEmotions;
   final String transcriptText;
   final int durationSeconds;
+  final String triggerTag;
 
   const RecordingData({
     this.id,
@@ -368,6 +388,7 @@ class RecordingData {
     required this.transcriptEmotions,
     this.transcriptText = '',
     this.durationSeconds = 0,
+    this.triggerTag = '',
   });
 
   /// Factory dari Firestore document
@@ -415,6 +436,7 @@ class RecordingData {
       ),
       transcriptText: data['transcript_text'] as String? ?? '',
       durationSeconds: (data['duration_seconds'] as num?)?.toInt() ?? 0,
+      triggerTag: data['trigger_tag'] as String? ?? '',
     );
   }
 
@@ -433,6 +455,7 @@ class RecordingData {
       confidence: confidence,
       timestamp: date,
       recordingId: id,
+      triggerTag: triggerTag,
     );
   }
 }

@@ -151,6 +151,9 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                 const SizedBox(height: 20),
                 _buildSourceComparison(),
                 const SizedBox(height: 20),
+                if (_recordingData != null)
+                  _buildScoreTrend(combined),
+                const SizedBox(height: 20),
                 if (_loaded)
                   SuggestionCard(
                     title: _title,
@@ -159,13 +162,15 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                     color: domEmotion.color,
                     isCollapsible: false,
                   )
-                else
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator(),
+                  else
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CircularProgressIndicator(),
+                      ),
                     ),
-                  ),
+                const SizedBox(height: 20),
+                _buildTriggerCard(),
               ],
             ),
           ),
@@ -899,6 +904,212 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScoreTrend(Map<EmotionType, double> combined) {
+    final sorted = combined.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final dom = sorted.first;
+    final emotion = dom.key;
+    final confidence = dom.value;
+    final baseVal = emotion.emotionValue;
+    final score = emotion.emotionValue * confidence;
+    final isPositive = score >= 0;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Icon(Icons.trending_up_rounded, color: Colors.white, size: 16),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                AppLocalizations.tr('score_trend_title'),
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textP(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Center(
+            child: Container(
+              width: 72,
+              height: 72,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: emotion.color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset(
+                emotion.assetIconPath,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => Icon(
+                  emotion.icon, size: 32, color: emotion.color,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: Text(
+              emotion.displayName,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: emotion.color,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Icon(Icons.info_outline_rounded, size: 12, color: AppTheme.textHint),
+              const SizedBox(width: 6),
+              Text(
+                AppLocalizations.tr('score_trend_desc'),
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  color: AppTheme.textS(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.surfVar(context),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isPositive
+                    ? Colors.green.withValues(alpha: 0.15)
+                    : Colors.red.withValues(alpha: 0.15),
+              ),
+            ),
+            child: Column(
+              children: [
+                _calcRow(
+                  AppLocalizations.tr('base_value'),
+                  baseVal > 0 ? '+$baseVal' : '$baseVal',
+                  AppTheme.textP(context),
+                ),
+                const SizedBox(height: 8),
+                _calcRow(
+                  AppLocalizations.tr('final_confidence'),
+                  '${(confidence * 100).toStringAsFixed(1)}%',
+                  AppTheme.textP(context),
+                ),
+                const SizedBox(height: 8),
+                Container(height: 1, color: AppTheme.textH(context).withValues(alpha: 0.1)),
+                const SizedBox(height: 8),
+                _calcRow(
+                  AppLocalizations.tr('emotion_score_result'),
+                  '${score > 0 ? "+" : ""}${score.toStringAsFixed(2)}',
+                  isPositive ? Colors.green.shade600 : Colors.red.shade600,
+                  isBold: true,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _calcRow(String label, String value, Color valueColor, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppTheme.textS(context),
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+            color: valueColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTriggerCard() {
+    final data = _recordingData;
+    final tag = data?.triggerTag ?? '';
+    if (tag.isEmpty) return const SizedBox.shrink();
+
+    final tagEnum = TriggerTag.values.where((t) => t.name == tag).firstOrNull;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              gradient: AppTheme.primaryGradient,
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: const Icon(Icons.push_pin_rounded, color: Colors.white, size: 16),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            AppLocalizations.tr('trigger_title'),
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textP(context),
+            ),
+          ),
+          const Spacer(),
+          if (tagEnum != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${tagEnum.emoji}  ${tagEnum.displayName}',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+            ),
         ],
       ),
     );
