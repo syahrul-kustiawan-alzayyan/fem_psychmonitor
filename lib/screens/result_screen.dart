@@ -128,8 +128,6 @@ class _ResultScreenState extends State<ResultScreen> {
               children: [
                 _buildHeroCard(domEmotion, domConf),
                 const SizedBox(height: 16),
-                _buildTriggerCard(),
-                const SizedBox(height: 20),
                 _buildInsightRow(combined),
                 const SizedBox(height: 20),
                 _buildScoreBreakdown(sorted),
@@ -150,14 +148,16 @@ class _ResultScreenState extends State<ResultScreen> {
                     color: domEmotion.color,
                     isCollapsible: false,
                   )
-                else
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator(),
+                  else
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CircularProgressIndicator(),
+                      ),
                     ),
-                  ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
+                _buildTriggerCard(),
+                const SizedBox(height: 20),
                 _buildDoneButton(context),
               ],
             ),
