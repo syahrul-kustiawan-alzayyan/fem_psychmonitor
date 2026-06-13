@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
 import '../main.dart';
@@ -44,6 +45,7 @@ class _AuthScreenState extends State<AuthScreen>
   bool _obscureReg = true;
   bool _obscureRegConfirm = true;
   bool _isLoading = false;
+  bool _acceptedPrivacy = false;
 
   @override
   void initState() {
@@ -577,7 +579,7 @@ class _AuthScreenState extends State<AuthScreen>
 
                     // ── Tab Content ─────────────────────────────────
                     SizedBox(
-                      height: 500,
+                      height: MediaQuery.of(context).size.height * 0.55,
                       child: TabBarView(
                         controller: _tabCtrl,
                         children: [_buildLoginTab(), _buildRegisterTab()],
@@ -599,9 +601,10 @@ class _AuthScreenState extends State<AuthScreen>
   Widget _buildLoginTab() {
     return Form(
       key: _loginFormKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Text(
             AppLocalizations.tr('login_title'),
             style: GoogleFonts.poppins(
@@ -678,10 +681,16 @@ class _AuthScreenState extends State<AuthScreen>
 
           const SizedBox(height: 8),
 
+          // Privacy policy checkbox
+          _buildPrivacyCheckbox(),
+
+          const SizedBox(height: 12),
+
           // Login button
           _buildPrimaryButton(
             label: AppLocalizations.tr('login'),
             onTap: _handleLogin,
+            disabled: !_acceptedPrivacy,
           ),
 
           const SizedBox(height: 20),
@@ -722,6 +731,7 @@ class _AuthScreenState extends State<AuthScreen>
             ],
           ),
         ],
+      ),
       ),
     );
   }
@@ -836,10 +846,16 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             const SizedBox(height: 24),
 
+            // Privacy policy checkbox
+            _buildPrivacyCheckbox(),
+
+            const SizedBox(height: 12),
+
             // Register button
             _buildPrimaryButton(
               label: AppLocalizations.tr('register'),
               onTap: _handleRegister,
+              disabled: !_acceptedPrivacy,
             ),
 
             const SizedBox(height: 20),
@@ -961,12 +977,13 @@ class _AuthScreenState extends State<AuthScreen>
   Widget _buildPrimaryButton({
     required String label,
     required VoidCallback onTap,
+    bool disabled = false,
   }) {
     return SizedBox(
       width: double.infinity,
       height: 52,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : onTap,
+        onPressed: (_isLoading || disabled) ? null : onTap,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryColor,
           foregroundColor: Colors.white,
@@ -1014,12 +1031,65 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
+  Widget _buildPrivacyCheckbox() {
+    return Row(
+      children: [
+        SizedBox(
+          width: 24,
+          height: 24,
+          child: Checkbox(
+            value: _acceptedPrivacy,
+            onChanged: (v) => setState(() => _acceptedPrivacy = v ?? false),
+            activeColor: AppTheme.primaryColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: GestureDetector(
+            onTap: () => _openPrivacyPolicy(),
+            child: RichText(
+              text: TextSpan(
+                style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  color: AppTheme.textS(context),
+                  height: 1.3,
+                ),
+                children: [
+                  TextSpan(
+                    text: '${AppLocalizations.tr('privacy_agree')} ',
+                  ),
+                  TextSpan(
+                    text: AppLocalizations.tr('privacy_link'),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primaryColor,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _openPrivacyPolicy() {
+    // ignore: deprecated_member_use
+    launch('https://fem-psychmonitor.web.app');
+  }
+
   Widget _buildGoogleButton({required bool isLogin}) {
     return SizedBox(
       width: double.infinity,
       height: 52,
       child: OutlinedButton.icon(
-        onPressed: _isLoading ? null : () => _handleGoogleSignIn(isLogin),
+        onPressed: (_isLoading || !_acceptedPrivacy) ? null : () => _handleGoogleSignIn(isLogin),
         icon: Container(
           width: 20,
           height: 20,

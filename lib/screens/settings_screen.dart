@@ -17,7 +17,6 @@ import '../providers/premium_provider.dart';
 import '../services/database_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
-import 'onboarding_screen.dart';
 import 'premium_screen.dart';
 import 'profile_screen.dart';
 
@@ -225,16 +224,6 @@ class SettingsScreen extends StatelessWidget {
               _buildSettingsCard(
                 context,
                 children: [
-                  // Reset Onboarding
-                  _buildSettingsTile(
-                    context,
-                    icon: Icons.restart_alt_rounded,
-                    iconColor: AppTheme.primaryColor,
-                    title: AppLocalizations.tr('show_onboarding_again'),
-                    subtitle: AppLocalizations.tr('app_guide_desc'),
-                    onTap: () => _handleResetOnboarding(context),
-                  ),
-                  _buildDivider(context),
                   // Backup Data
                   _buildSettingsTile(
                     context,
@@ -713,78 +702,6 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _handleResetOnboarding(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface(context),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        ),
-        title: Text(
-          AppLocalizations.tr('show_onboarding_title'),
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textP(context),
-          ),
-        ),
-        content: Text(
-          AppLocalizations.tr('show_onboarding_message'),
-          style: GoogleFonts.poppins(
-            fontSize: 13,
-            color: AppTheme.textS(context),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              AppLocalizations.tr('cancel'),
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w500,
-                color: AppTheme.textS(context),
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-            ),
-            onPressed: () async {
-              // Reset status onboarding di SharedPreferences
-              await StorageService.resetOnboarding();
-
-              if (ctx.mounted) {
-                Navigator.pop(ctx); // tutup dialog
-
-                // Navigasi ke onboarding dengan MaterialPageRoute
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) => OnboardingScreen(
-                      onCompleted: () {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => const MainNavigation(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  (route) => false, // Hapus semua route sebelumnya
-                );
-              }
-            },
-            child: Text(
-              AppLocalizations.tr('yes_show'),
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -42,7 +42,14 @@ app.*.map.json
 # Environment variables
 .env
 
+# Android signing
+/android/key.properties
+*.keystore
+
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Java heap dumps
+*.hprof

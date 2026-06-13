@@ -79,7 +79,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     }
 
     try {
-      _whisper = Whisper(model: WhisperModel.tiny);
+      _whisper = Whisper(model: WhisperModel.base);
 
       final dir = await getTemporaryDirectory();
       _wavPath = '${dir.path}/recording_${DateTime.now().millisecondsSinceEpoch}.wav';
@@ -182,7 +182,6 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         final result = await _whisper!.transcribe(
           transcribeRequest: TranscribeRequest(
             audio: path,
-            language: 'id',
           ),
         );
         transcript = result.text.trim();
@@ -198,7 +197,8 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     }
     await Future.delayed(const Duration(milliseconds: 300));
 
-    final textScores = TextEmotionService.analyze(transcript);
+    await TextEmotionService.instance.loadAll();
+    final textScores = TextEmotionService.instance.analyze(transcript);
 
     final hasAudioData =
         _finalAudioScores.isNotEmpty && _finalAudioScores.values.any((v) => v > 0);

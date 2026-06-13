@@ -15,6 +15,7 @@ import 'services/subscription_service.dart';
 import 'services/database_service.dart';
 import 'services/config_service.dart';
 import 'services/storage_service.dart';
+import 'services/whisper_init_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
@@ -64,6 +65,9 @@ void main() async {
       premiumProvider.setPremium(value: true, expiry: status.expiry);
     }
   }
+
+  // Pre-download Whisper base model di background
+  WhisperInitService.instance.warmUp();
 
   runApp(
     MultiProvider(

@@ -1007,10 +1007,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // Helper untuk get description kelas kesehatan mental
   String _getHealthClassDescription(int score) {
-    if (score >= 75) return AppLocalizations.tr('overall_exc_1');
+    if (score >= 90) return AppLocalizations.tr('overall_exc_4');
+    if (score >= 80) return AppLocalizations.tr('overall_exc_3');
+    if (score >= 75) return AppLocalizations.tr('overall_exc_2');
+    if (score >= 65) return AppLocalizations.tr('overall_good_4');
+    if (score >= 60) return AppLocalizations.tr('overall_good_3');
+    if (score >= 55) return AppLocalizations.tr('overall_good_2');
     if (score >= 50) return AppLocalizations.tr('overall_good_1');
-    if (score >= 25) return AppLocalizations.tr('overall_fair_1');
-    return AppLocalizations.tr('overall_attn_1');
+    if (score >= 40) return AppLocalizations.tr('overall_fair_5');
+    if (score >= 35) return AppLocalizations.tr('overall_fair_4');
+    if (score >= 30) return AppLocalizations.tr('overall_fair_3');
+    if (score >= 25) return AppLocalizations.tr('overall_fair_2');
+    if (score >= 15) return AppLocalizations.tr('overall_attn_5');
+    if (score >= 10) return AppLocalizations.tr('overall_attn_4');
+    if (score >= 5)  return AppLocalizations.tr('overall_attn_3');
+    return AppLocalizations.tr('overall_attn_2');
   }
 
   // ─────────────────────────────────────────────────────────────

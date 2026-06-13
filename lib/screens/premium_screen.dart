@@ -69,14 +69,16 @@ class _PremiumScreenState extends State<PremiumScreen>
 
   Future<void> _purchase() async {
     setState(() => _isLoading = true);
+    bool success = false;
     try {
       await _subscriptionService.fetchOfferings();
+      if (!mounted) return;
       if (_subscriptionService.offerings.isNotEmpty) {
         final offering = _subscriptionService.offerings.first;
         final packages = offering.availablePackages;
         if (_selectedIndex < packages.length) {
           final premium = context.read<PremiumProvider>();
-          await _subscriptionService.purchasePackage(
+          success = await _subscriptionService.purchasePackage(
             packages[_selectedIndex],
             premium,
           );
@@ -87,15 +89,123 @@ class _PremiumScreenState extends State<PremiumScreen>
     }
     if (!mounted) return;
     setState(() => _isLoading = false);
-    Navigator.pop(context);
+    _showPurchaseResult(success);
+  }
+
+  Future<void> _showPurchaseResult(bool success) async {
+    final isEn = AppLocalizations.locale.startsWith('en');
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Icon(
+          success ? Icons.check_circle_rounded : Icons.error_rounded,
+          color: success ? Colors.green.shade400 : Colors.red.shade400,
+          size: 48,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              success
+                  ? AppLocalizations.tr('purchase_success_title')
+                  : AppLocalizations.tr('purchase_failed_title'),
+              style: GoogleFonts.syne(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: _onSurface,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              success
+                  ? AppLocalizations.tr('purchase_success_desc')
+                  : AppLocalizations.tr('purchase_failed_desc'),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: _onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              if (success && context.mounted) Navigator.pop(context);
+            },
+            child: Text(
+              isEn ? 'OK' : 'OK',
+              style: GoogleFonts.inter(color: _primary, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _restore() async {
     setState(() => _isLoading = true);
     final premium = context.read<PremiumProvider>();
-    await _subscriptionService.restorePurchases(premium);
+    final success = await _subscriptionService.restorePurchases(premium);
     if (!mounted) return;
     setState(() => _isLoading = false);
+    _showRestoreResult(success);
+  }
+
+  Future<void> _showRestoreResult(bool success) async {
+    final isEn = AppLocalizations.locale.startsWith('en');
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Icon(
+          success ? Icons.check_circle_rounded : Icons.info_rounded,
+          color: success ? Colors.green.shade400 : Colors.orange.shade400,
+          size: 48,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              success
+                  ? AppLocalizations.tr('restore_success_title')
+                  : AppLocalizations.tr('restore_failed_title'),
+              style: GoogleFonts.syne(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: _onSurface,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              success
+                  ? AppLocalizations.tr('restore_success_desc')
+                  : AppLocalizations.tr('restore_failed_desc'),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: _onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              isEn ? 'OK' : 'OK',
+              style: GoogleFonts.inter(color: _primary, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

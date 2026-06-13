@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - Fem-Psych Monitor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.7;
+      color: #1a1a2e;
+      background: #f8f9fa;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 6px;
+      color: #e8728a;
+    }
+
+    .date {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin: 28px 0 12px;
+      color: #2d1b33;
+      border-bottom: 2px solid #fce4ec;
+      padding-bottom: 6px;
+    }
+
+    h3 {
+      font-size: 16px;
+      margin: 20px 0 8px;
+      color: #333;
+    }
+
+    p {
+      margin-bottom: 12px;
+      color: #444;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 16px 20px;
+      color: #444;
+    }
+
+    li {
+      margin-bottom: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border: 1px solid #e0e0e0;
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #fce4ec;
+      color: #2d1b33;
+      font-weight: 600;
+    }
+
+    td {
+      color: #444;
+    }
+
+    strong {
+      color: #1a1a2e;
+    }
+
+    a {
+      color: #e8728a;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th,
+      td {
+        padding: 6px 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Privacy Policy</h1>
+    <p class="date"><strong>Last updated:</strong> June 12, 2026</p>
+
+    <h2>1. Introduction</h2>
+    <p>Fem-Psych Monitor we respects your privacy and is committed to protecting your personal data.
+      This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile
+      application Fem-Psych Monitor (the "App").</p>
+    <p>Please read this policy carefully. By using the App, you consent to the practices described in this policy. If
+      you do not agree, please discontinue use immediately.</p>
+    <p><strong>Developer Information:</strong><br>
+      Developer Name: Syahrul Kustiawan Al Zayyan, S.Kom<br>
+      Address: Indonesia<br>
+      Email: <a href="mailto:syahrulkustiawanalzayyan@gmail.com">syahrulkustiawanalzayyan@gmail.com</a></p>
+
+    <h2>2. Information We Collect</h2>
+
+    <h3>2.1 Information You Provide Directly</h3>
+    <table>
+      <tr>
+        <th>Category</th>
+        <th>Data Collected</th>
+        <th>Purpose</th>
+      </tr>
+      <tr>
+        <td>Account Information</td>
+        <td>Name, email address, profile photo</td>
+        <td>Account creation and authentication via Firebase Authentication</td>
+      </tr>
+      <tr>
+        <td>Google Sign-In Data</td>
+        <td>Name, email address, profile photo (from Google account)</td>
+        <td>Optional social login</td>
+      </tr>
+      <tr>
+        <td>MBTI Assessment</td>
+        <td>Personality type, dimension scores (E/I, S/N, T/F, J/P)</td>
+        <td>Personalized psychological insights</td>
+      </tr>
+      <tr>
+        <td>Mental Health Questionnaire</td>
+        <td>Responses to psychological assessment questions</td>
+        <td>Mental health score calculation and recommendations</td>
+      </tr>
+      <tr>
+        <td>Trigger Tags</td>
+        <td>Self-selected emotional triggers</td>
+        <td>Emotion tracking and trend analysis</td>
+      </tr>
+    </table>
+
+    <h3>2.2 Information Collected Automatically</h3>
+    <table>
+      <tr>
+        <th>Category</th>
+        <th>Data Collected</th>
+        <th>Purpose</th>
+      </tr>
+      <tr>
+        <td>Voice Recordings</td>
+        <td>Temporary audio recorded via device microphone</td>
+        <td>On-device speech-to-text transcription via whisper_kit</td>
+      </tr>
+      <tr>
+        <td>Transcripts &amp; Emotion Analysis</td>
+        <td>Text transcripts, emotion scores, confidence levels</td>
+        <td>Emotion detection history and trends (stored in Firestore)</td>
+      </tr>
+      <tr>
+        <td>Device Information</td>
+        <td>Device model, OS version, app version</td>
+        <td>App functionality and analytics</td>
+      </tr>
+      <tr>
+        <td>Advertising ID</td>
+        <td>Android Advertising ID</td>
+        <td>Serving contextual ads via Google AdMob</td>
+      </tr>
+      <tr>
+        <td>Usage Data</td>
+        <td>Screen views, feature interactions, crash logs</td>
+        <td>App improvement via Firebase Analytics &amp; Crashlytics</td>
+      </tr>
+      <tr>
+        <td>Purchase Data</td>
+        <td>Subscription status, purchase history</td>
+        <td>Premium entitlement management via RevenueCat</td>
+      </tr>
+    </table>
+    <p><strong>Important:</strong> Raw audio recordings are processed exclusively on your device using the on-device
+      Whisper model (whisper_kit). No raw audio files are transmitted to our servers or any third party.</p>
+
+    <h3>2.3 Sensitive Data</h3>
+    <p>We process the following categories of sensitive data based on your explicit consent:</p>
+    <ul>
+      <li>Voice recordings (for emotion analysis)</li>
+      <li>Mental health assessment responses</li>
+      <li>Emotion detection results</li>
+    </ul>
+
+    <h2>3. Legal Basis for Processing (GDPR)</h2>
+    <p>If you are located in the European Economic Area (EEA) or the United Kingdom, our legal basis for processing your
+      personal data is as follows:</p>
+    <table>
+      <tr>
+        <th>Processing Activity</th>
+        <th>Legal Basis</th>
+      </tr>
+      <tr>
+        <td>Account creation and authentication</td>
+        <td>Performance of a contract (Art. 6(1)(b) GDPR)</td>
+      </tr>
+      <tr>
+        <td>Emotion analysis and transcription</td>
+        <td>Your explicit consent (Art. 9(2)(a) GDPR)</td>
+      </tr>
+      <tr>
+        <td>Personalized recommendations</td>
+        <td>Your explicit consent (Art. 9(2)(a) GDPR)</td>
+      </tr>
+      <tr>
+        <td>Ad serving</td>
+        <td>Legitimate interest (Art. 6(1)(f) GDPR) or consent where required</td>
+      </tr>
+      <tr>
+        <td>Subscription management</td>
+        <td>Performance of a contract (Art. 6(1)(b) GDPR)</td>
+      </tr>
+      <tr>
+        <td>Analytics and crash reporting</td>
+        <td>Legitimate interest (Art. 6(1)(f) GDPR)</td>
+      </tr>
+    </table>
+    <p>You have the right to withdraw consent at any time without affecting the lawfulness of processing based on
+      consent before its withdrawal.</p>
+
+    <h2>4. How We Use Your Information</h2>
+    <ul>
+      <li>To create and manage your account</li>
+      <li>To transcribe voice recordings and analyze emotional content</li>
+      <li>To display historical emotion trends and insights</li>
+      <li>To provide personalized psychological recommendations</li>
+      <li>To manage premium subscription entitlements</li>
+      <li>To serve relevant advertisements (non-premium users)</li>
+      <li>To send service-related communications</li>
+      <li>To analyze app usage and improve functionality</li>
+      <li>To detect, prevent, and address technical issues and fraud</li>
+    </ul>
+
+    <h2>5. Third-Party Services and Data Sharing</h2>
+    <table>
+      <tr>
+        <th>Service Provider</th>
+        <th>Purpose</th>
+        <th>Data Shared</th>
+      </tr>
+      <tr>
+        <td>Google Firebase</td>
+        <td>Authentication, cloud database, analytics, crash reporting</td>
+        <td>Account info, emotion records, transcripts, app usage, crash logs</td>
+      </tr>
+      <tr>
+        <td>Google AdMob</td>
+        <td>In-app advertising</td>
+        <td>Advertising ID, device info, IP address</td>
+      </tr>
+      <tr>
+        <td>RevenueCat</td>
+        <td>Subscription management</td>
+        <td>Purchase history, entitlement status, app user ID</td>
+      </tr>
+      <tr>
+        <td>Google Gemini AI</td>
+        <td>AI-powered psychological suggestions</td>
+        <td>Emotion data, MBTI type (anonymized)</td>
+      </tr>
+      <tr>
+        <td>Google Sign-In</td>
+        <td>Optional authentication</td>
+        <td>Name, email, profile photo</td>
+      </tr>
+    </table>
+    <p>We do not sell your personal information to third parties. We do not share your data with third parties for their
+      own marketing purposes.</p>
+
+    <h2>6. International Data Transfers</h2>
+    <p>Your personal data may be transferred to and processed in countries outside your country of residence, including
+      the United States and the European Union. When transferring data from the EEA or UK, we ensure appropriate
+      safeguards are in place, including Standard Contractual Clauses (SCCs) adopted by the European Commission, and
+      Data Processing Agreements (DPAs) with all sub-processors.</p>
+
+    <h2>7. Data Retention and Deletion</h2>
+    <table>
+      <tr>
+        <th>Data Type</th>
+        <th>Retention Period</th>
+      </tr>
+      <tr>
+        <td>Account information</td>
+        <td>Until account deletion</td>
+      </tr>
+      <tr>
+        <td>Emotion records and transcripts</td>
+        <td>Until account deletion</td>
+      </tr>
+      <tr>
+        <td>MBTI and assessment data</td>
+        <td>Until account deletion</td>
+      </tr>
+      <tr>
+        <td>Voice recordings (temporary)</td>
+        <td>Deleted immediately after transcription (on-device only)</td>
+      </tr>
+      <tr>
+        <td>Analytics data</td>
+        <td>25 months (Firebase default)</td>
+      </tr>
+      <tr>
+        <td>Purchase history</td>
+        <td>Retained as required by tax law (typically 5-7 years)</td>
+      </tr>
+    </table>
+    <p><strong>Account Deletion:</strong> You can delete your account via Settings &rarr; Delete Account &amp; Data. All
+      personal data will be permanently removed within <strong>30 days</strong>.</p>
+
+    <h2>8. Your Rights</h2>
+    <p><strong>All Users:</strong> Right to Access, Rectification, Erasure, Data Portability, and to Object to
+      processing.</p>
+    <p><strong>GDPR (EEA &amp; UK):</strong> Right to Restrict Processing, Withdraw Consent, and Lodge a Complaint with
+      your local data protection authority.</p>
+    <p><strong>CCPA (California):</strong> Right to Know, Delete, Opt-Out (we do not sell data), and Non-Discrimination.
+      Contact us to exercise these rights.</p>
+
+    <h2>9. Data Security</h2>
+    <ul>
+      <li><strong>Encryption at rest:</strong> Firebase Firestore data is encrypted using AES-256</li>
+      <li><strong>Encryption in transit:</strong> All network communication uses TLS 1.2+</li>
+      <li><strong>Access controls:</strong> Firebase Security Rules restrict data access to authenticated users only
+      </li>
+      <li><strong>On-device processing:</strong> Voice recordings never leave your device</li>
+    </ul>
+
+    <h2>10. Children's Privacy</h2>
+    <p>The App is not intended for children under <strong>13 years of age</strong> (or <strong>16 in the EEA</strong>).
+      We do not knowingly collect personal information from children. If you believe a child has provided us with
+      personal data, please contact us.</p>
+
+    <h2>11. Automatic Renewal Subscriptions</h2>
+    <p>Premium subscriptions are managed through RevenueCat and Google Play. Subscriptions auto-renew unless cancelled
+      at least 24 hours before the end of the current period. Cancellation can be done via Google Play Store &rarr;
+      Subscriptions.</p>
+
+    <h2>12. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. Material changes will be notified at least <strong>30
+        days</strong> before taking effect. The "Last updated" date at the top reflects the most recent revision.</p>
+
+    <h2>13. Contact Us</h2>
+    <p>Email: <a href="syahrulkustiawanalzayyan@gmail.com">syahrulkustiawanalzayyan@gmail.com</a><br>
+      Address: Indonesia</p>
+    <p><strong>Data Protection Authority Contacts:</strong></p>
+    <ul>
+      <li><strong>EEA:</strong> Your local data protection authority &mdash; <a
+          href="https://edpb.europa.eu/about-edpb/about-edpb/members_en" target="_blank">List of EU DPAs</a></li>
+      <li><strong>UK:</strong> Information Commissioner's Office (ICO) &mdash; <a href="https://ico.org.uk/"
+          target="_blank">ico.org.uk</a></li>
+      <li><strong>Indonesia:</strong> Kementerian Komunikasi dan Informatika &mdash; <a
+          href="https://www.kominfo.go.id/" target="_blank">kominfo.go.id</a></li>
+    </ul>
+  </div>
+</body>
+
+</html>

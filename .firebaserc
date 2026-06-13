@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "default": "fem-psychmonitor"
+  },
   "targets": {},
   "etags": {}
 }

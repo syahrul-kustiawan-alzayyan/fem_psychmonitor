@@ -121,12 +121,12 @@ extension EmotionTypeExtension on EmotionType {
   /// Positif = baik, Negatif = butuh perhatian
   int get emotionValue {
     switch (this) {
-      case EmotionType.happy:   return 5;
+      case EmotionType.happy:   return 10;
       case EmotionType.neutral: return 0;
-      case EmotionType.sad:     return -3;
-      case EmotionType.angry:   return -4;
-      case EmotionType.fear:    return -3;
-      case EmotionType.disgust: return -2;
+      case EmotionType.sad:     return -6;
+      case EmotionType.angry:   return -8;
+      case EmotionType.fear:    return -6;
+      case EmotionType.disgust: return -4;
     }
   }
 

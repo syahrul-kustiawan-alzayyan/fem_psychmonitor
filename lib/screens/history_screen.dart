@@ -690,7 +690,7 @@ class _HistoryScreenState extends State<HistoryScreen>
   // Widget: Emotion Value Line Chart (fl_chart)
   //
   // X-axis : urutan sesi rekaman (#1 terlama → #N terbaru)
-  // Y-axis : nilai emosi berbobot (-5 s/d +5)
+  // Y-axis : nilai emosi berbobot (-10 s/d +10)
   // Dot    : berwarna sesuai EmotionType yang terdeteksi
   // Tooltip: emoji + nama + nilai emosi + confidence
   // Area   : hijau di atas 0, merah di bawah 0
@@ -729,7 +729,7 @@ class _HistoryScreenState extends State<HistoryScreen>
       );
     }
 
-    // Tiap FlSpot: x = indeks sesi, y = emotionScore (-5 s/d +5)
+    // Tiap FlSpot: x = indeks sesi, y = emotionScore (-10 s/d +10)
     final spots = List.generate(
       history.length,
       (i) => FlSpot(i.toDouble(), history[i].emotionScore),
@@ -1283,8 +1283,8 @@ class _HistoryScreenState extends State<HistoryScreen>
           borderData: FlBorderData(show: false),
           minX: 0,
           maxX: (history.length - 1).toDouble().clamp(0, double.infinity),
-          minY: -5.5,
-          maxY: 5.5,
+          minY: -10,
+          maxY: 11,
           titlesData: FlTitlesData(
             topTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: false),
@@ -1318,7 +1318,7 @@ class _HistoryScreenState extends State<HistoryScreen>
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: showLeftTitles,
-                interval: 2.5,
+                interval: 5,
                 getTitlesWidget: (v, _) {
                   final label = v > 0 ? '+${v.toStringAsFixed(0)}' : v.toStringAsFixed(0);
                   return Text(
@@ -1441,11 +1441,11 @@ class _HistoryScreenState extends State<HistoryScreen>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          Text('+10', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFF10B981))),
           Text('+5', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFF10B981))),
-          Text('+2.5', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFF10B981))),
           Text('0', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textH(context))),
-          Text('-2.5', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFFEF4444))),
           Text('-5', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFFEF4444))),
+          Text('-10', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFFEF4444))),
         ],
       ),
     );

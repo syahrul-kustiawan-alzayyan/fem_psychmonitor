@@ -1,85 +1,54 @@
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import '../models/emotion_model.dart';
 
 class TextEmotionService {
-  static const Map<EmotionType, List<String>> _keywords = {
-    EmotionType.happy: [
-      'bahagia', 'senang', 'gembira', 'puas', 'ceria',
-      'terima kasih', 'syukur', 'bersyukur', 'bangga',
-      'menyenangkan', 'indah', 'hebat', 'luar biasa', 'mantap',
-      'sukses', 'happy', 'senyum', 'tertawa', 'bersemangat',
-      'cinta', 'suka', 'nikmat', 'enak', 'asyik', 'keren', 'wow',
-      'sehat', 'favorit', 'istimewa', 'berharga', 'semangat',
-      'optimis', 'cerah', 'wonderful', 'amazing', 'great', 'good',
-      'bagus', 'seru', 'fun', 'menarik', 'mengagumkan', 'lega',
-      'plong', 'bahagia', 'grinning',
-    ],
-    EmotionType.sad: [
-      'sedih', 'menangis', 'nangis', 'kecewa', 'kesepian',
-      'sendiri', 'sunyi', 'hampa', 'pilu', 'nestapa', 'galau',
-      'murung', 'lesu', 'putus asa', 'patah hati', 'merana',
-      'rindu', 'kangen', 'kehilangan', 'menyesal', 'gagal',
-      'buruk', 'worst', 'sial', 'payah', 'menderita', 'sengsara',
-      'terpuruk', 'down', 'sedih banget', 'nelangsa', 'sendu',
-      'muram', 'suram', 'tragis', 'malang', 'kalah', 'hancur',
-      'broken', 'cry', 'weep', 'sobbing', 'miserable', 'depresi',
-      'tertekan', 'beban', 'lelah', 'capai', 'letih',
-    ],
-    EmotionType.angry: [
-      'marah', 'kesal', 'jengkel', 'sebel', 'emosi', 'bete',
-      'geregetan', 'frustrasi', 'sebal', 'tersinggung', 'benci',
-      'dendam', 'geram', 'panas', 'meledak', 'berang', 'murka',
-      'ngamuk', 'marah besar', 'keki', 'gondok', 'naik darah',
-      'emosi tinggi', 'mengamuk', 'kesal banget', 'jengkel banget',
-      'sebel banget', 'geram', 'gemas', 'masalah', 'berantem',
-      'bertengkar', 'ribut', 'gusar', 'memarahi', 'ngomel',
-      'greget', 'gregetan', 'membenci', 'tidak suka', 'sumpah',
-      'kesel', 'jengkelin', 'nyebelin', 'mengganggu', 'menggangu',
-    ],
-    EmotionType.disgust: [
-      'jijik', 'muak', 'enek', 'mual', 'menggelikan',
-      'menjijikkan', 'jorok', 'kotor', 'norak', 'payah',
-      'alay', 'kampungan', 'risih', 'geli', 'ngeri',
-      'menjijikan', 'jorok banget', 'kotor banget', 'norak banget',
-      'alay banget', 'tidak sopan', 'kurang ajar', 'memalukan',
-      'aib', 'nista', 'hina', 'rendah', 'budek', 'tolol',
-      'bodoh', 'bego', 'idiot', 'goblok', 'sampah', 'busuk',
-      'benci', 'muak banget', 'enek banget', 'jorok',
-      'menyebalkan', 'menjengkelkan',
-    ],
-    EmotionType.neutral: [
-      'biasa', 'standar', 'netral', 'stabil', 'tenang',
-      'santai', 'relax', 'ok', 'baik', 'cukup', 'biasa aja',
-      'aman', 'kalem', 'adem', 'tenteram', 'damai', 'seperti biasa',
-      'nothing', 'fine', 'okay', 'baik baik', 'baik-baik',
-      'biasa saja', 'lumayan', 'cukup baik', 'tidak apa apa',
-      'tidak apa-apa', 'gpp', 'engga apa apa', 'engga apa-apa',
-      'baiklah', 'oke', 'okelah', 'terserah', 'mungkin',
-      'biasanya', 'normal', 'sama aja', 'sama saja',
-    ],
-    EmotionType.fear: [
-      'takut', 'cemas', 'khawatir', 'gelisah', 'panik',
-      'gugup', 'deg-degan', 'was-was', 'ngeri', 'horor',
-      'mengancam', 'terancam', 'khawatir banget', 'parno',
-      'gelo', 'anxiety', 'stres', 'tertekan', 'tegang',
-      'grogi', 'minder', 'insecure', 'ragu', 'bimbang',
-      'tidak yakin', 'gak yakin', 'tidak percaya diri',
-      'gak percaya diri', 'takut banget', 'cemas banget',
-      'khawatiran', 'ketakutan', 'encemen', 'waswas',
-      'curiga', 'prasangka', 'was-was', 'degdegan',
-      'jantung berdebar', 'keringat dingin', 'merinding',
-      'bulu kuduk', 'seram', 'angker', 'gentar', 'ciut',
-    ],
-  };
+  TextEmotionService._();
+  static final instance = TextEmotionService._();
 
-  static Map<EmotionType, double> analyze(String text) {
-    if (text.trim().isEmpty) {
+  Map<EmotionType, List<String>> _keywords = {};
+  bool _loaded = false;
+
+  Future<void> loadAll() async {
+    if (_loaded) return;
+    _keywords = {};
+
+    for (final file in ['assets/emotion.json', 'assets/emotion_en.json']) {
+      final jsonStr = await rootBundle.loadString(file);
+      final Map<String, dynamic> data = json.decode(jsonStr);
+
+      for (final entry in data.entries) {
+        final emotion = _parseEmotion(entry.key);
+        if (emotion == null) continue;
+        final words = List<String>.from(entry.value);
+        _keywords[emotion] = (_keywords[emotion] ?? [])..addAll(words);
+      }
+    }
+
+    _loaded = true;
+  }
+
+  EmotionType? _parseEmotion(String key) {
+    switch (key) {
+      case 'happy':   return EmotionType.happy;
+      case 'sad':     return EmotionType.sad;
+      case 'angry':   return EmotionType.angry;
+      case 'disgust': return EmotionType.disgust;
+      case 'neutral': return EmotionType.neutral;
+      case 'fear':    return EmotionType.fear;
+      default:        return null;
+    }
+  }
+
+  Map<EmotionType, double> analyze(String text) {
+    if (text.trim().isEmpty || !_loaded) {
       return {
-        EmotionType.happy: 0.1,
-        EmotionType.sad: 0.1,
-        EmotionType.angry: 0.1,
+        EmotionType.happy:   0.1,
+        EmotionType.sad:     0.1,
+        EmotionType.angry:   0.1,
         EmotionType.disgust: 0.1,
         EmotionType.neutral: 0.5,
-        EmotionType.fear: 0.1,
+        EmotionType.fear:    0.1,
       };
     }
 
@@ -110,12 +79,12 @@ class TextEmotionService {
 
     if (totalMatches == 0) {
       return {
-        EmotionType.happy: 0.1,
-        EmotionType.sad: 0.1,
-        EmotionType.angry: 0.1,
+        EmotionType.happy:   0.1,
+        EmotionType.sad:     0.1,
+        EmotionType.angry:   0.1,
         EmotionType.disgust: 0.1,
         EmotionType.neutral: 0.5,
-        EmotionType.fear: 0.1,
+        EmotionType.fear:    0.1,
       };
     }
 

@@ -1,4 +1,4 @@
-package com.femphysicsmonitor.app
+package com.fempsychmonitor
 
 import io.flutter.embedding.android.FlutterActivity
 

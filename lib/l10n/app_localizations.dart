@@ -193,6 +193,8 @@ class AppLocalizations {
       'login_required_desc':
           'Silakan login terlebih dahulu untuk menggunakan fitur rekaman suara.',
       'login_now': 'Masuk Sekarang',
+      'privacy_agree': 'Saya telah membaca dan menyetujui',
+      'privacy_link': 'Kebijakan Privasi',
 
       // ── App Guide ──
       'guide_title': 'Panduan Aplikasi',
@@ -585,6 +587,16 @@ class AppLocalizations {
       'trigger_other': 'Lainnya',
       'trigger_saved': 'Pemicu disimpan',
       'trigger_chart_title': 'Pemicu Emosi',
+
+      // ── Premium Purchase ──
+      'purchase_success_title': 'Pembelian Berhasil',
+      'purchase_success_desc': 'Selamat! Anda sekarang menikmati semua fitur premium.',
+      'purchase_failed_title': 'Pembelian Gagal',
+      'purchase_failed_desc': 'Terjadi kesalahan. Silakan coba lagi.',
+      'restore_success_title': 'Pemulihan Berhasil',
+      'restore_success_desc': 'Pembelian Anda berhasil dipulihkan.',
+      'restore_failed_title': 'Pemulihan Gagal',
+      'restore_failed_desc': 'Tidak ada pembelian yang dapat dipulihkan.',
     },
 
     // ════════════════════════════════════════════
@@ -761,6 +773,8 @@ class AppLocalizations {
       'login_required_desc':
           'Please login first to use the voice recording feature.',
       'login_now': 'Login Now',
+      'privacy_agree': 'I have read and agree to the',
+      'privacy_link': 'Privacy Policy',
 
       // ── App Guide ──
       'guide_title': 'App Guide',
@@ -1146,6 +1160,16 @@ class AppLocalizations {
       'trigger_other': 'Other',
       'trigger_saved': 'Trigger saved',
       'trigger_chart_title': 'Emotion Triggers',
+
+      // ── Premium Purchase ──
+      'purchase_success_title': 'Purchase Successful',
+      'purchase_success_desc': 'Congratulations! You now enjoy all premium features.',
+      'purchase_failed_title': 'Purchase Failed',
+      'purchase_failed_desc': 'An error occurred. Please try again.',
+      'restore_success_title': 'Restore Successful',
+      'restore_success_desc': 'Your purchases have been restored successfully.',
+      'restore_failed_title': 'Restore Failed',
+      'restore_failed_desc': 'No purchases could be restored.',
     },
   };
 }

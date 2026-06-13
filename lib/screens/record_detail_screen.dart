@@ -231,15 +231,19 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _confidenceBadge(confidence),
-                    const SizedBox(width: 8),
-                    _infoChip(
-                      Icons.access_time_rounded,
-                      '${_recordingData?.durationSeconds ?? widget.record.confidence}s',
-                    ),
-                  ],
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    children: [
+                      _confidenceBadge(confidence),
+                      const SizedBox(width: 8),
+                      _infoChip(
+                        Icons.access_time_rounded,
+                        '${_recordingData?.durationSeconds ?? widget.record.confidence}s',
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -985,11 +989,13 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
             children: [
               Icon(Icons.info_outline_rounded, size: 12, color: AppTheme.textHint),
               const SizedBox(width: 6),
-              Text(
-                AppLocalizations.tr('score_trend_desc'),
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  color: AppTheme.textS(context),
+              Flexible(
+                child: Text(
+                  AppLocalizations.tr('score_trend_desc'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    color: AppTheme.textS(context),
+                  ),
                 ),
               ),
             ],

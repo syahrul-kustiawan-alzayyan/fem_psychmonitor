@@ -41,6 +41,43 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:637727281592:android:777298dc72ce7fac8a3f4d",
+        "android_client_info": {
+          "package_name": "com.fempsychmonitor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "637727281592-ua3a3g910ucqiaopba7ojv3qelvvofhr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fempsychmonitor",
+            "certificate_hash": "a915647c0e7c28f5bdedf31a08941611653d0729"
+          }
+        },
+        {
+          "client_id": "637727281592-5lk5ga4di62olc97u47g56ohfe1m44dh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIRmnyXhvtUUUXOdb7TASSP5ml_YzZIPs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "637727281592-5lk5ga4di62olc97u47g56ohfe1m44dh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

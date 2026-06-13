@@ -9,5 +9,13 @@
     "providers": {
       "emailPassword": true
     }
+  },
+  "hosting": {
+    "public": "privacy-policy",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
   }
 }

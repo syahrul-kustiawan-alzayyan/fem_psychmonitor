@@ -73,12 +73,14 @@ class SubscriptionService {
     }
   }
 
-  Future<void> restorePurchases(PremiumProvider premiumProvider) async {
+  Future<bool> restorePurchases(PremiumProvider premiumProvider) async {
     try {
       final customerInfo = await Purchases.restorePurchases();
       _checkEntitlements(customerInfo, premiumProvider);
+      return premiumProvider.isPremium;
     } catch (e) {
       debugPrint('Restore error: $e');
+      return false;
     }
   }
 
