@@ -79,7 +79,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     }
 
     try {
-      _whisper = Whisper(model: WhisperModel.tiny);
+      _whisper = Whisper(model: WhisperModel.base);
 
       final dir = await getTemporaryDirectory();
       _wavPath = '${dir.path}/recording_${DateTime.now().millisecondsSinceEpoch}.wav';

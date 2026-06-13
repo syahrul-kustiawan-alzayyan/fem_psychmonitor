@@ -19,11 +19,11 @@ class WhisperInitService {
     try {
       final dir = await getApplicationSupportDirectory();
       await downloadModel(
-        model: WhisperModel.tiny,
+        model: WhisperModel.base,
         destinationPath: dir.path,
       );
       _ready = true;
-      debugPrint('✅ Whisper tiny model downloaded and ready');
+      debugPrint('✅ Whisper base model downloaded and ready');
     } catch (e) {
       // Download failed — will be retried on first actual transcribe
       debugPrint('❌ Whisper model pre-download error: $e');
