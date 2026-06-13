@@ -182,10 +182,15 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         final result = await _whisper!.transcribe(
           transcribeRequest: TranscribeRequest(
             audio: path,
+            language: 'id',
+            threads: 4,
           ),
         );
         transcript = result.text.trim();
         debugPrint('📝 Whisper transcript: "$transcript"');
+        if (transcript.isEmpty) {
+          debugPrint('⚠️ Whisper returned empty text for: $path');
+        }
       } catch (e) {
         debugPrint('🎙️ Whisper transcribe error: $e');
       }
