@@ -53,9 +53,9 @@ class _ResultScreenState extends State<ResultScreen> {
 
     final mbtiType = user?.mbtiType ?? '';
     final combined = _combinedScores;
-    final dominant = combined.entries.reduce(
-      (a, b) => a.value >= b.value ? a : b,
-    ).key;
+    final dominant = combined.entries
+        .reduce((a, b) => a.value >= b.value ? a : b)
+        .key;
 
     List<String> suggestions;
     String title;
@@ -65,7 +65,9 @@ class _ResultScreenState extends State<ResultScreen> {
       title = service.buildTitle(mbtiType, dominant);
     } else {
       suggestions = dominant.recordingSuggestions;
-      title = AppLocalizations.tr('suggestion_for_emotion_name').replaceFirst('{emotion}', dominant.displayName);
+      title = AppLocalizations.tr(
+        'suggestion_for_emotion_name',
+      ).replaceFirst('{emotion}', dominant.displayName);
     }
 
     if (mounted) {
@@ -100,16 +102,24 @@ class _ResultScreenState extends State<ResultScreen> {
             ShaderMask(
               shaderCallback: (bounds) =>
                   AppTheme.primaryGradient.createShader(bounds),
-              child: const Icon(Icons.analytics_rounded, color: Colors.white, size: 22),
+              child: const Icon(
+                Icons.analytics_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
             ),
             const SizedBox(width: 10),
             ShaderMask(
-              shaderCallback: (bounds) =>
-                  AppTheme.primaryGradient.createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+              shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(
+                Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+              ),
               child: Text(
                 AppLocalizations.tr('detection_result'),
                 style: GoogleFonts.poppins(
-                  fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: -0.3,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: -0.3,
                 ),
               ),
             ),
@@ -148,13 +158,13 @@ class _ResultScreenState extends State<ResultScreen> {
                     color: domEmotion.color,
                     isCollapsible: false,
                   )
-                  else
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(24),
-                        child: CircularProgressIndicator(),
-                      ),
+                else
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(),
                     ),
+                  ),
                 const SizedBox(height: 20),
                 _buildTriggerCard(),
                 const SizedBox(height: 20),
@@ -177,7 +187,9 @@ class _ResultScreenState extends State<ResultScreen> {
           colors: [
             emotion.color.withValues(alpha: 0.85),
             emotion.color,
-            emotion.color.withValues(blue: (emotion.color.b + 0.12).clamp(0.0, 1.0)),
+            emotion.color.withValues(
+              blue: (emotion.color.b + 0.12).clamp(0.0, 1.0),
+            ),
           ],
           stops: const [0.0, 0.6, 1.0],
         ),
@@ -223,7 +235,10 @@ class _ResultScreenState extends State<ResultScreen> {
                       children: [
                         _confidenceBadge(confidence),
                         const SizedBox(width: 8),
-                        _infoChip(Icons.access_time_rounded, '${widget.recordingData.durationSeconds}s'),
+                        _infoChip(
+                          Icons.access_time_rounded,
+                          '${widget.recordingData.durationSeconds}s',
+                        ),
                       ],
                     ),
                   ],
@@ -248,11 +263,8 @@ class _ResultScreenState extends State<ResultScreen> {
                   emotion.assetIconPath,
                   width: 48,
                   height: 48,
-                  errorBuilder: (context, error, stackTrace) => Icon(
-                    emotion.icon,
-                    size: 42,
-                    color: Colors.white,
-                  ),
+                  errorBuilder: (context, error, stackTrace) =>
+                      Icon(emotion.icon, size: 42, color: Colors.white),
                 ),
               ),
             ],
@@ -272,7 +284,11 @@ class _ResultScreenState extends State<ResultScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.auto_awesome, size: 12, color: Colors.white.withValues(alpha: 0.9)),
+          Icon(
+            Icons.auto_awesome,
+            size: 12,
+            color: Colors.white.withValues(alpha: 0.9),
+          ),
           const SizedBox(width: 5),
           Text(
             '${(confidence * 100).toStringAsFixed(1)}%',
@@ -329,18 +345,22 @@ class _ResultScreenState extends State<ResultScreen> {
           _insightTile(
             Icons.emoji_emotions_outlined,
             AppLocalizations.tr('top_emotions'),
-            top3.take(2).map((e) => '${e.key.displayName} (${(e.value * 100).toStringAsFixed(0)}%)').join(', '),
+            top3
+                .take(2)
+                .map(
+                  (e) =>
+                      '${e.key.displayName} (${(e.value * 100).toStringAsFixed(0)}%)',
+                )
+                .join(', '),
             AppTheme.primaryColor,
           ),
-          Container(
-            width: 1,
-            height: 36,
-            color: AppTheme.surfVar(context),
-          ),
+          Container(width: 1, height: 36, color: AppTheme.surfVar(context)),
           _insightTile(
             Icons.text_fields_rounded,
             AppLocalizations.tr('transcript_label'),
-            hasTranscript ? AppLocalizations.tr('available') : AppLocalizations.tr('none'),
+            hasTranscript
+                ? AppLocalizations.tr('available')
+                : AppLocalizations.tr('none'),
             hasTranscript ? Colors.green : Colors.orange,
           ),
         ],
@@ -406,7 +426,11 @@ class _ResultScreenState extends State<ResultScreen> {
                   gradient: AppTheme.primaryGradient,
                   borderRadius: BorderRadius.circular(9),
                 ),
-                child: const Icon(Icons.bar_chart_rounded, color: Colors.white, size: 16),
+                child: const Icon(
+                  Icons.bar_chart_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
               ),
               const SizedBox(width: 10),
               Text(
@@ -437,14 +461,19 @@ class _ResultScreenState extends State<ResultScreen> {
                         e.displayName,
                         style: GoogleFonts.poppins(
                           fontSize: 13,
-                          fontWeight: isDominant ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight: isDominant
+                              ? FontWeight.w700
+                              : FontWeight.w500,
                           color: isDominant ? e.color : AppTheme.textP(context),
                         ),
                       ),
                       if (isDominant)
                         Container(
                           margin: const EdgeInsets.only(left: 6),
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1,
+                          ),
                           decoration: BoxDecoration(
                             color: e.color.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
@@ -478,7 +507,9 @@ class _ResultScreenState extends State<ResultScreen> {
                         child: LinearProgressIndicator(
                           value: 1.0,
                           backgroundColor: AppTheme.surfVar(context),
-                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.surfVar(context)),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppTheme.surfVar(context),
+                          ),
                           minHeight: isDominant ? 10 : 8,
                         ),
                       ),
@@ -520,7 +551,11 @@ class _ResultScreenState extends State<ResultScreen> {
                   color: AppTheme.iconColor(context).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(9),
                 ),
-                child: Icon(Icons.radar_rounded, color: AppTheme.iconColor(context), size: 16),
+                child: Icon(
+                  Icons.radar_rounded,
+                  color: AppTheme.iconColor(context),
+                  size: 16,
+                ),
               ),
               const SizedBox(width: 10),
               Text(
@@ -534,10 +569,7 @@ class _ResultScreenState extends State<ResultScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          SizedBox(
-            height: 240,
-            child: _buildRadarChart(combined),
-          ),
+          SizedBox(height: 240, child: _buildRadarChart(combined)),
           const SizedBox(height: 8),
           Text(
             AppLocalizations.tr('combined_source_desc'),
@@ -555,7 +587,9 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Widget _buildTranscriptCard() {
     final hasTranscript = widget.recordingData.transcriptText.isNotEmpty;
-    final hasTextEmotions = widget.recordingData.transcriptEmotions.values.any((v) => v > 0.05);
+    final hasTextEmotions = widget.recordingData.transcriptEmotions.values.any(
+      (v) => v > 0.05,
+    );
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -578,14 +612,19 @@ class _ResultScreenState extends State<ResultScreen> {
               Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  gradient: hasTranscript ? AppTheme.primaryGradient : const LinearGradient(
-                    colors: [Colors.orange, Colors.orangeAccent],
-                  ),
+                  gradient: hasTranscript
+                      ? AppTheme.primaryGradient
+                      : const LinearGradient(
+                          colors: [Colors.orange, Colors.orangeAccent],
+                        ),
                   borderRadius: BorderRadius.circular(9),
                 ),
                 child: Icon(
-                  hasTranscript ? Icons.text_fields_rounded : Icons.warning_amber_rounded,
-                  color: Colors.white, size: 16,
+                  hasTranscript
+                      ? Icons.text_fields_rounded
+                      : Icons.warning_amber_rounded,
+                  color: Colors.white,
+                  size: 16,
                 ),
               ),
               const SizedBox(width: 10),
@@ -610,17 +649,25 @@ class _ResultScreenState extends State<ResultScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      hasTranscript ? Icons.check_circle : Icons.hourglass_empty_rounded,
+                      hasTranscript
+                          ? Icons.check_circle
+                          : Icons.hourglass_empty_rounded,
                       size: 12,
-                      color: hasTranscript ? Colors.green.shade600 : Colors.orange.shade600,
+                      color: hasTranscript
+                          ? Colors.green.shade600
+                          : Colors.orange.shade600,
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      hasTranscript ? AppLocalizations.tr('detected') : AppLocalizations.tr('none'),
+                      hasTranscript
+                          ? AppLocalizations.tr('detected')
+                          : AppLocalizations.tr('none'),
                       style: GoogleFonts.poppins(
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
-                        color: hasTranscript ? Colors.green.shade600 : Colors.orange.shade600,
+                        color: hasTranscript
+                            ? Colors.green.shade600
+                            : Colors.orange.shade600,
                       ),
                     ),
                   ],
@@ -657,7 +704,11 @@ class _ResultScreenState extends State<ResultScreen> {
               ),
               child: Column(
                 children: [
-                  Icon(Icons.mic_off_rounded, size: 32, color: Colors.orange.withValues(alpha: 0.5)),
+                  Icon(
+                    Icons.mic_off_rounded,
+                    size: 32,
+                    color: Colors.orange.withValues(alpha: 0.5),
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     AppLocalizations.tr('transcript_unavailable'),
@@ -696,30 +747,39 @@ class _ResultScreenState extends State<ResultScreen> {
               spacing: 6,
               runSpacing: 4,
               children: widget.recordingData.transcriptEmotions.entries
-                .where((e) => (e.value) > 0.05)
-                .map((e) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: e.key.color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(e.key.assetIconPath, width: 11, height: 11),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${e.key.displayName}: ${(e.value * 100).toStringAsFixed(0)}%',
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: e.key.color,
-                        ),
+                  .where((e) => (e.value) > 0.05)
+                  .map(
+                    (e) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
                       ),
-                    ],
-                  ),
-                ))
-                .toList(),
+                      decoration: BoxDecoration(
+                        color: e.key.color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            e.key.assetIconPath,
+                            width: 11,
+                            height: 11,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${e.key.displayName}: ${(e.value * 100).toStringAsFixed(0)}%',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: e.key.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ],
         ],
@@ -755,7 +815,11 @@ class _ResultScreenState extends State<ResultScreen> {
                   color: AppTheme.iconColor(context).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(9),
                 ),
-                child: Icon(Icons.compare_arrows_rounded, color: AppTheme.iconColor(context), size: 16),
+                child: Icon(
+                  Icons.compare_arrows_rounded,
+                  color: AppTheme.iconColor(context),
+                  size: 16,
+                ),
               ),
               const SizedBox(width: 10),
               Text(
@@ -793,8 +857,12 @@ class _ResultScreenState extends State<ResultScreen> {
                   Colors.green.shade600,
                   hasTextData ? textDominant.first.key : EmotionType.neutral,
                   hasTextData ? textDominant.first.value : 0,
-                  hasTextData && textDominant.length > 1 ? textDominant[1].key : null,
-                  hasTextData && textDominant.length > 1 ? textDominant[1].value : null,
+                  hasTextData && textDominant.length > 1
+                      ? textDominant[1].key
+                      : null,
+                  hasTextData && textDominant.length > 1
+                      ? textDominant[1].value
+                      : null,
                   disabled: !hasTextData,
                 ),
               ),
@@ -814,7 +882,11 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline_rounded, size: 14, color: AppTheme.iconColor(context)),
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 14,
+                  color: AppTheme.iconColor(context),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -862,7 +934,11 @@ class _ResultScreenState extends State<ResultScreen> {
                   gradient: AppTheme.primaryGradient,
                   borderRadius: BorderRadius.circular(9),
                 ),
-                child: const Icon(Icons.trending_up_rounded, color: Colors.white, size: 16),
+                child: const Icon(
+                  Icons.trending_up_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
               ),
               const SizedBox(width: 10),
               Text(
@@ -888,9 +964,8 @@ class _ResultScreenState extends State<ResultScreen> {
               child: Image.asset(
                 emotion.assetIconPath,
                 fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => Icon(
-                  emotion.icon, size: 32, color: emotion.color,
-                ),
+                errorBuilder: (_, _, _) =>
+                    Icon(emotion.icon, size: 32, color: emotion.color),
               ),
             ),
           ),
@@ -908,7 +983,11 @@ class _ResultScreenState extends State<ResultScreen> {
           const SizedBox(height: 20),
           Row(
             children: [
-              Icon(Icons.info_outline_rounded, size: 12, color: AppTheme.textHint),
+              Icon(
+                Icons.info_outline_rounded,
+                size: 12,
+                color: AppTheme.textHint,
+              ),
               const SizedBox(width: 6),
               Text(
                 AppLocalizations.tr('score_trend_desc'),
@@ -945,7 +1024,10 @@ class _ResultScreenState extends State<ResultScreen> {
                   AppTheme.textP(context),
                 ),
                 const SizedBox(height: 8),
-                Container(height: 1, color: AppTheme.textH(context).withValues(alpha: 0.1)),
+                Container(
+                  height: 1,
+                  color: AppTheme.textH(context).withValues(alpha: 0.1),
+                ),
                 const SizedBox(height: 8),
                 _calcRow(
                   AppLocalizations.tr('emotion_score_result'),
@@ -961,7 +1043,12 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  Widget _calcRow(String label, String value, Color valueColor, {bool isBold = false}) {
+  Widget _calcRow(
+    String label,
+    String value,
+    Color valueColor, {
+    bool isBold = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -1006,7 +1093,11 @@ class _ResultScreenState extends State<ResultScreen> {
                   gradient: AppTheme.primaryGradient,
                   borderRadius: BorderRadius.circular(9),
                 ),
-                child: const Icon(Icons.push_pin_rounded, color: Colors.white, size: 16),
+                child: const Icon(
+                  Icons.push_pin_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
               ),
               const SizedBox(width: 10),
               Text(
@@ -1031,7 +1122,9 @@ class _ResultScreenState extends State<ResultScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 9,
                     fontWeight: FontWeight.w800,
-                    color: _selectedTrigger.isEmpty ? Colors.red.shade600 : Colors.green.shade600,
+                    color: _selectedTrigger.isEmpty
+                        ? Colors.red.shade600
+                        : Colors.green.shade600,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -1048,7 +1141,10 @@ class _ResultScreenState extends State<ResultScreen> {
                 onTap: () => setState(() => _selectedTrigger = tag.name),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppTheme.primaryColor.withValues(alpha: 0.12)
@@ -1065,8 +1161,12 @@ class _ResultScreenState extends State<ResultScreen> {
                     '${tag.emoji}  ${tag.displayName}',
                     style: GoogleFonts.poppins(
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? AppTheme.primaryColor : AppTheme.textP(context),
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: isSelected
+                          ? AppTheme.primaryColor
+                          : AppTheme.textP(context),
                     ),
                   ),
                 ),
@@ -1077,7 +1177,11 @@ class _ResultScreenState extends State<ResultScreen> {
             const SizedBox(height: 10),
             Row(
               children: [
-                Icon(Icons.check_circle_rounded, size: 12, color: Colors.green.shade600),
+                Icon(
+                  Icons.check_circle_rounded,
+                  size: 12,
+                  color: Colors.green.shade600,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   AppLocalizations.tr('trigger_saved'),
@@ -1128,7 +1232,11 @@ class _ResultScreenState extends State<ResultScreen> {
                 color: color.withValues(alpha: disabled ? 0.08 : 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, size: 18, color: color.withValues(alpha: disabled ? 0.4 : 1.0)),
+              child: Icon(
+                icon,
+                size: 18,
+                color: color.withValues(alpha: disabled ? 0.4 : 1.0),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -1155,7 +1263,11 @@ class _ResultScreenState extends State<ResultScreen> {
                   color: dominantEmotion.color.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Image.asset(dominantEmotion.assetIconPath, width: 20, height: 20),
+                child: Image.asset(
+                  dominantEmotion.assetIconPath,
+                  width: 20,
+                  height: 20,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -1221,13 +1333,17 @@ class _ResultScreenState extends State<ResultScreen> {
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: canProceed ? AppTheme.primaryColor : AppTheme.textH(context).withValues(alpha: 0.3),
+          backgroundColor: canProceed
+              ? AppTheme.primaryColor
+              : AppTheme.textH(context).withValues(alpha: 0.3),
           foregroundColor: canProceed ? Colors.white : AppTheme.textS(context),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
           elevation: canProceed ? 6 : 0,
-          shadowColor: canProceed ? AppTheme.primaryColor.withValues(alpha: 0.4) : Colors.transparent,
+          shadowColor: canProceed
+              ? AppTheme.primaryColor.withValues(alpha: 0.4)
+              : Colors.transparent,
         ),
       ),
     );
@@ -1259,8 +1375,14 @@ class _ResultScreenState extends State<ResultScreen> {
           fontSize: 9,
           color: AppTheme.textHint,
         ),
-        tickBorderData: BorderSide(color: AppTheme.surfVar(context), width: 0.5),
-        gridBorderData: BorderSide(color: AppTheme.surfVar(context), width: 0.8),
+        tickBorderData: BorderSide(
+          color: AppTheme.surfVar(context),
+          width: 0.5,
+        ),
+        gridBorderData: BorderSide(
+          color: AppTheme.surfVar(context),
+          width: 0.8,
+        ),
         titlePositionPercentageOffset: 0.18,
         titleTextStyle: GoogleFonts.poppins(
           fontSize: 10,
