@@ -469,8 +469,16 @@
             "display_max_score": 100,
             "calculation": "Jumlahkan seluruh skor dari 20 pertanyaan (maks 60), lalu kalikan dengan 100/60 untuk mendapatkan skor 0-100.",
             "emotion_impact": {
-                "positive_emotions": ["Happy", "Neutral"],
-                "negative_emotions": ["Sad", "Fear", "Angry", "Disgust"],
+                "positive_emotions": [
+                    "Happy",
+                    "Neutral"
+                ],
+                "negative_emotions": [
+                    "Sad",
+                    "Fear",
+                    "Angry",
+                    "Disgust"
+                ],
                 "positive_bonus": "Emosi positif dapat meningkatkan skor kesehatan mental hingga +17 poin",
                 "negative_penalty": "Emosi negatif dapat menurunkan skor kesehatan mental hingga -17 poin",
                 "description": "Setiap deteksi emosi terkini akan menyesuaikan skor kesehatan mental Anda. Emosi positif meningkatkan skor sementara emosi negatif menurunkannya."
