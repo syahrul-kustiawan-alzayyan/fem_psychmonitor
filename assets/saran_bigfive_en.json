@@ -1,0 +1,459 @@
+{
+    "bigfive_recommendations": {
+        "O": {
+            "name": "Openness to Experience",
+            "high": {
+                "Happy": [
+                    "Explore new creative ideas you've been wanting to try.",
+                    "Start an art or writing project to channel your imagination.",
+                    "Share inspiring discoveries with your community.",
+                    "Try a new experience that sparks curiosity.",
+                    "Design an innovative long-term vision."
+                ],
+                "Sad": [
+                    "Allow yourself to daydream and explore your imagination.",
+                    "Read fiction or poetry as a healthy escape.",
+                    "Write a reflective journal about your feelings in depth.",
+                    "Listen to calming experimental music.",
+                    "Create artwork that expresses your mood."
+                ],
+                "Angry": [
+                    "Channel emotional energy into creative activities.",
+                    "Write poetry or short prose about what frustrates you.",
+                    "Do an improvisational music or art session.",
+                    "Change scenery by exploring new and unfamiliar places.",
+                    "Read philosophical perspectives to see the situation differently."
+                ],
+                "Fear": [
+                    "Use imagination to visualize positive scenarios.",
+                    "Creatively explore various possible solutions.",
+                    "Listen to ambient or meditative music.",
+                    "Channel curiosity into understanding the mechanism behind fear.",
+                    "Create a visual journal with sketches or collages about worries."
+                ],
+                "Disgust": [
+                    "Distract yourself by exploring beautiful aesthetic content.",
+                    "Recreate your environment to be more artistic.",
+                    "Read literature that broadens your insight and perspective.",
+                    "Do small experiments in your daily routine.",
+                    "Focus on new things that spark intellectual interest."
+                ],
+                "Neutral": [
+                    "Learn a new skill that challenges your creativity.",
+                    "Visit an art gallery or virtual museum.",
+                    "Read articles about topics you've never explored.",
+                    "Try new recipes from different cultures.",
+                    "Practice visualization meditation to expand self-awareness."
+                ]
+            },
+            "low": {
+                "Happy": [
+                    "Enjoy familiar routines that bring comfort.",
+                    "Engage in activities that produce tangible results.",
+                    "Spend time caring for your environment.",
+                    "Practice mastered activities with precision.",
+                    "Share happiness through practical actions for others."
+                ],
+                "Sad": [
+                    "Engage in familiar routines to stabilize your mood.",
+                    "Focus on concrete tasks that can be completed.",
+                    "Spend time outdoors with calm scenery.",
+                    "Listen to music with simple, soothing melodies.",
+                    "Stick to your daily schedule to maintain structure."
+                ],
+                "Angry": [
+                    "Channel energy into structured physical activities.",
+                    "Make a list of concrete steps to address the problem source.",
+                    "Do manual work that requires full concentration.",
+                    "Calm yourself with regular breathing exercises.",
+                    "Focus on facts and data, not speculation."
+                ],
+                "Fear": [
+                    "Gather factual information to reduce uncertainty.",
+                    "Create a practical step-by-step plan.",
+                    "Hold firmly to routines that have proven safe.",
+                    "Seek certainty from trusted and authoritative sources.",
+                    "Focus on things you can directly control."
+                ],
+                "Disgust": [
+                    "Clean and reorganize your environment.",
+                    "Apply standard procedures to address the source of discomfort.",
+                    "Focus on familiar tasks you've mastered.",
+                    "Avoid new things that might trigger aversion.",
+                    "Return to habits that have proven reliable."
+                ],
+                "Neutral": [
+                    "Work on home improvement or maintenance projects.",
+                    "Reorganize storage systems or item organization.",
+                    "Read non-fiction books or informative articles.",
+                    "Do simple, planned outdoor activities.",
+                    "Practice mindfulness focusing on physical sensations."
+                ]
+            }
+        },
+        "C": {
+            "name": "Conscientiousness",
+            "high": {
+                "Happy": [
+                    "Celebrate achieving planned targets.",
+                    "Enjoy the order and tidiness you've created.",
+                    "Review your list of achievements and long-term goal progress.",
+                    "Plan a new project with detailed structure.",
+                    "Share effective work systems or methods with others."
+                ],
+                "Sad": [
+                    "Create a structured daily schedule to maintain productivity.",
+                    "Complete small pending tasks to build a sense of accomplishment.",
+                    "Engage in activities that provide a sense of control and order.",
+                    "Reflect on responsibilities as a reminder of life's meaning.",
+                    "Take scheduled breaks to recharge without disrupting routines."
+                ],
+                "Angry": [
+                    "Channel frustration into tasks requiring precision.",
+                    "Clean and reorganize your workspace methodically.",
+                    "Re-evaluate expectations and standards that may be too high.",
+                    "Make a priority list to address the source of anger step by step.",
+                    "Do repetitive activities that calm the mind."
+                ],
+                "Fear": [
+                    "Create detailed contingency plans for worst-case scenarios.",
+                    "Gather data and facts to reduce uncertainty.",
+                    "Arrange systematic mitigation steps.",
+                    "Break large problems into small manageable tasks.",
+                    "Stick to your schedule as an anchor of stability."
+                ],
+                "Disgust": [
+                    "Implement stricter organizational systems.",
+                    "Create standard operating procedures to prevent recurrence.",
+                    "Clean the environment thoroughly and hygienically.",
+                    "Document what went wrong for future reference.",
+                    "Focus on measurable system improvements."
+                ],
+                "Neutral": [
+                    "Review and optimize your personal productivity system.",
+                    "Organize messy digital and physical files.",
+                    "Create medium and long-term plans.",
+                    "Audit personal expenses and finances.",
+                    "Learn new time management methods."
+                ]
+            },
+            "low": {
+                "Happy": [
+                    "Enjoy spontaneous moments without planning everything.",
+                    "Let yourself go with the flow without target pressure.",
+                    "Celebrate your flexibility and adaptability.",
+                    "Try new unstructured approaches in your work.",
+                    "Socialize and share laughs without schedule pressure."
+                ],
+                "Sad": [
+                    "Allow yourself to be unproductive for a moment without guilt.",
+                    "Do relaxing activities that require no planning.",
+                    "Seek light entertainment like watching movies or favorite shows.",
+                    "Throw away the to-do list and follow your heart for a while.",
+                    "Indulge in enjoyable impulsive activities."
+                ],
+                "Angry": [
+                    "Channel energy into spontaneous intense physical activities.",
+                    "Write or express anger without filtering first.",
+                    "Jump into a new activity to shift your mind.",
+                    "Allow yourself to sulk for a moment as emotional release.",
+                    "Seek distraction by doing something unexpected."
+                ],
+                "Fear": [
+                    "Face fear spontaneously without overthinking.",
+                    "Seek support from others directly.",
+                    "Distract yourself with sudden enjoyable activities.",
+                    "Remind yourself that not everything has to be planned.",
+                    "Do something fun as a temporary escape."
+                ],
+                "Disgust": [
+                    "Leave the situation quickly without tidying up.",
+                    "Shift attention to something more interesting.",
+                    "Jump into a new activity to reset your mood.",
+                    "Use spontaneous humor to ease tension.",
+                    "Don't force yourself to stay in the situation."
+                ],
+                "Neutral": [
+                    "Do activities without rigid plans.",
+                    "Casually explore new hobbies.",
+                    "Scroll and find inspiration from various random sources.",
+                    "Try different approaches to completing daily tasks.",
+                    "Let the day flow without a strict to-do list."
+                ]
+            }
+        },
+        "E": {
+            "name": "Extraversion",
+            "high": {
+                "Happy": [
+                    "Host a gathering with close friends.",
+                    "Share your joy with people around you.",
+                    "Attend interesting social events or communities.",
+                    "Do activities that involve interacting with many people.",
+                    "Be the center of positive attention and entertainment."
+                ],
+                "Sad": [
+                    "Seek support from close friends or family.",
+                    "Share your feelings with a trusted person.",
+                    "Go out and be in crowds to distract your mind.",
+                    "Join light and fun group activities.",
+                    "Ask a friend to accompany you for a chat or walk."
+                ],
+                "Angry": [
+                    "Vent to a trusted friend.",
+                    "Discuss issues directly with the relevant parties.",
+                    "Do team sports or group fitness classes.",
+                    "Express anger verbally in an assertive way.",
+                    "Seek mediation from friends or authority figures."
+                ],
+                "Fear": [
+                    "Find a friend to accompany and provide a sense of safety.",
+                    "Discuss fears with a support group.",
+                    "Be in bright and busy environments.",
+                    "Join social activities as a healthy distraction.",
+                    "Ask for opinions from many people for perspective."
+                ],
+                "Disgust": [
+                    "Talk about your frustrations with your social circle.",
+                    "Find a more positive and enjoyable social environment.",
+                    "Invite friends to do activities together and forget the problem.",
+                    "Express dislike openly and assertively.",
+                    "Use social energy to seek better new experiences."
+                ],
+                "Neutral": [
+                    "Reach out to old friends just to catch up.",
+                    "Attend events or workshops to expand your network.",
+                    "Engage in activities that involve teamwork.",
+                    "Visit new busy and lively places.",
+                    "Participate in volunteer or community activities."
+                ]
+            },
+            "low": {
+                "Happy": [
+                    "Enjoy quality time alone with your favorite hobbies.",
+                    "Do self-reflection in a quiet setting.",
+                    "Read books that enrich your insight in peace.",
+                    "Pamper yourself with self-care at home.",
+                    "Spend time with 1-2 closest people intimately."
+                ],
+                "Sad": [
+                    "Give yourself space to be alone without disturbance.",
+                    "Do introspection and journaling in a quiet place.",
+                    "Listen to calming music in solitude.",
+                    "Spend time with pets or plants.",
+                    "Create a cozy corner at home to recharge energy."
+                ],
+                "Angry": [
+                    "Retreat to a private space to calm down.",
+                    "Write anger in a journal without needing to share it.",
+                    "Do meditation or deep breathing in a silent place.",
+                    "Listen to instrumental music to ease tension.",
+                    "Walk alone in nature to clear your mind."
+                ],
+                "Fear": [
+                    "Create a safe and quiet environment around you.",
+                    "Practice grounding by focusing on physical sensations.",
+                    "Use breathing techniques to calm your nervous system.",
+                    "Withdraw from excessive stimulation and seek peace.",
+                    "Write down worries to process them internally."
+                ],
+                "Disgust": [
+                    "Keep distance and create a personal safe space.",
+                    "Avoid direct confrontation and prefer to walk away.",
+                    "Focus on enjoyable solo activities.",
+                    "Clean your personal environment from disturbing things.",
+                    "Use alone time to restore balance."
+                ],
+                "Neutral": [
+                    "Enjoy alone time for reading or learning.",
+                    "Do activities that require full concentration.",
+                    "Organize and rearrange your personal space.",
+                    "Take a leisurely walk alone in the park.",
+                    "Listen to favorite podcasts or audiobooks."
+                ]
+            }
+        },
+        "A": {
+            "name": "Agreeableness",
+            "high": {
+                "Happy": [
+                    "Help others who need assistance.",
+                    "Give sincere compliments to people around you.",
+                    "Do volunteer or charity activities.",
+                    "Host a small event to strengthen relationships.",
+                    "Share happiness by cooking or giving gifts."
+                ],
+                "Sad": [
+                    "Seek emotional support from those closest to you.",
+                    "Help others as a way to distract from sadness.",
+                    "Talk about feelings with empathetic friends.",
+                    "Accept help and support from others.",
+                    "Spend time nurturing meaningful relationships."
+                ],
+                "Angry": [
+                    "Seek solutions that benefit all parties (win-win).",
+                    "Mediate conflicts with a gentle approach.",
+                    "Express disappointment in a way that doesn't hurt others.",
+                    "Remind yourself of values of kindness and empathy.",
+                    "Apologize if needed and find common ground."
+                ],
+                "Fear": [
+                    "Seek support from community or groups.",
+                    "Discuss worries with someone who cares.",
+                    "Join appropriate support groups.",
+                    "Ask for help without feeling like a burden.",
+                    "Entrust your worries to a trusted figure."
+                ],
+                "Disgust": [
+                    "Try to understand the other party's perspective before judging.",
+                    "Set healthy boundaries while remaining respectful.",
+                    "Seek dialogue rather than confrontation to resolve issues.",
+                    "Remind yourself of human values.",
+                    "Maintain good relationships despite differences."
+                ],
+                "Neutral": [
+                    "Contact friends or family just to say hello.",
+                    "Do random small acts of kindness.",
+                    "Listen to others' stories with full attention.",
+                    "Participate in social activities in your neighborhood.",
+                    "Spend time volunteering."
+                ]
+            },
+            "low": {
+                "Happy": [
+                    "Celebrate personal achievements without needing validation from others.",
+                    "Enjoy independence and freedom in making choices.",
+                    "Focus on personal targets and ambitions.",
+                    "Do competitive activities that challenge you.",
+                    "Use the momentum to advocate for yourself."
+                ],
+                "Sad": [
+                    "Process sadness independently without involving others.",
+                    "Focus on logical problem-solving.",
+                    "Do activities that strengthen independence.",
+                    "Analyze the causes of sadness objectively.",
+                    "Give yourself alone time to recover."
+                ],
+                "Angry": [
+                    "Assert your stance and boundaries clearly.",
+                    "Confront issues directly and factually.",
+                    "Channel anger into competition or challenges.",
+                    "Don't hesitate to say 'no'.",
+                    "Prioritize your interests and personal truth."
+                ],
+                "Fear": [
+                    "Analyze threats logically and rationally.",
+                    "Make independent self-protection plans.",
+                    "Face the source of fear with courage.",
+                    "Gather internal strength without relying on others.",
+                    "Focus on your ability to handle the situation."
+                ],
+                "Disgust": [
+                    "Eliminate sources of discomfort assertively.",
+                    "Don't hesitate to cut off toxic relationships.",
+                    "Prioritize your own interests and comfort.",
+                    "Express dislike directly without beating around the bush.",
+                    "Create clear distance from disturbing things."
+                ],
+                "Neutral": [
+                    "Focus on self-development and personal competence.",
+                    "Set ambitious targets without needing others' approval.",
+                    "Analyze situations critically and independently.",
+                    "Do activities that strengthen independence.",
+                    "Use time to plan personal strategies."
+                ]
+            }
+        },
+        "N": {
+            "name": "Neuroticism",
+            "high": {
+                "Happy": [
+                    "Enjoy calm and stable moments without worry.",
+                    "Celebrate small achievements with gratitude.",
+                    "Practice mindfulness to strengthen your sense of security.",
+                    "Document positive things that happened today.",
+                    "Spend time on nerve-calming activities."
+                ],
+                "Sad": [
+                    "Practice self-compassion and validate your own emotions.",
+                    "Use grounding techniques to return to the present.",
+                    "Keep a journal to identify mood triggers.",
+                    "Do light physical activities to boost mood.",
+                    "Seek professional support if needed."
+                ],
+                "Angry": [
+                    "Practice deep breathing before reacting.",
+                    "Pause and leave triggering situations.",
+                    "Write down emotions to reduce intensity.",
+                    "Practice progressive muscle relaxation.",
+                    "Recognize emotional triggers and reaction patterns."
+                ],
+                "Fear": [
+                    "Practice diaphragmatic breathing to calm the nervous system.",
+                    "Use the 5-4-3-2-1 grounding technique to reduce anxiety.",
+                    "Identify cognitive distortions that worsen fear.",
+                    "Keep an anxiety journal to track trigger patterns.",
+                    "Seek therapy or counseling for long-term coping strategies."
+                ],
+                "Disgust": [
+                    "Gradually practice tolerance to discomfort.",
+                    "Use mindfulness techniques to observe reactions without judgment.",
+                    "Identify the root of aversion to understand emotional responses.",
+                    "Seek a more balanced perspective on the situation.",
+                    "Practice self-soothing with calming activities."
+                ],
+                "Neutral": [
+                    "Practice mindfulness meditation regularly.",
+                    "Create a consistent and healthy sleep routine.",
+                    "Learn stress management and emotion regulation techniques.",
+                    "Do yoga or stretching to release tension.",
+                    "Reduce excessive stimulation from social media and news."
+                ]
+            },
+            "low": {
+                "Happy": [
+                    "Enjoy your natural emotional stability.",
+                    "Use your calm to support others.",
+                    "Do brave activities that challenge your comfort zone.",
+                    "Share your calm and positive perspective with those around you.",
+                    "Be a pillar of stability for your closest people."
+                ],
+                "Sad": [
+                    "Process sadness with a balanced perspective.",
+                    "Use a logical approach to address the cause of sadness.",
+                    "Maintain daily routines as an anchor of stability.",
+                    "Help others who might be going through difficult times.",
+                    "Remind yourself that negative emotions are temporary."
+                ],
+                "Angry": [
+                    "Handle conflicts with a cool and rational head.",
+                    "Use natural calm to defuse situations.",
+                    "Confront issues directly without dramatization.",
+                    "Be a mediator in conflicts involving others.",
+                    "Focus on solutions rather than emotional reactions."
+                ],
+                "Fear": [
+                    "Face risky situations with calm courage.",
+                    "Use emotional stability to make rational decisions.",
+                    "Help anxious others with your calmness.",
+                    "Stay focused on facts and objective probabilities.",
+                    "Use mental resilience to face challenges."
+                ],
+                "Disgust": [
+                    "Handle uncomfortable situations with a cool head.",
+                    "Provide a rational perspective on what triggers you.",
+                    "Address problem sources directly and efficiently.",
+                    "Don't let emotional reactions cloud your judgment.",
+                    "Show leadership in facing difficult situations."
+                ],
+                "Neutral": [
+                    "Use your stability to plan new goals.",
+                    "Help others experiencing emotional turmoil.",
+                    "Do self-reflection without getting trapped in overthinking.",
+                    "Build mental resilience through new challenges.",
+                    "Enjoy inner peace and use it to create."
+                ]
+            }
+        }
+    }
+}

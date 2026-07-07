@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-import 'onboarding/mbti_section.dart';
+import 'onboarding/bigfive_section.dart';
 import 'onboarding/onboarding_state.dart';
 import 'onboarding/psy_section.dart';
 import 'onboarding/result_section.dart';
@@ -23,8 +23,6 @@ class OnboardingScreen extends StatelessWidget {
 
   const OnboardingScreen({super.key, required this.onCompleted});
 
-  /// Dipanggil setelah user berhasil login/register untuk menyimpan
-  /// data onboarding ke Firestore
   static Future<void> savePendingOnboardingToFirestore() async {
     final prefs = await SharedPreferences.getInstance();
     final hasPending = prefs.getBool('pending_onboarding_data') ?? false;
@@ -34,25 +32,30 @@ class OnboardingScreen extends StatelessWidget {
       final mbtiType = prefs.getString('pending_mbti_type') ?? '';
       final mbtiScoresJson = prefs.getString('pending_mbti_scores') ?? '{}';
       final psychScore = prefs.getInt('pending_psych_score');
+      final bigFiveJson = prefs.getString('pending_bigfive_scores') ?? '{}';
 
       final mbtiScores = Map<String, int>.from(
         jsonDecode(mbtiScoresJson) as Map,
+      );
+      final bigFiveScores = Map<String, double>.from(
+        (jsonDecode(bigFiveJson) as Map).map((k, v) => MapEntry(k.toString(), (v as num).toDouble())),
       );
 
       final user = AppUser(
         name: prefs.getString('auth_username') ?? '',
         mbtiType: mbtiType,
         mbtiScores: mbtiScores,
+        bigFiveScores: bigFiveScores,
         psychologicalScore: psychScore == 0 ? null : psychScore,
         createdAt: DateTime.now(),
       );
 
       await DatabaseService.insertUser(user);
 
-      // Hapus data pending
       await prefs.remove('pending_mbti_type');
       await prefs.remove('pending_mbti_scores');
       await prefs.remove('pending_psych_score');
+      await prefs.remove('pending_bigfive_scores');
       await prefs.remove('pending_onboarding_data');
     } catch (e) {
       debugPrint('Error saving pending onboarding: $e');
@@ -87,7 +90,6 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
     final locale = context.watch<LocaleProvider>().locale;
     if (locale != _currentLocale) {
       _currentLocale = locale;
-      // Reload questions when locale changes
       Future.microtask(() {
         if (mounted) {
           context.read<OnboardingState>().loadQuestions();
@@ -109,25 +111,22 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
   Future<void> _completeOnboarding(BuildContext context) async {
     final state = context.read<OnboardingState>();
     state.setSaving(true);
-    
+
     try {
-      // Simpan data onboarding ke SharedPreferences dulu (sementara)
-      // Data akan ditulis ke Firestore setelah user register/login
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('pending_mbti_type', state.mbtiType);
       await prefs.setString('pending_mbti_scores', jsonEncode(state.mbtiScores));
+      await prefs.setString('pending_bigfive_scores', jsonEncode(state.bigFiveScores));
       await prefs.setInt('pending_psych_score', state.psyScore ?? 0);
       await prefs.setBool('pending_onboarding_data', true);
 
       await StorageService.setOnboardingComplete('');
-      
-      // Jika user sudah login, langsung simpan data onboarding ke database.
-      // Jika belum, data ini akan disimpan saat mereka login nanti.
+
       final authProvider = context.read<AuthProvider>();
       if (authProvider.isLoggedIn) {
         await OnboardingScreen.savePendingOnboardingToFirestore();
       }
-      
+
       if (!context.mounted) return;
       widget.onCompleted();
     } catch (e) {
@@ -145,7 +144,6 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
       backgroundColor: AppTheme.bg(context),
       body: Column(
         children: [
-          // Banner Ad - Top
           Consumer<PremiumProvider>(
             builder: (context, premium, _) => premium.isPremium
                 ? const SizedBox.shrink()
@@ -162,7 +160,7 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
               },
               children: [
                 WelcomeSection(onNext: _nextPage),
-                MbtiSection(onNext: _nextPage),
+                BigFiveSection(onNext: _nextPage),
                 PsySection(onNext: _nextPage),
                 ResultSection(
                   onComplete: () => _completeOnboarding(context),
@@ -171,7 +169,6 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
               ],
             ),
           ),
-          // Banner Ad - Bottom
           Consumer<PremiumProvider>(
             builder: (context, premium, _) => premium.isPremium
                 ? const SizedBox.shrink()
@@ -181,7 +178,7 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
       ),
     );
   }
-  
+
   @override
   void dispose() {
     _pageController.dispose();

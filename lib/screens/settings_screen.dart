@@ -723,8 +723,7 @@ class SettingsScreen extends StatelessWidget {
         'user': user != null
             ? {
                 'name': user.name,
-                'mbti_type': user.mbtiType,
-                'mbti_scores': user.mbtiScores,
+                'big_five_scores': user.bigFiveScores,
                 'psychological_score': user.psychologicalScore,
                 'created_at': user.createdAt.toIso8601String(),
               }
@@ -911,10 +910,9 @@ class SettingsScreen extends StatelessWidget {
       if (userData != null && userData.isNotEmpty) {
         final appUser = AppUser(
           name: userData['name'] as String? ?? '',
-          mbtiType: userData['mbti_type'] as String? ?? '',
-          mbtiScores:
-              (userData['mbti_scores'] as Map<String, dynamic>?)?.map(
-                (k, v) => MapEntry(k, (v as num).toInt()),
+          bigFiveScores:
+              (userData['big_five_scores'] as Map<String, dynamic>?)?.map(
+                (k, v) => MapEntry(k, (v as num).toDouble()),
               ) ??
               {},
           psychologicalScore: userData['psychological_score'] as int?,

@@ -1,0 +1,167 @@
+{
+    "instrument_info": {
+        "nama": "Big Five Personality Questionnaire - Short Version (Mini-IPIP, 20 items)",
+        "basis": "Mini-IPIP (Donnellan, Oswald, Baird, & Lucas, 2006)",
+        "referensi_utama": [
+            "Donnellan, M. B., Oswald, F. L., Baird, B. M., & Lucas, R. E. (2006). The Mini-IPIP scales: Tiny-yet-effective measures of the Big Five factors of personality. Psychological Assessment, 18(2), 192-203.",
+            "International Personality Item Pool (IPIP). Mini-IPIP Scoring Key. Retrieved from https://ipip.ori.org/MiniIPIPKey.htm — items are public domain."
+        ],
+        "catatan_metodologis": "Mini-IPIP is a concise version of the IPIP-50 developed to maximize reliability and cross-dimension independence despite having far fewer items (20 vs 50 items). The original study (Donnellan et al., 2006) reported adequate reliability and convergent validity for research and brief screening use.",
+        "skala_jawaban": {
+            "1": "Very Inaccurate",
+            "2": "Moderately Inaccurate",
+            "3": "Neither Accurate nor Inaccurate",
+            "4": "Moderately Accurate",
+            "5": "Very Accurate"
+        },
+        "instruksi": "Read each statement below and choose the number 1-5 that best describes you in general."
+    },
+    "big_five_questionnaire": [
+        {
+            "id": 1,
+            "dimension": "E",
+            "dimension_name": "Extraversion",
+            "keyed": "+",
+            "statement": "I am the life of the party."
+        },
+        {
+            "id": 2,
+            "dimension": "A",
+            "dimension_name": "Agreeableness",
+            "keyed": "+",
+            "statement": "I sympathize with others' feelings."
+        },
+        {
+            "id": 3,
+            "dimension": "C",
+            "dimension_name": "Conscientiousness",
+            "keyed": "+",
+            "statement": "I get chores done right away."
+        },
+        {
+            "id": 4,
+            "dimension": "N",
+            "dimension_name": "Neuroticism",
+            "keyed": "+",
+            "statement": "I have frequent mood swings."
+        },
+        {
+            "id": 5,
+            "dimension": "O",
+            "dimension_name": "Openness to Experience",
+            "keyed": "+",
+            "statement": "I have a vivid imagination."
+        },
+        {
+            "id": 6,
+            "dimension": "E",
+            "dimension_name": "Extraversion",
+            "keyed": "-",
+            "statement": "I don't talk a lot."
+        },
+        {
+            "id": 7,
+            "dimension": "A",
+            "dimension_name": "Agreeableness",
+            "keyed": "-",
+            "statement": "I am not really interested in others."
+        },
+        {
+            "id": 8,
+            "dimension": "C",
+            "dimension_name": "Conscientiousness",
+            "keyed": "-",
+            "statement": "I often forget to put things back in their place."
+        },
+        {
+            "id": 9,
+            "dimension": "N",
+            "dimension_name": "Neuroticism",
+            "keyed": "-",
+            "statement": "I am relaxed most of the time."
+        },
+        {
+            "id": 10,
+            "dimension": "O",
+            "dimension_name": "Openness to Experience",
+            "keyed": "-",
+            "statement": "I am not interested in abstract ideas."
+        },
+        {
+            "id": 11,
+            "dimension": "E",
+            "dimension_name": "Extraversion",
+            "keyed": "+",
+            "statement": "I talk to a lot of different people at parties."
+        },
+        {
+            "id": 12,
+            "dimension": "A",
+            "dimension_name": "Agreeableness",
+            "keyed": "+",
+            "statement": "I feel others' emotions."
+        },
+        {
+            "id": 13,
+            "dimension": "C",
+            "dimension_name": "Conscientiousness",
+            "keyed": "+",
+            "statement": "I like order."
+        },
+        {
+            "id": 14,
+            "dimension": "N",
+            "dimension_name": "Neuroticism",
+            "keyed": "+",
+            "statement": "I get upset easily."
+        },
+        {
+            "id": 15,
+            "dimension": "O",
+            "dimension_name": "Openness to Experience",
+            "keyed": "-",
+            "statement": "I have difficulty understanding abstract ideas."
+        },
+        {
+            "id": 16,
+            "dimension": "E",
+            "dimension_name": "Extraversion",
+            "keyed": "-",
+            "statement": "I keep in the background."
+        },
+        {
+            "id": 17,
+            "dimension": "A",
+            "dimension_name": "Agreeableness",
+            "keyed": "-",
+            "statement": "I am not really interested in other people."
+        },
+        {
+            "id": 18,
+            "dimension": "C",
+            "dimension_name": "Conscientiousness",
+            "keyed": "-",
+            "statement": "I make a mess of things."
+        },
+        {
+            "id": 19,
+            "dimension": "N",
+            "dimension_name": "Neuroticism",
+            "keyed": "-",
+            "statement": "I seldom feel blue."
+        },
+        {
+            "id": 20,
+            "dimension": "O",
+            "dimension_name": "Openness to Experience",
+            "keyed": "-",
+            "statement": "I do not have a good imagination."
+        }
+    ],
+    "panduan_skoring": {
+        "langkah_1": "For items keyed '+', score = the answer value (1-5).",
+        "langkah_2": "For items keyed '-', reverse score: 1->5, 2->4, 3->3, 4->2, 5->1.",
+        "langkah_3": "Average the 4 item scores per dimension (E, A, C, N, O) to get the final trait score (scale 1-5).",
+        "interpretasi_umum": "Average scores near 5 indicate that trait is very prominent; near 1 indicates low trait presence. Scores around 3 indicate balanced/situational tendencies."
+    }
+}

@@ -225,9 +225,9 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
 
       final suggService = SuggestionService();
       await suggService.load();
-      final mbtiType = user?.mbtiType ?? '';
-      final firstSugg = (mbtiType.isNotEmpty && mbtiType != 'XXXX')
-          ? suggService.getFirstSuggestion(mbtiType, dominant.key)
+      final bigFiveScores = user?.bigFiveScores ?? {};
+      final firstSugg = bigFiveScores.isNotEmpty
+          ? suggService.getFirstSuggestion(bigFiveScores, dominant.key)
           : dominant.key.recordingSuggestions.first;
 
       final durationSec = _recordingStartTime != null

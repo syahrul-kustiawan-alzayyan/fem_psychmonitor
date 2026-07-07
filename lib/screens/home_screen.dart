@@ -1299,22 +1299,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ? emotionCount.entries.reduce((a, b) => a.value >= b.value ? a : b).key
         : EmotionType.neutral;
 
-    // Gunakan FutureBuilder untuk mengambil MBTI dan saran dari SuggestionService
+    // Gunakan FutureBuilder untuk mengambil Big Five dan saran dari SuggestionService
     return FutureBuilder<AppUser?>(
       future: DatabaseService.getUser(),
       builder: (context, userSnapshot) {
         final user = userSnapshot.data;
-        final mbtiType = user?.mbtiType ?? 'XXXX';
-        final psychLabel = (mbtiType.isNotEmpty && mbtiType != 'XXXX')
-            ? mbtiType
+        final bigFiveScores = user?.bigFiveScores ?? {};
+        final psychLabel = bigFiveScores.isNotEmpty
+            ? bigFiveScores.entries.map((e) => '${e.key}:${e.value.toStringAsFixed(1)}').join(' ')
             : AppLocalizations.tr('info');
 
         return FutureBuilder<void>(
           future: SuggestionService().load(),
           builder: (context, _) {
             final svc = SuggestionService();
-            final suggestions = svc.getSuggestions(mbtiType, dominant);
-            final title = svc.buildTitle(mbtiType, dominant);
+            final suggestions = svc.getSuggestions(bigFiveScores, dominant);
+            final title = svc.buildTitle(bigFiveScores, dominant);
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,

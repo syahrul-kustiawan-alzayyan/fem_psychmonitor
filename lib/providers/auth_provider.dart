@@ -101,6 +101,7 @@ class AuthProvider extends ChangeNotifier {
             name: _username,
             mbtiType: '',
             mbtiScores: {},
+            bigFiveScores: {},
             createdAt: DateTime.now(),
           );
           await DatabaseService.insertUser(minimalUser);
@@ -118,7 +119,15 @@ class AuthProvider extends ChangeNotifier {
         }
 
         // Existing user with Firestore record
-        if (appUser!.mbtiType.isEmpty) {
+        if (appUser!.bigFiveScores.isEmpty) {
+          // Cek dulu apakah ada data pending yang harus disync
+          if (hasPending) {
+            try {
+              await OnboardingScreen.savePendingOnboardingToFirestore();
+            } catch (_) {}
+            notifyListeners();
+            return 'success';
+          }
           notifyListeners();
           return 'new_user';
         }
@@ -252,20 +261,22 @@ class AuthProvider extends ChangeNotifier {
         final isNewUser =
             userCredential.additionalUserInfo?.isNewUser ?? false;
 
-        if (isLogin && isNewUser) {
-          // Jika login tapi email ini belum pernah terdaftar,
-          // hapus akun Google yang baru saja dibuat di Firebase Auth
-          await userCredential.user?.delete();
-          await logout();
-          return 'unregistered_google';
-        }
+        // Cek pending onboarding data (dari first-launch flow)
+        final hasPending = prefs.getBool('pending_onboarding_data') ?? false;
 
         if (isNewUser) {
-          // User baru via Google — auto-create minimal record
+          if (hasPending) {
+            // User sudah mengisi onboarding sebelum login — sync ke Firestore
+            await OnboardingScreen.savePendingOnboardingToFirestore();
+            notifyListeners();
+            return 'success';
+          }
+          // User baru tanpa data pending — buat record minimal
           final minimalUser = AppUser(
             name: _username,
             mbtiType: '',
             mbtiScores: {},
+            bigFiveScores: {},
             createdAt: DateTime.now(),
           );
           await DatabaseService.insertUser(minimalUser);
@@ -275,12 +286,17 @@ class AuthProvider extends ChangeNotifier {
 
         // User lama — cek apakah sudah punya data onboarding
         final existingUser = await DatabaseService.getUser();
-        if (existingUser == null || existingUser.mbtiType.isEmpty) {
+        if (existingUser == null || existingUser.bigFiveScores.isEmpty) {
+          if (hasPending) {
+            // Ada data pending yang belum tersimpan — sync dulu
+            await OnboardingScreen.savePendingOnboardingToFirestore();
+            notifyListeners();
+            return 'success';
+          }
           return 'new_user';
         }
 
-        // User lama — cek dan sync pending onboarding data
-        final hasPending = prefs.getBool('pending_onboarding_data') ?? false;
+        // User lama dengan data lengkap — sync pending jika ada
         if (hasPending) {
           try {
             await OnboardingScreen.savePendingOnboardingToFirestore();

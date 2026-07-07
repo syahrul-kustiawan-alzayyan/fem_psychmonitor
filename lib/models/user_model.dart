@@ -1,33 +1,33 @@
-// Model data pengguna aplikasi Fem-PhysicsMonitor.
-// Menyimpan username, hasil MBTI assessment, dan skor kesehatan mental.
 import '../l10n/app_localizations.dart';
 
 // ==========================================
 // MODEL: Data pengguna
 // ==========================================
 class AppUser {
-  final int? id; // ID pengguna di SQLite
-  final String name; // Nama pengguna
-  final String mbtiType; // Tipe MBTI: "INFJ", "ESTP", dll
-  final Map<String, int> mbtiScores; // Skor per dimensi: {'E':3, 'I':2, ...}
-  final int? psychologicalScore; // Skor kuesioner kesehatan mental (0-30)
-  final DateTime createdAt; // Waktu registrasi
+  final int? id;
+  final String name;
+  final String mbtiType;
+  final Map<String, int> mbtiScores;
+  final Map<String, double> bigFiveScores;
+  final int? psychologicalScore;
+  final DateTime createdAt;
 
   const AppUser({
     this.id,
     required this.name,
-    required this.mbtiType,
-    required this.mbtiScores,
+    this.mbtiType = '',
+    this.mbtiScores = const {},
+    this.bigFiveScores = const {},
     this.psychologicalScore,
     required this.createdAt,
   });
 
-  /// Buat salinan dengan field yang diubah
   AppUser copyWith({
     int? id,
     String? name,
     String? mbtiType,
     Map<String, int>? mbtiScores,
+    Map<String, double>? bigFiveScores,
     int? psychologicalScore,
     DateTime? createdAt,
   }) {
@@ -36,12 +36,12 @@ class AppUser {
       name: name ?? this.name,
       mbtiType: mbtiType ?? this.mbtiType,
       mbtiScores: mbtiScores ?? this.mbtiScores,
+      bigFiveScores: bigFiveScores ?? this.bigFiveScores,
       psychologicalScore: psychologicalScore ?? this.psychologicalScore,
       createdAt: createdAt ?? this.createdAt,
     );
   }
 
-  /// Kategori kondisi mental berdasarkan skor
   String get mentalHealthCategory {
     if (psychologicalScore == null) return 'Belum Dinilai';
     if (psychologicalScore! <= 15) return 'Sehat Optimal';
@@ -50,7 +50,6 @@ class AppUser {
     return 'Butuh Perhatian Klinis';
   }
 
-  /// Deskripsi kondisi mental
   String get mentalHealthDescription {
     if (psychologicalScore == null) {
       return 'Anda belum mengisi kuesioner kesehatan mental.';
@@ -66,7 +65,6 @@ class AppUser {
     }
   }
 
-  /// Saran berdasarkan skor mental
   String get mentalHealthAdvice {
     if (psychologicalScore == null) {
       return 'Silakan isi kuesioner kesehatan mental untuk mendapatkan saran.';
@@ -82,169 +80,158 @@ class AppUser {
     }
   }
 
-  /// Deskripsi singkat tipe MBTI (locale-aware)
-  String get mbtiDescription {
-    if (AppLocalizations.locale == 'en') {
-      return _mbtiDescriptionsEn[mbtiType] ?? 'Your unique personality type.';
+  // ── Big Five helpers ──────────────────────────────────────
+  bool get hasBigFive => bigFiveScores.isNotEmpty;
+
+  String get bigFiveSummary {
+    if (!hasBigFive) return '';
+    final dims = {
+      'O': 'Openness',
+      'C': 'Conscientiousness',
+      'E': 'Extraversion',
+      'A': 'Agreeableness',
+      'N': 'Neuroticism',
+    };
+    final parts = <String>[];
+    for (final d in ['O', 'C', 'E', 'A', 'N']) {
+      final score = bigFiveScores[d] ?? 0;
+      final label = dims[d]!;
+      final level = score >= 3.5 ? 'High' : (score <= 2.5 ? 'Low' : 'Moderate');
+      parts.add('$label: $level ($score)');
     }
-    return _mbtiDescriptionsId[mbtiType] ?? 'Tipe kepribadian unik Anda.';
+    return parts.join('\n');
   }
 
-  /// Nama julukan tipe MBTI
-  String get mbtiNickname {
-    return _mbtiNicknames[mbtiType] ?? 'The Unique One';
+  String get bigFiveProfileLabel {
+    if (!hasBigFive) return '';
+    final sorted = ['O', 'C', 'E', 'A', 'N']
+      ..sort((a, b) => (bigFiveScores[b] ?? 0).compareTo(bigFiveScores[a] ?? 0));
+    return bigFiveScores.entries
+        .map((e) => '${e.key}:${e.value.toStringAsFixed(1)}')
+        .join(' | ');
   }
 
-  /// Kekuatan utama berdasarkan MBTI (locale-aware)
-  List<String> get mbtiStrengths {
-    if (AppLocalizations.locale == 'en') {
-      return _mbtiStrengthsEn[mbtiType] ?? ['Adaptive', 'Unique', 'Creative'];
+  String get bigFiveDescription {
+    if (!hasBigFive) {
+      return AppLocalizations.locale == 'en'
+          ? 'Complete the Big Five assessment to discover your personality profile.'
+          : 'Lengkapi asesmen Big Five untuk mengetahui profil kepribadian Anda.';
     }
-    return _mbtiStrengthsId[mbtiType] ?? ['Adaptif', 'Unik', 'Kreatif'];
+    return AppLocalizations.locale == 'en'
+        ? 'Your Big Five personality profile based on the Mini-IPIP assessment.'
+        : 'Profil kepribadian Big Five Anda berdasarkan asesmen Mini-IPIP.';
+  }
+
+  List<String> get bigFiveStrengths {
+    if (!hasBigFive) {
+      return AppLocalizations.locale == 'en'
+          ? ['Adaptive', 'Unique', 'Creative']
+          : ['Adaptif', 'Unik', 'Kreatif'];
+    }
+    final strengths = <String>[];
+    for (final d in ['O', 'C', 'E', 'A']) {
+      if ((bigFiveScores[d] ?? 0) >= 3.5) {
+        switch (d) {
+          case 'O':
+            strengths.add(AppLocalizations.locale == 'en' ? 'Creative & Curious' : 'Kreatif & Penasaran');
+            break;
+          case 'C':
+            strengths.add(AppLocalizations.locale == 'en' ? 'Organized & Reliable' : 'Terorganisir & Andal');
+            break;
+          case 'E':
+            strengths.add(AppLocalizations.locale == 'en' ? 'Energetic & Outgoing' : 'Energik & Sosial');
+            break;
+          case 'A':
+            strengths.add(AppLocalizations.locale == 'en' ? 'Compassionate & Cooperative' : 'Penuh Kasih & Kooperatif');
+            break;
+        }
+      }
+    }
+    if ((bigFiveScores['N'] ?? 0) < 2.5) {
+      strengths.add(AppLocalizations.locale == 'en' ? 'Emotionally Stable' : 'Stabil Emosi');
+    }
+    if (strengths.isEmpty) {
+      return AppLocalizations.locale == 'en'
+          ? ['Adaptive', 'Unique', 'Creative']
+          : ['Adaptif', 'Unik', 'Kreatif'];
+    }
+    return strengths;
   }
 }
 
 // ==========================================
-// MBTI Type Descriptions
+// MODEL: Pertanyaan Big Five (Mini-IPIP)
 // ==========================================
-const Map<String, String> _mbtiNicknames = {
-  'INTJ': 'The Architect',
-  'INTP': 'The Logician',
-  'ENTJ': 'The Commander',
-  'ENTP': 'The Debater',
-  'INFJ': 'The Advocate',
-  'INFP': 'The Mediator',
-  'ENFJ': 'The Protagonist',
-  'ENFP': 'The Campaigner',
-  'ISTJ': 'The Logistician',
-  'ISFJ': 'The Defender',
-  'ESTJ': 'The Executive',
-  'ESFJ': 'The Consul',
-  'ISTP': 'The Virtuoso',
-  'ISFP': 'The Adventurer',
-  'ESTP': 'The Entrepreneur',
-  'ESFP': 'The Entertainer',
-};
+class BigFiveQuestion {
+  final int questionId;
+  final String question;
+  final String dimension;
+  final String dimensionName;
+  final String keyed;
 
-const Map<String, String> _mbtiDescriptionsId = {
-  'INTJ':
-      'Pemikir strategis dengan visi jangka panjang. Mandiri, analitis, dan selalu mencari cara untuk meningkatkan sistem.',
-  'INTP':
-      'Pemikir kreatif yang haus pengetahuan. Inovatif, logis, dan selalu ingin memahami bagaimana hal-hal bekerja.',
-  'ENTJ':
-      'Pemimpin alami yang tegas dan efisien. Berorientasi pada tujuan dengan kemampuan organisasi yang luar biasa.',
-  'ENTP':
-      'Inovator yang cerdas dan antusias. Senang tantangan intelektual dan selalu mencari ide baru.',
-  'INFJ':
-      'Idealis yang penuh empati dan visioner. Menginspirasi orang lain dengan insight mendalam dan compassion.',
-  'INFP':
-      'Idealis kreatif dengan nilai-nilai kuat. Sangat empatik dan selalu berusaha untuk membuat dunia lebih baik.',
-  'ENFJ':
-      'Pemimpin karismatik yang menginspirasi. Sangat peduli terhadap orang lain dan kemajuan bersama.',
-  'ENFP':
-      'Penjelajah antusias yang penuh semangat. Kreatif, hangat, dan selalu melihat potensi di setiap orang.',
-  'ISTJ':
-      'Individu yang bertanggung jawab dan dapat diandalkan. Praktis, terorganisir, dan setia pada komitmen.',
-  'ISFJ':
-      'Pelindung yang hangat dan perhatian. Setia, teliti, dan selalu berusaha membantu orang lain.',
-  'ESTJ':
-      'Pengelola yang efisien dan tegas. Berpegang teguh pada aturan dan standar yang tinggi.',
-  'ESFJ':
-      'Individu yang hangat dan peduli. Sangat memperhatikan kebutuhan orang lain dan menjaga harmoni.',
-  'ISTP':
-      'Pengrajin yang praktis dan adaptif. Senang memahami cara kerja hal-hal dan memecahkan masalah langsung.',
-  'ISFP':
-      'Seniman yang lembut dan sensitif. Menghargai keindahan dan hidup sesuai nilai-nilai personal.',
-  'ESTP':
-      'Petualang yang energik dan pragmatis. Hidup di momen sekarang dengan keberanian dan spontanitas.',
-  'ESFP':
-      'Penghibur yang spontan dan energik. Membawa kegembiraan ke mana pun mereka pergi.',
-};
+  const BigFiveQuestion({
+    required this.questionId,
+    required this.question,
+    required this.dimension,
+    required this.dimensionName,
+    required this.keyed,
+  });
 
-const Map<String, String> _mbtiDescriptionsEn = {
-  'INTJ':
-      'Strategic thinker with long-term vision. Independent, analytical, and always seeking ways to improve systems.',
-  'INTP':
-      'Creative thinker hungry for knowledge. Innovative, logical, and always eager to understand how things work.',
-  'ENTJ':
-      'Natural-born leader who is decisive and efficient. Goal-oriented with exceptional organizational skills.',
-  'ENTP':
-      'Smart and enthusiastic innovator. Loves intellectual challenges and always seeks new ideas.',
-  'INFJ':
-      'Empathetic and visionary idealist. Inspires others with deep insight and compassion.',
-  'INFP':
-      'Creative idealist with strong values. Deeply empathetic and always striving to make the world a better place.',
-  'ENFJ':
-      'Charismatic leader who inspires. Deeply cares about others and collective growth.',
-  'ENFP':
-      'Enthusiastic explorer full of spirit. Creative, warm, and always sees potential in everyone.',
-  'ISTJ':
-      'Responsible and reliable individual. Practical, organized, and loyal to commitments.',
-  'ISFJ':
-      'Warm and caring protector. Loyal, thorough, and always ready to help others.',
-  'ESTJ':
-      'Efficient and decisive manager. Upholds rules and high standards.',
-  'ESFJ':
-      'Warm and caring individual. Highly attentive to others\' needs and maintaining harmony.',
-  'ISTP':
-      'Practical and adaptive craftsman. Enjoys understanding how things work and solving hands-on problems.',
-  'ISFP':
-      'Gentle and sensitive artist. Appreciates beauty and lives according to personal values.',
-  'ESTP':
-      'Energetic and pragmatic adventurer. Lives in the moment with courage and spontaneity.',
-  'ESFP':
-      'Spontaneous and energetic entertainer. Brings joy wherever they go.',
-};
-
-const Map<String, List<String>> _mbtiStrengthsId = {
-  'INTJ': ['Strategis', 'Mandiri', 'Visioner', 'Analitis'],
-  'INTP': ['Inovatif', 'Logis', 'Objektif', 'Kreatif'],
-  'ENTJ': ['Kepemimpinan', 'Efisien', 'Tegas', 'Strategis'],
-  'ENTP': ['Kreatif', 'Cerdas', 'Adaptif', 'Berargumen'],
-  'INFJ': ['Empatik', 'Visioner', 'Insightful', 'Idealis'],
-  'INFP': ['Empatik', 'Kreatif', 'Idealis', 'Otentik'],
-  'ENFJ': ['Karismatik', 'Empatik', 'Menginspirasi', 'Diplomat'],
-  'ENFP': ['Antusias', 'Kreatif', 'Hangat', 'Optimis'],
-  'ISTJ': ['Bertanggung jawab', 'Terorganisir', 'Teliti', 'Setia'],
-  'ISFJ': ['Perhatian', 'Setia', 'Sabar', 'Teliti'],
-  'ESTJ': ['Tegas', 'Efisien', 'Terorganisir', 'Jujur'],
-  'ESFJ': ['Hangat', 'Peduli', 'Loyal', 'Kooperatif'],
-  'ISTP': ['Praktis', 'Adaptif', 'Logis', 'Tenang'],
-  'ISFP': ['Sensitif', 'Artistik', 'Loyal', 'Fleksibel'],
-  'ESTP': ['Energik', 'Pragmatis', 'Berani', 'Observan'],
-  'ESFP': ['Spontan', 'Energik', 'Ceria', 'Adaptif'],
-};
-
-const Map<String, List<String>> _mbtiStrengthsEn = {
-  'INTJ': ['Strategic', 'Independent', 'Visionary', 'Analytical'],
-  'INTP': ['Innovative', 'Logical', 'Objective', 'Creative'],
-  'ENTJ': ['Leadership', 'Efficient', 'Decisive', 'Strategic'],
-  'ENTP': ['Creative', 'Smart', 'Adaptable', 'Argumentative'],
-  'INFJ': ['Empathetic', 'Visionary', 'Insightful', 'Idealistic'],
-  'INFP': ['Empathetic', 'Creative', 'Idealistic', 'Authentic'],
-  'ENFJ': ['Charismatic', 'Empathetic', 'Inspiring', 'Diplomatic'],
-  'ENFP': ['Enthusiastic', 'Creative', 'Warm', 'Optimistic'],
-  'ISTJ': ['Responsible', 'Organized', 'Thorough', 'Loyal'],
-  'ISFJ': ['Caring', 'Loyal', 'Patient', 'Detail-oriented'],
-  'ESTJ': ['Decisive', 'Efficient', 'Organized', 'Honest'],
-  'ESFJ': ['Warm', 'Caring', 'Loyal', 'Cooperative'],
-  'ISTP': ['Practical', 'Adaptable', 'Logical', 'Calm'],
-  'ISFP': ['Sensitive', 'Artistic', 'Loyal', 'Flexible'],
-  'ESTP': ['Energetic', 'Pragmatic', 'Bold', 'Observant'],
-  'ESFP': ['Spontaneous', 'Energetic', 'Cheerful', 'Adaptable'],
-};
+  factory BigFiveQuestion.fromJson(Map<String, dynamic> json) {
+    return BigFiveQuestion(
+      questionId: json['id'],
+      question: json['statement'],
+      dimension: json['dimension'],
+      dimensionName: json['dimension_name'],
+      keyed: json['keyed'],
+    );
+  }
+}
 
 // ==========================================
-// MODEL: Satu pertanyaan MBTI
+// Helper: Hitung skor Big Five
+// ==========================================
+/// Hitung skor 5 dimensi Big Five dari daftar jawaban.
+/// [answers] = list jawaban tiap pertanyaan (1-5).
+/// [questions] = daftar BigFiveQuestion.
+/// Returns Map<String, double> berisi rata-rata skor tiap dimensi.
+Map<String, double> calculateBigFive(List<int> answers, List<BigFiveQuestion> questions) {
+  final scores = <String, List<int>>{
+    'O': [],
+    'C': [],
+    'E': [],
+    'A': [],
+    'N': [],
+  };
+
+  for (int i = 0; i < questions.length && i < answers.length; i++) {
+    final q = questions[i];
+    int rawScore = answers[i];
+    // Reverse scoring for keyed '-'
+    if (q.keyed == '-') {
+      rawScore = 6 - rawScore; // 1↔5, 2↔4, 3↔3
+    }
+    scores[q.dimension]!.add(rawScore);
+  }
+
+  return scores.map((key, values) {
+    if (values.isEmpty) return MapEntry(key, 0.0);
+    final avg = values.reduce((a, b) => a + b) / values.length;
+    return MapEntry(key, double.parse(avg.toStringAsFixed(2)));
+  });
+}
+
+// ==========================================
+// MODEL: Pertanyaan MBTI (existing, retained)
 // ==========================================
 class MBTIQuestion {
-  final int questionId; // ID pertanyaan
-  final String question; // Pertanyaan
-  final String optionA; // Pilihan A
-  final String optionB; // Pilihan B
-  final String dimension; // 'E_I', 'S_N', 'T_F', 'J_P'
-  final String firstType; // Tipe untuk pilihan A ('E', 'S', 'T', 'J')
-  final String secondType; // Tipe untuk pilihan B ('I', 'N', 'F', 'P')
+  final int questionId;
+  final String question;
+  final String optionA;
+  final String optionB;
+  final String dimension;
+  final String firstType;
+  final String secondType;
 
   const MBTIQuestion({
     required this.questionId,
@@ -268,17 +255,10 @@ class MBTIQuestion {
     );
   }
 
-  /// Helper untuk mempertahankan kompatibilitas getter dengan UI sebelumnya
   String get optionAText => optionA;
   String get optionBText => optionB;
 }
 
-// ==========================================
-// Helper: Hitung tipe MBTI dari jawaban
-// ==========================================
-/// Hitung tipe MBTI 4-huruf dari daftar jawaban.
-/// [answers] = list pilihan jawaban, 0 (opsi A) atau 1 (opsi B).
-/// Returns `({String type, Map<String, int> scores})`.
 ({String type, Map<String, int> scores}) calculateMBTI(List<int> answers, List<MBTIQuestion> mbtiQuestions) {
   final scores = <String, int>{
     'E': 0, 'I': 0, 'S': 0, 'N': 0, 'T': 0, 'F': 0, 'J': 0, 'P': 0,
@@ -302,6 +282,9 @@ class MBTIQuestion {
   return (type: type.toString(), scores: scores);
 }
 
+// ==========================================
+// PsyQuestion (unchanged)
+// ==========================================
 class PsyQuestion {
   final int id;
   final String category;

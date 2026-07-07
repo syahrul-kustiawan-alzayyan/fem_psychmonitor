@@ -65,7 +65,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
     final service = SuggestionService();
     await service.load();
 
-    final mbtiType = user?.mbtiType ?? '';
+    final bigFiveScores = user?.bigFiveScores ?? {};
     final combined = _combinedScores;
     final dominant = combined.entries.reduce(
       (a, b) => a.value >= b.value ? a : b,
@@ -74,9 +74,9 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
     List<String> suggestions;
     String title;
 
-    if (mbtiType.isNotEmpty && mbtiType != 'XXXX') {
-      suggestions = service.getSuggestions(mbtiType, dominant);
-      title = service.buildTitle(mbtiType, dominant);
+    if (bigFiveScores.isNotEmpty) {
+      suggestions = service.getSuggestions(bigFiveScores, dominant);
+      title = service.buildTitle(bigFiveScores, dominant);
     } else {
       suggestions = dominant.recordingSuggestions;
       title = AppLocalizations.tr('suggestion_for_emotion_name').replaceFirst('{emotion}', dominant.displayName);

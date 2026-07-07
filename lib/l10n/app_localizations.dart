@@ -512,6 +512,26 @@ class AppLocalizations {
       'dimension_decisions': 'Keputusan',
       'dimension_lifestyle': 'Gaya Hidup',
 
+      // ── Big Five ──
+      'bigfive_what_is': 'Psikologi Big Five',
+      'bigfive_what_is_desc': 'Model Big Five Personality (OCEAN) adalah teori kepribadian yang mengelompokkan sifat manusia ke dalam 5 dimensi utama yang luas. Setiap orang memiliki kombinasi unik dari kelima dimensi ini yang membentuk kepribadian mereka.',
+      'bigfive_5dimensions': '5 Dimensi Utama:',
+      'bigfive_dim_o': 'Keterbukaan',
+      'bigfive_dim_o_desc': 'Imajinatif, ingin tahu, dan terbuka terhadap hal-hal baru vs. konservatif dan suka rutinitas',
+      'bigfive_dim_c': 'Kehati-hatian',
+      'bigfive_dim_c_desc': 'Terorganisir, disiplin, dan bertanggung jawab vs. spontan dan kurang terstruktur',
+      'bigfive_dim_e': 'Ekstraversi',
+      'bigfive_dim_e_desc': 'Bersemangat, suka bergaul, dan energik vs. pendiam dan lebih suka menyendiri',
+      'bigfive_dim_a': 'Keramahan',
+      'bigfive_dim_a_desc': 'Percaya, kooperatif, dan penuh empati vs. kompetitif dan skeptis',
+      'bigfive_dim_n': 'Neurotisisme',
+      'bigfive_dim_n_desc': 'Cemas, sensitif, dan mudah khawatir vs. stabil emosi dan tenang',
+      'bigfive_ready': 'Siap mulai mengenali kepribadian Anda?',
+      'result_bigfive': 'Skor Big Five Anda',
+      'bigfive_high': 'Tinggi',
+      'bigfive_moderate': 'Sedang',
+      'bigfive_low': 'Rendah',
+
       // ── Home ──
       'not_assessed': 'Belum Dinilai',
       'fill_questionnaire_to_see_score': 'Isi kuesioner kesehatan mental untuk melihat skor Anda',
@@ -1084,6 +1104,26 @@ class AppLocalizations {
       'dimension_information': 'Information',
       'dimension_decisions': 'Decisions',
       'dimension_lifestyle': 'Lifestyle',
+
+      // ── Big Five ──
+      'bigfive_what_is': 'Big Five Psychology',
+      'bigfive_what_is_desc': 'The Big Five Personality Model (OCEAN) is a personality theory that groups human traits into 5 broad dimensions. Each person has a unique combination of these five dimensions that shapes their personality.',
+      'bigfive_5dimensions': '5 Main Dimensions:',
+      'bigfive_dim_o': 'Openness',
+      'bigfive_dim_o_desc': 'Imaginative, curious, and open to new experiences vs. conservative and prefers routine',
+      'bigfive_dim_c': 'Conscientiousness',
+      'bigfive_dim_c_desc': 'Organized, disciplined, and responsible vs. spontaneous and less structured',
+      'bigfive_dim_e': 'Extraversion',
+      'bigfive_dim_e_desc': 'Enthusiastic, sociable, and energetic vs. reserved and prefers solitude',
+      'bigfive_dim_a': 'Agreeableness',
+      'bigfive_dim_a_desc': 'Trusting, cooperative, and empathetic vs. competitive and skeptical',
+      'bigfive_dim_n': 'Neuroticism',
+      'bigfive_dim_n_desc': 'Anxious, sensitive, and prone to worry vs. emotionally stable and calm',
+      'bigfive_ready': 'Ready to discover your personality?',
+      'result_bigfive': 'Your Big Five Score',
+      'bigfive_high': 'High',
+      'bigfive_moderate': 'Moderate',
+      'bigfive_low': 'Low',
 
       // ── Home ──
       'not_assessed': 'Not Assessed',

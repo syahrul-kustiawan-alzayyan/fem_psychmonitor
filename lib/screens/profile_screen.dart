@@ -503,8 +503,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: 16),
 
-                  // ── MBTI Section ─────────────────────────────
-                  if (_user != null) _buildMBTICard(context, _user!),
+                  // ── Big Five Section ──────────────────────────
+                  if (_user != null) _buildBigFiveCard(context, _user!),
 
                   const SizedBox(height: 16),
 
@@ -593,217 +593,130 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // MBTI Card Widget
+  // Big Five Card Widget
   // ─────────────────────────────────────────────────────────────
-  Widget _buildMBTICard(BuildContext context, AppUser user) {
-    final mbtiType = user.mbtiType;
-    final hasMBTI = mbtiType.isNotEmpty;
+  Widget _buildBigFiveCard(BuildContext context, AppUser user) {
+    final scores = user.bigFiveScores;
+    final hasScores = scores.isNotEmpty;
 
-    return GestureDetector(
-      onTap: () => _showMBTIEditDialog(context, user),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: hasMBTI
-                ? [AppTheme.primaryColor, AppTheme.secondaryColor]
-                : [const Color(0xFF64748B), const Color(0xFF94A3B8)],
+    final labels = {
+      'O': 'Terbuka',
+      'C': 'Teliti',
+      'E': 'Ekstrover',
+      'A': 'Ramah',
+      'N': 'Neurotisisme',
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: hasScores
+              ? [AppTheme.primaryColor, AppTheme.secondaryColor]
+              : [const Color(0xFF64748B), const Color(0xFF94A3B8)],
+        ),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        boxShadow: [
+          BoxShadow(
+            color: (hasScores ? AppTheme.primaryColor : const Color(0xFF64748B))
+                .withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-          boxShadow: [
-            BoxShadow(
-              color:
-                  (hasMBTI ? AppTheme.primaryColor : const Color(0xFF64748B))
-                      .withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Icon
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                hasMBTI ? Icons.psychology_rounded : Icons.help_outline_rounded,
-                color: Colors.white,
-                size: 28,
-              ),
-            ),
-            const SizedBox(width: 16),
-            // Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    hasMBTI ? 'Tipe MBTI Anda' : 'Belum Ada MBTI',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    hasMBTI
-                        ? '$mbtiType - ${user.mbtiNickname}'
-                        : 'Tap untuk menambahkan',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Edit icon
-            Icon(
-              Icons.edit_rounded,
-              color: Colors.white.withValues(alpha: 0.8),
-              size: 20,
-            ),
-          ],
-        ),
+        ],
       ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // MBTI Edit Dialog
-  // ─────────────────────────────────────────────────────────────
-  Future<void> _showMBTIEditDialog(BuildContext context, AppUser user) async {
-    final mbtiTypes = [
-      'INTJ',
-      'INTP',
-      'ENTJ',
-      'ENTP',
-      'INFJ',
-      'INFP',
-      'ENFJ',
-      'ENFP',
-      'ISTJ',
-      'ISFJ',
-      'ESTJ',
-      'ESFJ',
-      'ISTP',
-      'ISFP',
-      'ESTP',
-      'ESFP',
-    ];
-
-    String? selectedType = user.mbtiType.isNotEmpty ? user.mbtiType : null;
-
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: AppTheme.surface(context),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-          ),
-          title: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Icon(Icons.psychology_rounded, color: AppTheme.iconColor(context)),
-              const SizedBox(width: 8),
-              Text(
-                'Pilih Tipe MBTI',
-                style: GoogleFonts.poppins(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textP(context),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.bar_chart_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Big Five Personality',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      hasScores ? 'Skor kepribadian tersedia' : 'Belum ada data',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: SingleChildScrollView(
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: mbtiTypes.map((type) {
-                  final isSelected = selectedType == type;
-                  return ChoiceChip(
-                    label: Text(
-                      type,
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    selected: isSelected,
-                    selectedColor: AppTheme.primaryColor,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : AppTheme.textP(context),
-                    ),
-                    onSelected: (value) {
-                      setDialogState(() => selectedType = type);
-                    },
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(
-                AppLocalizations.tr('cancel'),
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.textS(context),
-                ),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-              ),
-              onPressed: selectedType == null
-                  ? null
-                  : () async {
-                      await DatabaseService.updateUser(
-                        user.copyWith(mbtiType: selectedType!),
-                      );
-                      await _loadUserData();
-                      if (ctx.mounted) {
-                        Navigator.pop(ctx);
-                      }
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'MBTI berhasil diubah menjadi $selectedType!',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          backgroundColor: AppTheme.primaryColor,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              AppTheme.radiusSm,
-                            ),
+          if (hasScores) ...[
+            const SizedBox(height: 16),
+            ...scores.entries.map((e) {
+              final pct = (e.value / 5.0).clamp(0.0, 1.0);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${e.key} - ${labels[e.key] ?? ''}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ),
-                      );
-                    },
-              child: Text(
-                'Simpan',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-              ),
-            ),
+                        Text(
+                          e.value.toStringAsFixed(1),
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: pct,
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                        minHeight: 6,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
           ],
-        ),
+        ],
       ),
     );
   }

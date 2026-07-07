@@ -41,6 +41,7 @@ class DatabaseService {
       'email': email,
       'mbti_type': user.mbtiType,
       'mbti_scores': user.mbtiScores,
+      'bigfive_scores': user.bigFiveScores.map((k, v) => MapEntry(k, v)),
       'psych_score': user.psychologicalScore,
       'created_at': FieldValue.serverTimestamp(),
       'updated_at': FieldValue.serverTimestamp(),
@@ -71,6 +72,11 @@ class DatabaseService {
             (k, v) => MapEntry(k.toString(), (v as num).toInt()),
           ) ?? {},
         ),
+        bigFiveScores: Map<String, double>.from(
+          (data['bigfive_scores'] as Map?)?.map(
+            (k, v) => MapEntry(k.toString(), (v as num).toDouble()),
+          ) ?? {},
+        ),
         psychologicalScore: data['psych_score'] != null
             ? (data['psych_score'] as num).toInt()
             : null,
@@ -93,6 +99,7 @@ class DatabaseService {
       'name': user.name,
       'mbti_type': user.mbtiType,
       'mbti_scores': user.mbtiScores,
+      'bigfive_scores': user.bigFiveScores.map((k, v) => MapEntry(k, v)),
       'updated_at': FieldValue.serverTimestamp(),
     });
   }

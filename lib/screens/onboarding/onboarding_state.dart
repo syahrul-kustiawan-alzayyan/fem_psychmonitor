@@ -3,21 +3,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../../models/user_model.dart'; // To get MBTIQuestion, PsyQuestion, calculateMBTI
+import '../../models/user_model.dart';
 
 class OnboardingState extends ChangeNotifier {
   bool isLoading = true;
 
-  List<MBTIQuestion> mbtiQuestions = [];
-  List<PsyQuestion> psyQuestions = [];
+  // Big Five
+  List<BigFiveQuestion> bigFiveQuestions = [];
+  List<int?> bigFiveAnswers = [];
 
+  // MBTI (legacy, kept for compatibility)
+  List<MBTIQuestion> mbtiQuestions = [];
   List<int?> mbtiAnswers = [];
+
+  List<PsyQuestion> psyQuestions = [];
   List<int?> psyAnswers = [];
 
   bool mbtiSkipped = false;
   bool showManualMbti = false;
   String mbtiType = '';
   Map<String, int> mbtiScores = {};
+
+  // Big Five results
+  Map<String, double> bigFiveScores = {};
 
   int psyScore = 0;
   bool isSaving = false;
@@ -28,21 +36,22 @@ class OnboardingState extends ChangeNotifier {
     try {
       final locale = AppLocalizations.locale;
 
-      // Skip reload jika locale sama dan sudah dimuat
-      if (_loadedLocale == locale && !isLoading && mbtiQuestions.isNotEmpty) {
+      if (_loadedLocale == locale && !isLoading && bigFiveQuestions.isNotEmpty) {
         return;
       }
 
       isLoading = true;
       notifyListeners();
 
-      final mbtiFile = locale.startsWith('en') ? 'assets/MBTI_en.json' : 'assets/MBTI.json';
+      final bigFiveFile = locale.startsWith('en')
+          ? 'assets/BigFive_MiniIPIP20_en.json'
+          : 'assets/BigFive_MiniIPIP20.json';
       final psyFile = locale.startsWith('en') ? 'assets/psych_en.json' : 'assets/psych.json';
 
-      final mbtiString = await rootBundle.loadString(mbtiFile);
-      final mbtiJson = jsonDecode(mbtiString);
-      final mbtiList = (mbtiJson['mbti_questionnaire'] as List)
-          .map((q) => MBTIQuestion.fromJson(q))
+      final bigFiveString = await rootBundle.loadString(bigFiveFile);
+      final bigFiveJson = jsonDecode(bigFiveString);
+      final bigFiveList = (bigFiveJson['big_five_questionnaire'] as List)
+          .map((q) => BigFiveQuestion.fromJson(q))
           .toList();
 
       final psyString = await rootBundle.loadString(psyFile);
@@ -51,9 +60,9 @@ class OnboardingState extends ChangeNotifier {
           .map((q) => PsyQuestion.fromJson(q))
           .toList();
 
-      mbtiQuestions = mbtiList;
+      bigFiveQuestions = bigFiveList;
       psyQuestions = psyList;
-      mbtiAnswers = List.filled(mbtiQuestions.length, null);
+      bigFiveAnswers = List.filled(bigFiveQuestions.length, null);
       psyAnswers = List.filled(psyQuestions.length, null);
       _loadedLocale = locale;
       isLoading = false;
@@ -65,6 +74,23 @@ class OnboardingState extends ChangeNotifier {
     }
   }
 
+  // ── Big Five ──────────────────────────────────────────────
+  bool get isBigFiveComplete => !bigFiveAnswers.contains(null);
+
+  void setBigFiveAnswer(int index, int value) {
+    bigFiveAnswers[index] = value;
+    notifyListeners();
+  }
+
+  void calculateBigFiveResult() {
+    bigFiveScores = calculateBigFive(
+      bigFiveAnswers.map((e) => e ?? 3).toList(),
+      bigFiveQuestions,
+    );
+    notifyListeners();
+  }
+
+  // ── MBTI (legacy) ──────────────────────────────────────────
   void skipMbti() {
     mbtiSkipped = true;
     showManualMbti = true;
@@ -89,11 +115,6 @@ class OnboardingState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setPsyAnswer(int index, int rating) {
-    psyAnswers[index] = rating;
-    notifyListeners();
-  }
-
   void calculateMbtiResult() {
     if (!mbtiSkipped) {
       final result = calculateMBTI(mbtiAnswers.map((e) => e ?? 0).toList(), mbtiQuestions);
@@ -105,6 +126,11 @@ class OnboardingState extends ChangeNotifier {
         'E': 0, 'I': 0, 'S': 0, 'N': 0, 'T': 0, 'F': 0, 'J': 0, 'P': 0,
       };
     }
+    notifyListeners();
+  }
+
+  void setPsyAnswer(int index, int value) {
+    psyAnswers[index] = value;
     notifyListeners();
   }
 

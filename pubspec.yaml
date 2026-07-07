@@ -90,10 +90,14 @@ flutter:
     - assets/final_female_model.tflite
     - assets/MBTI.json
     - assets/MBTI_en.json
+    - assets/BigFive_MiniIPIP20.json
+    - assets/BigFive_MiniIPIP20_en.json
     - assets/psych.json
     - assets/psych_en.json
     - assets/saran.json
     - assets/saran_en.json
+    - assets/saran_bigfive.json
+    - assets/saran_bigfive_en.json
     - assets/emotion.json
     - assets/emotion_en.json
     - assets/icon/emosi/
