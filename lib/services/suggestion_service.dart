@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/services.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
@@ -220,7 +221,7 @@ class SuggestionService {
           trait: trait,
           traitName: _getTraitName(trait),
           level: levelLabel,
-          suggestions: suggestions.take(2).toList(), // Max 2 per trait
+          suggestions: (suggestions..shuffle(Random())).take(2).toList(),
         ));
       }
     }
