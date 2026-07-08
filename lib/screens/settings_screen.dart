@@ -244,6 +244,16 @@ class SettingsScreen extends StatelessWidget {
                     onTap: () => _handleRestoreData(context),
                   ),
                   _buildDivider(context),
+                  // Reset Onboarding
+                  _buildSettingsTile(
+                    context,
+                    icon: Icons.refresh_rounded,
+                    iconColor: const Color(0xFFF59E0B),
+                    title: AppLocalizations.tr('reset_onboarding'),
+                    subtitle: AppLocalizations.tr('reset_onboarding_desc'),
+                    onTap: () => _handleResetOnboarding(context),
+                  ),
+                  _buildDivider(context),
                   // Delete Account
                   _buildSettingsTile(
                     context,
@@ -986,6 +996,61 @@ class SettingsScreen extends StatelessWidget {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Restore gagal: $e')));
+    }
+  }
+
+  void _handleResetOnboarding(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        ),
+        title: Text(
+          AppLocalizations.tr('reset_onboarding'),
+          style: GoogleFonts.poppins(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textP(context),
+          ),
+        ),
+        content: Text(
+          AppLocalizations.tr('reset_onboarding_message'),
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: AppTheme.textS(context),
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              AppLocalizations.tr('cancel'),
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textS(context),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              AppLocalizations.tr('reset'),
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await StorageService.resetOnboarding();
+      if (!context.mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AppRouter()),
+        (route) => false,
+      );
     }
   }
 

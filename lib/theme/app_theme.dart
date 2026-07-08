@@ -15,37 +15,37 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   AppTheme._(); // Prevent instantiation
 
-  // ── Warna Utama (Pastel Pink) ───────────────────────────────
+  // ── Warna Utama (Rose Pink — Improved Contrast) ─────────────
   static const Color primaryColor = Color.fromARGB(
     255,
-    248,
-    175,
-    194,
-  ); // Soft pastel pink
+    232,
+    114,
+    138,
+  ); // Rich rose (darker for better contrast on light bg)
   static const Color primaryLight = Color.fromARGB(
     255,
     253,
     215,
     224,
-  ); // Very light blush
+  ); // Very light blush (for decorative bg only)
   static const Color primaryDark = Color.fromARGB(
     255,
-    224,
-    137,
-    160,
-  ); // Dusty pastel pink
+    212,
+    86,
+    116,
+  ); // Deep rose (for text/icons — meets WCAG AA)
   static const Color secondaryColor = Color.fromARGB(
     255,
-    250,
-    196,
-    206,
-  ); // Muted rose
+    232,
+    141,
+    160,
+  ); // Medium rose
   static const Color accentColor = Color.fromARGB(
     255,
-    255,
-    186,
-    208,
-  ); // Cotton candy pink
+    232,
+    130,
+    154,
+  ); // Deeper cotton candy pink
 
   // ── Warna Surface & Background ──────────────────────────────
   static const Color backgroundColor = Color(0xFFF8FAFC); // Off-white

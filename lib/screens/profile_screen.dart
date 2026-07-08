@@ -12,6 +12,8 @@ import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
+import 'onboarding/onboarding_state.dart';
+import 'big_five_retake_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ProfileScreen — Edit Profil User
@@ -505,6 +507,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   // ── Big Five Section ──────────────────────────
                   if (_user != null) _buildBigFiveCard(context, _user!),
+
+                  const SizedBox(height: 12),
+
+                  // Retake Big Five button
+                  if (_user != null)
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChangeNotifierProvider(
+                                create: (_) => OnboardingState(),
+                                child: const BigFiveRetakeScreen(),
+                              ),
+                            ),
+                          );
+                        },
+                        icon: Icon(Icons.refresh_rounded, size: 18, color: AppTheme.primaryColor),
+                        label: Text(AppLocalizations.tr('big_five_retake_title')),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.primaryColor,
+                          side: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.4)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                          ),
+                        ),
+                      ),
+                    ),
 
                   const SizedBox(height: 16),
 

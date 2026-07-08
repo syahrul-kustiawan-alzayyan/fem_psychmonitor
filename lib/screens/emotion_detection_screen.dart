@@ -73,6 +73,55 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     _startRecording();
   }
 
+  Future<bool> _showRewardSuccessDialog() async {
+    return (await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.auto_awesome_rounded, color: const Color(0xFFF59E0B), size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                AppLocalizations.tr('reward_earned_title'),
+                style: GoogleFonts.poppins(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textP(context),
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          AppLocalizations.tr('reward_earned_message'),
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: AppTheme.textS(context),
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              AppLocalizations.tr('cancel'),
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textS(context),
+              ),
+            ),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(AppLocalizations.tr('start_recording')),
+          ),
+        ],
+      ),
+    )) ?? false;
+  }
+
   Future<bool> _showRewardedAdDialog() async {
     final action = await showDialog<String>(
       context: context,
@@ -112,6 +161,12 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         if (!mounted) return;
         final watched = await _showRewardedAdDialog();
         if (!watched) {
+          if (mounted) Navigator.pop(context);
+          return;
+        }
+        if (!mounted) return;
+        final proceed = await _showRewardSuccessDialog();
+        if (!proceed) {
           if (mounted) Navigator.pop(context);
           return;
         }
