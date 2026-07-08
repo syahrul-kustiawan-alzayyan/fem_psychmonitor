@@ -15,22 +15,29 @@ class AdService {
   static const String _testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
   static const String _testInterstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
   static const String _testRewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
+  static const String _testAppOpenAdUnitId = 'ca-app-pub-3940256099942544/9257395921';
 
   String _bannerTopAdUnitId = _testBannerAdUnitId;
   String _bannerBottomAdUnitId = _testBannerAdUnitId;
   String _interstitialAdUnitId = _testInterstitialAdUnitId;
   String _rewardedAdUnitId = _testRewardedAdUnitId;
+  String _appOpenAdUnitId = _testAppOpenAdUnitId;
+
+  AppOpenAd? _appOpenAd;
+  bool _isLoadingAppOpenAd = false;
 
   void setProductionIds({
     required String bannerTop,
     required String bannerBottom,
     required String interstitial,
     required String rewarded,
+    required String appOpen,
   }) {
     _bannerTopAdUnitId = bannerTop;
     _bannerBottomAdUnitId = bannerBottom;
     _interstitialAdUnitId = interstitial;
     _rewardedAdUnitId = rewarded;
+    _appOpenAdUnitId = appOpen;
   }
 
   Future<void> init(PremiumProvider premiumProvider) async {
@@ -139,6 +146,47 @@ class AdService {
         },
       ),
     );
+    return completer.future;
+  }
+
+  void loadAppOpenAd() {
+    if (!_canShowAds || _isLoadingAppOpenAd) return;
+    _isLoadingAppOpenAd = true;
+    AppOpenAd.load(
+      adUnitId: _appOpenAdUnitId,
+      request: const AdRequest(),
+      adLoadCallback: AppOpenAdLoadCallback(
+        onAdLoaded: (ad) {
+          _appOpenAd = ad;
+          _isLoadingAppOpenAd = false;
+        },
+        onAdFailedToLoad: (error) {
+          _isLoadingAppOpenAd = false;
+        },
+      ),
+    );
+  }
+
+  Future<void> showAppOpenAd() async {
+    if (!_canShowAds || _isShowingAd || _appOpenAd == null) return;
+    _isShowingAd = true;
+    final completer = Completer<void>();
+    final ad = _appOpenAd!;
+    _appOpenAd = null;
+    ad.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        _isShowingAd = false;
+        ad.dispose();
+        loadAppOpenAd();
+        if (!completer.isCompleted) completer.complete();
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        _isShowingAd = false;
+        ad.dispose();
+        if (!completer.isCompleted) completer.complete();
+      },
+    );
+    ad.show();
     return completer.future;
   }
 }

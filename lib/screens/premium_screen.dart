@@ -307,8 +307,8 @@ class _PremiumScreenState extends State<PremiumScreen>
                           isPremiumActive
                               ? (isEn ? 'You\'re enjoying all premium features' : 'Anda menikmati semua fitur premium')
                               : (isEn
-                                  ? 'Get full access to all features and remove ads'
-                                  : 'Dapatkan akses penuh ke semua fitur & hapus iklan'),
+                                  ? 'Unlimited emotion detection & ad-free experience'
+                                  : 'Deteksi emosi tanpa batas & bebas iklan'),
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             color: _onSurfaceVariant,
@@ -708,12 +708,18 @@ class _PremiumScreenState extends State<PremiumScreen>
 
   List<Widget> _buildBenefits(bool isEn) {
     final benefits = isEn
-        ? ['Remove all ads', 'Enjoy an ad-free experience across the app']
-        : ['Hilangkan semua iklan', 'Nikmati pengalaman tanpa iklan di seluruh aplikasi'];
+        ? [
+            ['Unlimited detection', 'Record and analyze your emotions as many times as you need'],
+            ['Ad-free experience', 'Enjoy the app without any ads'],
+          ]
+        : [
+            ['Deteksi tanpa batas', 'Rekam dan analisis emosi sebanyak yang Anda butuhkan'],
+            ['Bebas iklan', 'Nikmati aplikasi tanpa gangguan iklan'],
+          ];
 
-    return [
-      Padding(
-        padding: const EdgeInsets.only(bottom: 0),
+    return benefits.map((b) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -732,7 +738,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    benefits[0],
+                    b[0],
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       color: _onSurface,
@@ -741,7 +747,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    benefits[1],
+                    b[1],
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       color: _onSurfaceVariant,
@@ -753,8 +759,8 @@ class _PremiumScreenState extends State<PremiumScreen>
             ),
           ],
         ),
-      ),
-    ];
+      );
+    }).toList();
   }
 }
 

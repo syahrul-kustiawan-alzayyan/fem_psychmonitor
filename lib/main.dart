@@ -55,6 +55,7 @@ void main() async {
     bannerBottom: ConfigService.admobBannerBottom,
     interstitial: ConfigService.admobInterstitial,
     rewarded: ConfigService.admobRewarded,
+    appOpen: ConfigService.admobAppOpen,
   );
   await adService.init(premiumProvider);
 
@@ -90,7 +91,33 @@ class FemPhysicsMonitorApp extends StatefulWidget {
   State<FemPhysicsMonitorApp> createState() => _FemPhysicsMonitorAppState();
 }
 
-class _FemPhysicsMonitorAppState extends State<FemPhysicsMonitorApp> {
+class _FemPhysicsMonitorAppState extends State<FemPhysicsMonitorApp>
+    with WidgetsBindingObserver {
+  bool _hasResumed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    AdService().loadAppOpenAd();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (_hasResumed) {
+        AdService().showAppOpenAd();
+      }
+      _hasResumed = true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
