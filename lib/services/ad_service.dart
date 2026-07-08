@@ -11,27 +11,26 @@ class AdService {
   bool _isInitialized = false;
   PremiumProvider? _premiumProvider;
   bool _isShowingAd = false;
-  DateTime? _lastAppOpenAdTime;
 
   static const String _testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
   static const String _testInterstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
-  static const String _testAppOpenAdUnitId = 'ca-app-pub-3940256099942544/3419835294';
+  static const String _testRewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
 
   String _bannerTopAdUnitId = _testBannerAdUnitId;
   String _bannerBottomAdUnitId = _testBannerAdUnitId;
   String _interstitialAdUnitId = _testInterstitialAdUnitId;
-  String _appOpenAdUnitId = _testAppOpenAdUnitId;
+  String _rewardedAdUnitId = _testRewardedAdUnitId;
 
   void setProductionIds({
     required String bannerTop,
     required String bannerBottom,
     required String interstitial,
-    required String appOpen,
+    required String rewarded,
   }) {
     _bannerTopAdUnitId = bannerTop;
     _bannerBottomAdUnitId = bannerBottom;
     _interstitialAdUnitId = interstitial;
-    _appOpenAdUnitId = appOpen;
+    _rewardedAdUnitId = rewarded;
   }
 
   Future<void> init(PremiumProvider premiumProvider) async {
@@ -108,48 +107,35 @@ class AdService {
     return completer.future;
   }
 
-  Future<void> showAppOpenAd() async {
-    if (!_canShowAds || _isShowingAd) return;
-    
-    // Prevent infinite loop on resume by adding a 30 seconds cooldown
-    if (_lastAppOpenAdTime != null) {
-      final diff = DateTime.now().difference(_lastAppOpenAdTime!).inSeconds;
-      if (diff < 30) {
-        debugPrint('AppOpenAd: Cooldown active ($diff seconds). Skipping ad.');
-        return;
-      }
-    }
-
-    debugPrint('AppOpenAd: Loading new ad...');
+  /// Show a rewarded ad. Returns true if user watched fully (reward earned).
+  Future<bool> showRewardedAd() async {
+    if (!_canShowAds || _isShowingAd) return false;
     _isShowingAd = true;
-    final completer = Completer<void>();
-    AppOpenAd.load(
-      adUnitId: _appOpenAdUnitId,
+    final completer = Completer<bool>();
+    RewardedAd.load(
+      adUnitId: _rewardedAdUnitId,
       request: const AdRequest(),
-      adLoadCallback: AppOpenAdLoadCallback(
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
-          debugPrint('AppOpenAd: Ad loaded successfully. Showing ad...');
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (ad) {
-              debugPrint('AppOpenAd: Ad dismissed. Cooldown started.');
               _isShowingAd = false;
-              _lastAppOpenAdTime = DateTime.now();
               ad.dispose();
-              if (!completer.isCompleted) completer.complete();
+              if (!completer.isCompleted) completer.complete(false);
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
-              debugPrint('AppOpenAd: Failed to show ad: $error');
               _isShowingAd = false;
-              _lastAppOpenAdTime = DateTime.now();
               ad.dispose();
-              if (!completer.isCompleted) completer.complete();
+              if (!completer.isCompleted) completer.complete(false);
             },
           );
-          ad.show();
+          ad.show(onUserEarnedReward: (ad, reward) {
+            if (!completer.isCompleted) completer.complete(true);
+          });
         },
         onAdFailedToLoad: (error) {
           _isShowingAd = false;
-          if (!completer.isCompleted) completer.complete();
+          if (!completer.isCompleted) completer.complete(false);
         },
       ),
     );

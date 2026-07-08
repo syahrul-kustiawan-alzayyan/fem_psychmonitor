@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,6 +18,7 @@ import 'services/database_service.dart';
 import 'services/config_service.dart';
 import 'services/storage_service.dart';
 import 'services/whisper_init_service.dart';
+import 'widgets/gradient_background.dart';
 import 'screens/auth_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
@@ -51,7 +54,7 @@ void main() async {
     bannerTop: ConfigService.admobBannerTop,
     bannerBottom: ConfigService.admobBannerBottom,
     interstitial: ConfigService.admobInterstitial,
-    appOpen: ConfigService.admobAppOpen,
+    rewarded: ConfigService.admobRewarded,
   );
   await adService.init(premiumProvider);
 
@@ -65,9 +68,6 @@ void main() async {
       premiumProvider.setPremium(value: true, expiry: status.expiry);
     }
   }
-
-  // Pre-download Whisper base model di background
-  WhisperInitService.instance.warmUp();
 
   runApp(
     MultiProvider(
@@ -90,37 +90,7 @@ class FemPhysicsMonitorApp extends StatefulWidget {
   State<FemPhysicsMonitorApp> createState() => _FemPhysicsMonitorAppState();
 }
 
-class _FemPhysicsMonitorAppState extends State<FemPhysicsMonitorApp>
-    with WidgetsBindingObserver {
-  bool _isFirstResume = true;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      if (_isFirstResume) {
-        _isFirstResume = false;
-        return;
-      }
-
-      final authProvider = context.read<AuthProvider>();
-      if (authProvider.isLoggedIn) {
-        AdService().showAppOpenAd();
-      }
-    }
-  }
-
+class _FemPhysicsMonitorAppState extends State<FemPhysicsMonitorApp> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
@@ -158,10 +128,14 @@ class AppRouter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-      future: Future.wait([
-        StorageService.isFirstLaunch(),
-        Future.delayed(const Duration(seconds: 3)),
-      ]).then((results) => results[0] as bool),
+      future: (() async {
+        final isFirstLaunch = await StorageService.isFirstLaunch();
+        await WhisperInitService.instance.warmUp();
+        if (!WhisperInitService.instance.isReady) {
+          await Future.delayed(const Duration(seconds: 3));
+        }
+        return isFirstLaunch;
+      })(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const _SplashScreen();
 
@@ -209,177 +183,99 @@ class _SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<_SplashScreen>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+  double _modelProgress = 0.0;
+  String _modelStatus = '';
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
+    final ws = WhisperInitService.instance;
+    _modelProgress = ws.progress;
+    _modelStatus = ws.statusMessage;
+    ws.addProgressListener(_onModelProgress);
+  }
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.3,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
-    _scaleAnimation = Tween<double>(
-      begin: 0.95,
-      end: 1.05,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  void _onModelProgress(double progress, String message) {
+    if (mounted) setState(() { _modelProgress = progress; _modelStatus = message; });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    WhisperInitService.instance.removeProgressListener(_onModelProgress);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isReady = _modelProgress >= 1.0;
+    final status = _modelStatus.isNotEmpty ? _modelStatus : 'Memuat aplikasi...';
+
     return Scaffold(
       backgroundColor: AppTheme.bg(context),
       body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Image.asset(
-                    'assets/logo.png',
-                    width: 150,
-                    height: 150,
-                    fit: BoxFit.contain,
-                  ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo
+              Container(
+                width: 100,
+                height: 100,
+                child: Image.asset('assets/logo.png', fit: BoxFit.contain),
+              ),
+              const SizedBox(height: 20),
+
+              // App name
+              Text(
+                'Fem-Psych Monitor',
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textP(context),
                 ),
-                const SizedBox(height: 32),
-                Text(
-                  'Fem-Psych Monitor',
-                  style: GoogleFonts.poppins(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textP(context),
-                    letterSpacing: -0.5,
-                  ),
+              ),
+              const SizedBox(height: 8),
+
+              // Short description
+              Text(
+                AppLocalizations.tr('splash_subtitle'),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: AppTheme.textS(context),
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    AppLocalizations.tr('splash_subtitle'),
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.primaryColor,
-                      letterSpacing: 0.5,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 48),
+
+              // Progress bar
+              if (isReady)
+                Icon(Icons.check_circle, color: Colors.green, size: 28)
+              else ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: SizedBox(
+                    width: 200,
+                    height: 4,
+                    child: LinearProgressIndicator(
+                      value: _modelProgress > 0 ? _modelProgress : null,
+                      minHeight: 4,
+                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.15),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                     ),
                   ),
                 ),
-                const SizedBox(height: 48),
-                // Loading indicator
-                SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: CircularProgressIndicator(
-                    color: AppTheme.primaryColor,
-                    strokeWidth: 3,
-                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-                  ),
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Text(
-                  'Memuat aplikasi...',
+                  _modelProgress > 0
+                      ? '${(_modelProgress * 100).toStringAsFixed(0)}%'
+                      : status,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: AppTheme.textS(context),
                   ),
                 ),
-                const SizedBox(height: 60),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    children: [
-                      _buildFeatureCard(
-                        icon: Icons.psychology_rounded,
-                        label: 'MBTI Test',
-                        delay: 0.2,
-                      ),
-                      const SizedBox(width: 12),
-                      _buildFeatureCard(
-                        icon: Icons.favorite_rounded,
-                        label: 'Mental Health',
-                        delay: 0.4,
-                      ),
-                      const SizedBox(width: 12),
-                      _buildFeatureCard(
-                        icon: Icons.mic_rounded,
-                        label: 'Voice Analysis',
-                        delay: 0.6,
-                      ),
-                    ],
-                  ),
-                ),
               ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureCard({
-    required IconData icon,
-    required String label,
-    required double delay,
-  }) {
-    return Expanded(
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          final slideProgress = (_controller.value - delay).clamp(0.0, 1.0);
-          return Transform.translate(
-            offset: Offset(0, 50 * (1 - slideProgress)),
-            child: Opacity(opacity: slideProgress),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(icon, color: AppTheme.primaryColor, size: 24),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textS(context),
-                ),
-                textAlign: TextAlign.center,
-              ),
             ],
           ),
         ),
@@ -407,16 +303,92 @@ class _MainNavigationState extends State<MainNavigation>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final premium = context.read<PremiumProvider>();
       if (!premium.isPremium) {
-        Navigator.push(
+        await Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const PremiumScreen()),
         );
       }
+      if (!mounted) return;
+      if (!WhisperInitService.instance.isReady) {
+        _showModelDownloadDialog(context);
+      }
     });
+  }
+
+  void _showModelDownloadDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.cloud_download_rounded, color: AppTheme.primaryColor, size: 24),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Model Suara',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Fitur analisis suara memerlukan model bahasa untuk transkripsi. '
+          'Harap sambungkan ke internet untuk mengunduh model (~150 MB).',
+          style: GoogleFonts.poppins(fontSize: 13, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Nanti', style: GoogleFonts.poppins()),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.download_rounded, size: 18),
+            label: Text('Unduh Sekarang', style: GoogleFonts.poppins()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              _performModelDownload();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performModelDownload() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+            const SizedBox(width: 12),
+            Text('Mengunduh model...', style: GoogleFonts.poppins(fontSize: 12)),
+          ],
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+    await WhisperInitService.instance.warmUp();
+    if (!mounted) return;
+    if (WhisperInitService.instance.isReady) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Model berhasil diunduh', style: GoogleFonts.poppins(fontSize: 12))),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengunduh. Periksa koneksi internet.', style: GoogleFonts.poppins(fontSize: 12))),
+      );
+    }
   }
 
   void _navigateToRecording() {

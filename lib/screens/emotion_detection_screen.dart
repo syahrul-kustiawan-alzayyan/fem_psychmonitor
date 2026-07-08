@@ -13,9 +13,11 @@ import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
 import '../services/ad_service.dart';
 import '../services/database_service.dart';
+import '../services/storage_service.dart';
 import '../services/gemini_service.dart';
 import '../services/suggestion_service.dart';
 import '../services/text_emotion_service.dart';
+import '../services/whisper_init_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gradient_background.dart';
 import 'result_screen.dart';
@@ -71,11 +73,49 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     _startRecording();
   }
 
+  Future<bool> _showRewardedAdDialog() async {
+    final action = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppLocalizations.tr('daily_limit_title')),
+        content: Text(AppLocalizations.tr('daily_limit_message')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'cancel'),
+            child: Text(AppLocalizations.tr('cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, 'watch'),
+            child: Text(AppLocalizations.tr('watch_ad')),
+          ),
+        ],
+      ),
+    );
+    if (action == 'watch') {
+      return await AdService().showRewardedAd();
+    }
+    return false;
+  }
+
   Future<void> _startRecording() async {
     final auth = context.read<AuthProvider>();
     if (!auth.isLoggedIn) {
       if (mounted) Navigator.pop(context);
       return;
+    }
+
+    final premium = context.read<PremiumProvider>();
+    if (!premium.isPremium) {
+      final remaining = await StorageService.getRemainingDetections();
+      if (remaining <= 0) {
+        if (!mounted) return;
+        final watched = await _showRewardedAdDialog();
+        if (!watched) {
+          if (mounted) Navigator.pop(context);
+          return;
+        }
+      }
     }
 
     try {
@@ -178,6 +218,15 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
       if (mounted) {
         setState(() => _processingMessage = AppLocalizations.tr('processing_transcription_first'));
       }
+
+      // Ensure model is downloaded (fallback if pre-download didn't complete)
+      if (!WhisperInitService.instance.isReady) {
+        if (mounted) {
+          setState(() => _processingMessage = 'Mengunduh model suara...');
+        }
+        await WhisperInitService.instance.warmUp();
+      }
+
       try {
         final result = await _whisper!.transcribe(
           transcribeRequest: TranscribeRequest(
@@ -226,9 +275,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
       final suggService = SuggestionService();
       await suggService.load();
       final bigFiveScores = user?.bigFiveScores ?? {};
-      final firstSugg = bigFiveScores.isNotEmpty
-          ? suggService.getFirstSuggestion(bigFiveScores, dominant.key)
-          : dominant.key.recordingSuggestions.first;
+      final firstSugg = suggService.getFirstSuggestion(bigFiveScores, dominant.key);
 
       final durationSec = _recordingStartTime != null
           ? DateTime.now().difference(_recordingStartTime!).inSeconds
@@ -262,20 +309,17 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         triggerTag: record.triggerTag,
       );
 
-      if (mounted) {
-        final premium = context.read<PremiumProvider>();
-        if (!premium.isPremium) {
-          await AdService().showInterstitialAd();
-        }
+      if (!context.read<PremiumProvider>().isPremium) {
+        await StorageService.incrementDetectionCount();
+      }
 
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ResultScreen(recordingData: savedRecord),
-            ),
-          );
-        }
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ResultScreen(recordingData: savedRecord),
+          ),
+        );
       }
     } else {
       setState(() => _isProcessing = false);
@@ -298,6 +342,67 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     _pulseCtrl.dispose();
     _audioRecorder.dispose();
     super.dispose();
+  }
+
+  Widget _buildRemainingChip() {
+    return FutureBuilder<int>(
+      future: StorageService.getRemainingDetections(),
+      builder: (context, snapshot) {
+        final premium = context.watch<PremiumProvider>();
+        final remaining = snapshot.data ?? 5;
+        final isLow = remaining <= 2;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: premium.isPremium
+                ? const Color(0xFF10B981).withValues(alpha: 0.1)
+                : isLow
+                    ? const Color(0xFFF87171).withValues(alpha: 0.1)
+                    : const Color(0xFFF59E0B).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: premium.isPremium
+                  ? const Color(0xFF10B981).withValues(alpha: 0.3)
+                  : isLow
+                      ? const Color(0xFFF87171).withValues(alpha: 0.3)
+                      : const Color(0xFFF59E0B).withValues(alpha: 0.3),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                premium.isPremium
+                    ? Icons.auto_awesome_rounded
+                    : Icons.wifi_tethering_rounded,
+                size: 14,
+                color: premium.isPremium
+                    ? const Color(0xFF10B981)
+                    : isLow
+                        ? const Color(0xFFF87171)
+                        : const Color(0xFFF59E0B),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                premium.isPremium
+                    ? AppLocalizations.tr('remaining_unlimited')
+                    : '$remaining/5',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: premium.isPremium
+                      ? const Color(0xFF10B981)
+                      : isLow
+                          ? const Color(0xFFF87171)
+                          : const Color(0xFFF59E0B),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -343,6 +448,8 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
                   child: Column(
                     children: [
                       const SizedBox(height: 8),
+                      _buildRemainingChip(),
+                      const SizedBox(height: 12),
                       _buildTimerIndicator(),
                       const SizedBox(height: 16),
                       _buildWaveform(),

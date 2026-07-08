@@ -4,139 +4,278 @@ import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SuggestionService — Layanan saran dinamis berdasarkan Big Five OCEAN + Emosi
+// Model: Hasil saran terstruktur (multi-trait)
+// ─────────────────────────────────────────────────────────────────────────────
+class SuggestionResult {
+  final EmotionType emotion;
+  final List<TraitSuggestion> traitSuggestions;
+  final bool isSafetyReferral;
+  final String? safetyMessage;
+  final List<String>? safetyActions;
+
+  const SuggestionResult({
+    required this.emotion,
+    required this.traitSuggestions,
+    this.isSafetyReferral = false,
+    this.safetyMessage,
+    this.safetyActions,
+  });
+
+  /// Semua saran flat (untuk backward compat)
+  List<String> get allSuggestions =>
+      traitSuggestions.expand((t) => t.suggestions).toList();
+
+  /// Saran pertama
+  String get firstSuggestion =>
+      allSuggestions.isNotEmpty ? allSuggestions.first : '';
+
+  bool get isEmpty => traitSuggestions.isEmpty && !isSafetyReferral;
+}
+
+class TraitSuggestion {
+  final String trait;
+  final String traitName;
+  final String level;
+  final List<String> suggestions;
+
+  const TraitSuggestion({
+    required this.trait,
+    required this.traitName,
+    required this.level,
+    required this.suggestions,
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SuggestionService v2 — Big Five OCEAN + Emosi + Safety Layer
 //
-// Memuat data dari assets/saran_bigfive.json (atau saran_bigfive_en.json)
-// dan menyediakan rekomendasi yang dipersonalisasi sesuai skor Big Five
-// pengguna dan emosi yang terdeteksi.
+// Logika:
+//   1. Cek lapisan keselamatan (krisis/distres berkepanjangan)
+//   2. Hitung deviasi tiap trait dari titik tengah 3.0
+//   3. Saring trait netral (2.80-3.20)
+//   4. Ambil semua trait non-netral, urut berdasarkan deviasi
+//   5. Ambil 2 saran per trait
 // ─────────────────────────────────────────────────────────────────────────────
 class SuggestionService {
   static final SuggestionService _instance = SuggestionService._internal();
   factory SuggestionService() => _instance;
   SuggestionService._internal();
 
-  /// Cache data saran dari JSON
+  Map<String, dynamic>? _rawData;
   Map<String, dynamic>? _recommendations;
-
-  /// Locale terakhir
+  Map<String, dynamic>? _safetyLayer;
+  Map<String, dynamic>? _defaultNeutral;
   String? _loadedLocale;
 
   bool get isLoaded => _recommendations != null;
 
   void reset() {
+    _rawData = null;
     _recommendations = null;
+    _safetyLayer = null;
+    _defaultNeutral = null;
     _loadedLocale = null;
   }
 
-  /// Muat data saran dari assets
+  /// Muat data saran v2 dari assets
   Future<void> load() async {
     final locale = AppLocalizations.locale;
-
-    if (_recommendations != null && _loadedLocale == locale) return;
+    if (_rawData != null && _loadedLocale == locale) return;
 
     _loadedLocale = locale;
     final fileName = locale.startsWith('en')
-        ? 'assets/saran_bigfive_en.json'
-        : 'assets/saran_bigfive.json';
+        ? 'assets/saran_bigfive_v2_en.json'
+        : 'assets/saran_bigfive_v2.json';
 
     try {
       final jsonString = await rootBundle.loadString(fileName);
       final data = jsonDecode(jsonString) as Map<String, dynamic>;
+      _rawData = data;
       _recommendations =
-          Map<String, dynamic>.from(data['bigfive_recommendations']);
+          Map<String, dynamic>.from(data['bigfive_recommendations'] ?? {});
+      _safetyLayer = data['lapisan_keselamatan'] as Map<String, dynamic>?;
+      _defaultNeutral = data['logika_penggabungan'] != null
+          ? (data['logika_penggabungan'] as Map<String, dynamic>)['saran_default_netral'] as Map<String, dynamic>?
+          : null;
     } catch (e) {
+      // Fallback ke v1
       try {
-        final jsonString = await rootBundle.loadString('assets/saran_bigfive.json');
+        final fallbackName = locale.startsWith('en')
+            ? 'assets/saran_bigfive_en.json'
+            : 'assets/saran_bigfive.json';
+        final jsonString = await rootBundle.loadString(fallbackName);
         final data = jsonDecode(jsonString) as Map<String, dynamic>;
+        _rawData = data;
         _recommendations =
-            Map<String, dynamic>.from(data['bigfive_recommendations']);
+            Map<String, dynamic>.from(data['bigfive_recommendations'] ?? {});
+        _safetyLayer = null;
+        _defaultNeutral = null;
       } catch (e2) {
+        _rawData = {};
         _recommendations = {};
+        _safetyLayer = null;
+        _defaultNeutral = null;
       }
     }
   }
 
-  /// Dapatkan saran berdasarkan skor Big Five dan emosi.
-  /// Menggabungkan saran dari 1-3 dimensi dengan skor tertinggi/terendah.
-  List<String> getSuggestions(Map<String, double> bigFiveScores, EmotionType emotion) {
-    if (_recommendations == null || _recommendations!.isEmpty) {
-      return emotion.recordingSuggestions;
-    }
+  // ── Safety Layer ──────────────────────────────────────────────
+
+  /// Cek apakah ada indikasi krisis/distres berkepanjangan
+  bool _checkSafetyLayer(EmotionType emotion, {bool isProlonged = false}) {
+    if (_safetyLayer == null) return false;
+
+    final negativeEmotions = (_safetyLayer!['emosi_negatif'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        ['Sad', 'Angry', 'Fear', 'Disgust'];
 
     final emotionKey = _emotionToJsonKey(emotion);
-    final allSuggestions = <String>{};
+    return negativeEmotions.contains(emotionKey) && isProlonged;
+  }
 
-    // Ambil saran dari dimensi dengan skor ekstrem (high ≥ 3.5 atau low ≤ 2.5)
-    // Prioritaskan dimensi yang paling menonjol (tertinggi atau terendah)
-    final sortedByHigh = bigFiveScores.entries.toList()
+  // ── Core Logic v2 ────────────────────────────────────────────
+
+  /// Dapatkan saran terstruktur (multi-trait) berdasarkan v2 logic
+  SuggestionResult getStructuredSuggestions(
+    Map<String, double> bigFiveScores,
+    EmotionType emotion, {
+    bool isProlonged = false,
+  }) {
+    if (_recommendations == null || _recommendations!.isEmpty) {
+      return SuggestionResult(
+        emotion: emotion,
+        traitSuggestions: [],
+      );
+    }
+
+    // Langkah 1: Cek lapisan keselamatan
+    if (_checkSafetyLayer(emotion, isProlonged: isProlonged)) {
+      final safetyData = _safetyLayer!['jika_salah_satu_terpenuhi']
+          as Map<String, dynamic>?;
+      final output = safetyData?['output'] as Map<String, dynamic>?;
+      return SuggestionResult(
+        emotion: emotion,
+        traitSuggestions: [],
+        isSafetyReferral: true,
+        safetyMessage: output?['pesan_validasi']?.toString(),
+        safetyActions: (output?['tindakan'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList(),
+      );
+    }
+
+    // Langkah 2: Hitung deviasi dari titik tengah 3.0
+    final deviations = <String, double>{};
+    for (final entry in bigFiveScores.entries) {
+      deviations[entry.key] = (entry.value - 3.0).abs();
+    }
+
+    // Langkah 3: Saring trait netral (2.80 - 3.20)
+    final candidates = <String, double>{};
+    for (final entry in bigFiveScores.entries) {
+      final score = entry.value;
+      if (score < 2.8 || score > 3.2) {
+        candidates[entry.key] = deviations[entry.key] ?? 0;
+      }
+    }
+
+    // Jika semua trait netral, gunakan saran default
+    if (candidates.isEmpty) {
+      final defaultSuggestions = _getDefaultNeutralSuggestions(emotion);
+      return SuggestionResult(
+        emotion: emotion,
+        traitSuggestions: [
+          TraitSuggestion(
+            trait: '-',
+            traitName: AppLocalizations.locale.startsWith('en')
+                ? 'Balanced Profile'
+                : 'Profil Seimbang',
+            level: AppLocalizations.locale.startsWith('en')
+                ? 'Neutral'
+                : 'Netral',
+            suggestions: defaultSuggestions,
+          ),
+        ],
+      );
+    }
+
+    // Langkah 4: Urutkan berdasarkan deviasi, ambil semua non-netral
+    final sorted = candidates.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    final sortedByLow = bigFiveScores.entries.toList()
-      ..sort((a, b) => a.value.compareTo(b.value));
 
-    final topHigh = sortedByHigh.where((e) => e.value >= 3.5).take(2);
-    final topLow = sortedByLow.where((e) => e.value <= 2.5).take(2);
+    // Langkah 5 & 6: Tentukan level dan ambil saran
+    final traitSuggestions = <TraitSuggestion>[];
+    for (final entry in sorted) {
+      final trait = entry.key;
+      final score = bigFiveScores[trait] ?? 3.0;
+      final level = score > 3.2 ? 'high' : 'low';
+      final levelLabel = score > 3.2
+          ? (AppLocalizations.locale.startsWith('en') ? 'High' : 'Tinggi')
+          : (AppLocalizations.locale.startsWith('en') ? 'Low' : 'Rendah');
 
-    for (final entry in topHigh) {
-      final dim = entry.key;
-      final dimData = _recommendations![dim] as Map<String, dynamic>?;
-      if (dimData == null) continue;
-      final levelData = dimData['high'] as Map<String, dynamic>?;
-      if (levelData == null) continue;
-      final suggestions = levelData[emotionKey] as List<dynamic>?;
-      if (suggestions != null) {
-        for (final s in suggestions) {
-          allSuggestions.add(s.toString());
-        }
+      final suggestions = _getSuggestionsForTrait(trait, level, emotion);
+      if (suggestions.isNotEmpty) {
+        traitSuggestions.add(TraitSuggestion(
+          trait: trait,
+          traitName: _getTraitName(trait),
+          level: levelLabel,
+          suggestions: suggestions.take(2).toList(), // Max 2 per trait
+        ));
       }
     }
 
-    for (final entry in topLow) {
-      final dim = entry.key;
-      final dimData = _recommendations![dim] as Map<String, dynamic>?;
-      if (dimData == null) continue;
-      final levelData = dimData['low'] as Map<String, dynamic>?;
-      if (levelData == null) continue;
-      final suggestions = levelData[emotionKey] as List<dynamic>?;
-      if (suggestions != null) {
-        for (final s in suggestions) {
-          allSuggestions.add(s.toString());
-        }
-      }
-    }
+    return SuggestionResult(
+      emotion: emotion,
+      traitSuggestions: traitSuggestions,
+    );
+  }
 
-    // Fallback: jika tidak ada dimensi ekstrem, ambil dari dimensi tertinggi
-    if (allSuggestions.isEmpty && sortedByHigh.isNotEmpty) {
-      final topDim = sortedByHigh.first.key;
-      final level = sortedByHigh.first.value >= 3.0 ? 'high' : 'low';
-      final dimData = _recommendations![topDim] as Map<String, dynamic>?;
-      if (dimData != null) {
-        final levelData = dimData[level] as Map<String, dynamic>?;
-        if (levelData != null) {
-          final suggestions = levelData[emotionKey] as List<dynamic>?;
-          if (suggestions != null) {
-            for (final s in suggestions) {
-              allSuggestions.add(s.toString());
-            }
-          }
-        }
-      }
-    }
+  /// Ambil saran dari basis data untuk satu trait
+  List<String> _getSuggestionsForTrait(
+      String trait, String level, EmotionType emotion) {
+    final emotionKey = _emotionToJsonKey(emotion);
+    final dimData = _recommendations?[trait] as Map<String, dynamic>?;
+    if (dimData == null) return [];
 
-    final result = allSuggestions.toList();
-    if (result.isEmpty) {
+    final levelData = dimData[level] as Map<String, dynamic>?;
+    if (levelData == null) return [];
+
+    final suggestions = levelData[emotionKey] as List<dynamic>?;
+    if (suggestions == null) return [];
+
+    return suggestions.map((e) => e.toString()).toList();
+  }
+
+  /// Ambil saran default netral (semua trait di zona netral)
+  List<String> _getDefaultNeutralSuggestions(EmotionType emotion) {
+    if (_defaultNeutral == null) return emotion.recordingSuggestions;
+
+    final emotionKey = _emotionToJsonKey(emotion);
+    final suggestions = _defaultNeutral![emotionKey] as List<dynamic>?;
+    if (suggestions == null || suggestions.isEmpty) {
       return emotion.recordingSuggestions;
     }
-    // Batasi maksimal 5 saran
-    return result.take(5).toList();
+    return suggestions.map((e) => e.toString()).toList();
   }
 
-  /// Dapatkan saran pertama
+  // ── Backward Compatibility ────────────────────────────────────
+
+  /// Flat list of suggestions (backward compat)
+  List<String> getSuggestions(Map<String, double> bigFiveScores, EmotionType emotion) {
+    final result = getStructuredSuggestions(bigFiveScores, emotion);
+    if (result.isSafetyReferral) return result.safetyActions ?? [];
+    return result.allSuggestions;
+  }
+
+  /// First suggestion only (backward compat)
   String getFirstSuggestion(Map<String, double> bigFiveScores, EmotionType emotion) {
-    final suggestions = getSuggestions(bigFiveScores, emotion);
-    return suggestions.isNotEmpty ? suggestions.first : '';
+    final result = getStructuredSuggestions(bigFiveScores, emotion);
+    return result.firstSuggestion;
   }
 
-  /// Dapatkan dimensi dominan dari Big Five
+  // ── Helpers ───────────────────────────────────────────────────
+
   String getDominantDimension(Map<String, double> bigFiveScores) {
     if (bigFiveScores.isEmpty) return '';
     final sorted = bigFiveScores.entries.toList()
@@ -144,27 +283,44 @@ class SuggestionService {
     return sorted.first.key;
   }
 
-  /// Bangun judul saran dinamis
   String buildTitle(Map<String, double> bigFiveScores, EmotionType emotion) {
     final emotionName = emotion.displayName;
-    final dominantDim = getDominantDimension(bigFiveScores);
     final locale = AppLocalizations.locale;
 
     if (bigFiveScores.isEmpty) {
       return locale.startsWith('en')
-          ? 'Suggestions for $emotionName emotion'
-          : 'Saran untuk Emosi $emotionName';
+          ? 'Suggestions for $emotionName'
+          : 'Saran untuk $emotionName';
     }
 
-    final dimNames = {
-      'O': 'Openness', 'C': 'Conscientiousness',
-      'E': 'Extraversion', 'A': 'Agreeableness', 'N': 'Neuroticism',
-    };
-    final dimLabel = dimNames[dominantDim] ?? dominantDim;
+    final result = getStructuredSuggestions(bigFiveScores, emotion);
+    if (result.isSafetyReferral) {
+      return locale.startsWith('en')
+          ? 'Safety Referral'
+          : 'Rujukan Keselamatan';
+    }
+
+    final traitNames = result.traitSuggestions.map((t) => t.traitName).join(' & ');
+    if (traitNames.isEmpty) {
+      return locale.startsWith('en')
+          ? 'Suggestions for $emotionName'
+          : 'Saran untuk $emotionName';
+    }
 
     return locale.startsWith('en')
-        ? 'Suggestions $emotionName — $dimLabel'
-        : 'Saran $emotionName — $dimLabel';
+        ? 'Suggestions $emotionName — $traitNames'
+        : 'Saran $emotionName — $traitNames';
+  }
+
+  String _getTraitName(String trait) {
+    const names = {
+      'O': 'Openness',
+      'C': 'Conscientiousness',
+      'E': 'Extraversion',
+      'A': 'Agreeableness',
+      'N': 'Neuroticism',
+    };
+    return names[trait] ?? trait;
   }
 
   String _emotionToJsonKey(EmotionType emotion) {

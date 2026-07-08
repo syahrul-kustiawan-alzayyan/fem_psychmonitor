@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SuggestionCard — Kartu reusable untuk menampilkan daftar saran / rekomendasi
+// SuggestionCard — Kartu reusable untuk menampilkan saran Big Five OCEAN
 //
-// Digunakan di:
-//   • HomeScreen        → Saran psikis keseluruhan (collapsible)
-//   • VoiceDetectionScreen → Saran spesifik per-emosi (collapsible)
+// Mendukung dua mode:
+//   1. Multi-trait (v2): Saran dikelompokkan per trait dominan
+//   2. Flat list (legacy): Saran dalam bentuk list datar
 //
 // Variant:
 //   • isCollapsible: false → Static card (selalu terbuka)
@@ -17,6 +18,7 @@ import '../theme/app_theme.dart';
 class SuggestionCard extends StatelessWidget {
   final String title;
   final List<String> suggestions;
+  final List<TraitSuggestion>? traitSuggestions;
   final IconData icon;
   final Color color;
   final bool isCollapsible;
@@ -24,7 +26,8 @@ class SuggestionCard extends StatelessWidget {
   const SuggestionCard({
     super.key,
     required this.title,
-    required this.suggestions,
+    this.suggestions = const [],
+    this.traitSuggestions,
     this.icon = Icons.lightbulb_rounded,
     this.color = AppTheme.primaryDark,
     this.isCollapsible = false,
@@ -36,6 +39,7 @@ class SuggestionCard extends StatelessWidget {
       return _CollapsibleCard(
         title: title,
         suggestions: suggestions,
+        traitSuggestions: traitSuggestions,
         icon: icon,
         color: color,
       );
@@ -43,9 +47,45 @@ class SuggestionCard extends StatelessWidget {
     return _StaticCard(
       title: title,
       suggestions: suggestions,
+      traitSuggestions: traitSuggestions,
       icon: icon,
       color: color,
     );
+  }
+}
+
+// ── Trait Colors ─────────────────────────────────────────────────────────────
+Color _traitColor(String trait) {
+  switch (trait) {
+    case 'O':
+      return const Color(0xFF8B5CF6); // Purple
+    case 'C':
+      return const Color(0xFF3B82F6); // Blue
+    case 'E':
+      return const Color(0xFFF59E0B); // Amber
+    case 'A':
+      return const Color(0xFF10B981); // Green
+    case 'N':
+      return const Color(0xFFEF4444); // Red
+    default:
+      return AppTheme.primaryColor;
+  }
+}
+
+IconData _traitIcon(String trait) {
+  switch (trait) {
+    case 'O':
+      return Icons.auto_awesome_rounded;
+    case 'C':
+      return Icons.check_circle_outline_rounded;
+    case 'E':
+      return Icons.people_outline_rounded;
+    case 'A':
+      return Icons.favorite_outline_rounded;
+    case 'N':
+      return Icons.psychology_rounded;
+    default:
+      return Icons.lightbulb_outline_rounded;
   }
 }
 
@@ -55,18 +95,22 @@ class SuggestionCard extends StatelessWidget {
 class _StaticCard extends StatelessWidget {
   final String title;
   final List<String> suggestions;
+  final List<TraitSuggestion>? traitSuggestions;
   final IconData icon;
   final Color color;
 
   const _StaticCard({
     required this.title,
     required this.suggestions,
+    this.traitSuggestions,
     required this.icon,
     required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasTraits = traitSuggestions != null && traitSuggestions!.isNotEmpty;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -80,20 +124,19 @@ class _StaticCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Header strip berwarna
-          _CardHeader(title: title, icon: icon, color: color, isExpanded: true, showArrow: false),
-          // Daftar saran
+          _CardHeader(
+            title: title,
+            icon: icon,
+            color: color,
+            isExpanded: true,
+            showArrow: false,
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(
-              AppTheme.spaceLg, 0, AppTheme.spaceLg, AppTheme.spaceLg),
-            child: Column(
-              children: suggestions
-                  .asMap()
-                  .entries
-                  .map((e) => _SuggestionItem(
-                      number: e.key + 1, text: e.value, color: color))
-                  .toList(),
-            ),
+                AppTheme.spaceLg, 0, AppTheme.spaceLg, AppTheme.spaceLg),
+            child: hasTraits
+                ? _buildTraitSections(traitSuggestions!, context)
+                : _buildFlatList(suggestions, context),
           ),
         ],
       ),
@@ -107,12 +150,14 @@ class _StaticCard extends StatelessWidget {
 class _CollapsibleCard extends StatefulWidget {
   final String title;
   final List<String> suggestions;
+  final List<TraitSuggestion>? traitSuggestions;
   final IconData icon;
   final Color color;
 
   const _CollapsibleCard({
     required this.title,
     required this.suggestions,
+    this.traitSuggestions,
     required this.icon,
     required this.color,
   });
@@ -122,10 +167,13 @@ class _CollapsibleCard extends StatefulWidget {
 }
 
 class _CollapsibleCardState extends State<_CollapsibleCard> {
-  bool _expanded = true; // default terbuka
+  bool _expanded = true;
 
   @override
   Widget build(BuildContext context) {
+    final hasTraits =
+        widget.traitSuggestions != null && widget.traitSuggestions!.isNotEmpty;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -139,7 +187,6 @@ class _CollapsibleCardState extends State<_CollapsibleCard> {
       ),
       child: Column(
         children: [
-          // Header yang bisa diklik
           InkWell(
             onTap: () => setState(() => _expanded = !_expanded),
             borderRadius: BorderRadius.circular(AppTheme.radiusXl),
@@ -151,31 +198,16 @@ class _CollapsibleCardState extends State<_CollapsibleCard> {
               showArrow: true,
             ),
           ),
-          // Konten animasi
           AnimatedCrossFade(
             duration: const Duration(milliseconds: 280),
-            crossFadeState: _expanded
-                ? CrossFadeState.showFirst
-                : CrossFadeState.showSecond,
+            crossFadeState:
+                _expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
             firstChild: Padding(
               padding: const EdgeInsets.fromLTRB(
                   AppTheme.spaceLg, 0, AppTheme.spaceLg, AppTheme.spaceLg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Divider(
-                    color: widget.color.withValues(alpha: 0.15),
-                    height: 16,
-                  ),
-                  ...widget.suggestions
-                      .asMap()
-                      .entries
-                      .map((e) => _SuggestionItem(
-                          number: e.key + 1,
-                          text: e.value,
-                          color: widget.color)),
-                ],
-              ),
+              child: hasTraits
+                  ? _buildTraitSections(widget.traitSuggestions!, context)
+                  : _buildFlatList(widget.suggestions, context),
             ),
             secondChild: const SizedBox.shrink(),
           ),
@@ -183,6 +215,109 @@ class _CollapsibleCardState extends State<_CollapsibleCard> {
       ),
     );
   }
+}
+
+// ── Shared Builders ──────────────────────────────────────────────────────────
+
+Widget _buildTraitSections(List<TraitSuggestion> traits, BuildContext context) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: 4),
+      ...traits.asMap().entries.map((entry) {
+        final trait = entry.value;
+        final tc = _traitColor(trait.trait);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: tc.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: tc.withValues(alpha: 0.12),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Trait header
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: tc.withValues(alpha: 0.08),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(11),
+                      topRight: Radius.circular(11),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(_traitIcon(trait.trait), size: 14, color: tc),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          trait.traitName,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: tc,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: tc.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          trait.level,
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: tc,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Suggestions
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                  child: Column(
+                    children: trait.suggestions
+                        .asMap()
+                        .entries
+                        .map((e) => _SuggestionItem(
+                            number: e.key + 1,
+                            text: e.value,
+                            color: tc))
+                        .toList(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    ],
+  );
+}
+
+Widget _buildFlatList(List<String> suggestions, BuildContext context) {
+  return Column(
+    children: suggestions
+        .asMap()
+        .entries
+        .map((e) => _SuggestionItem(
+            number: e.key + 1, text: e.value, color: AppTheme.primaryColor))
+        .toList(),
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -221,14 +356,14 @@ class _CardHeader extends StatelessWidget {
         borderRadius: BorderRadius.only(
           topLeft: const Radius.circular(AppTheme.radiusXl),
           topRight: const Radius.circular(AppTheme.radiusXl),
-          // Bila collapsed, radius bawah juga terbuka
-          bottomLeft: Radius.circular(!showArrow || isExpanded ? 0 : AppTheme.radiusXl),
-          bottomRight: Radius.circular(!showArrow || isExpanded ? 0 : AppTheme.radiusXl),
+          bottomLeft: Radius.circular(
+              !showArrow || isExpanded ? 0 : AppTheme.radiusXl),
+          bottomRight: Radius.circular(
+              !showArrow || isExpanded ? 0 : AppTheme.radiusXl),
         ),
       ),
       child: Row(
         children: [
-          // Icon dalam container kecil
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -238,7 +373,6 @@ class _CardHeader extends StatelessWidget {
             child: Icon(icon, color: color, size: 18),
           ),
           const SizedBox(width: 10),
-          // Judul
           Expanded(
             child: Text(
               title,
@@ -250,7 +384,6 @@ class _CardHeader extends StatelessWidget {
               ),
             ),
           ),
-          // Panah expand/collapse (bila collapsible)
           if (showArrow)
             AnimatedRotation(
               turns: isExpanded ? 0.5 : 0,
@@ -284,14 +417,13 @@ class _SuggestionItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Nomor circle
           Container(
-            width: 26,
-            height: 26,
+            width: 22,
+            height: 22,
             margin: const EdgeInsets.only(top: 1),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.15),
@@ -302,22 +434,21 @@ class _SuggestionItem extends StatelessWidget {
                 '$number',
                 style: GoogleFonts.poppins(
                   color: color,
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          // Teks saran
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
               style: GoogleFonts.poppins(
-                fontSize: 13,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w400,
                 color: AppTheme.textP(context),
-                height: 1.55,
+                height: 1.5,
               ),
             ),
           ),

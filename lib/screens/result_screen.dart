@@ -20,7 +20,7 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
-  List<String> _suggestions = [];
+  SuggestionResult? _suggestionResult;
   String _title = '';
   bool _loaded = false;
   String _selectedTrigger = '';
@@ -57,22 +57,12 @@ class _ResultScreenState extends State<ResultScreen> {
         .reduce((a, b) => a.value >= b.value ? a : b)
         .key;
 
-    List<String> suggestions;
-    String title;
-
-    if (bigFiveScores.isNotEmpty) {
-      suggestions = service.getSuggestions(bigFiveScores, dominant);
-      title = service.buildTitle(bigFiveScores, dominant);
-    } else {
-      suggestions = dominant.recordingSuggestions;
-      title = AppLocalizations.tr(
-        'suggestion_for_emotion_name',
-      ).replaceFirst('{emotion}', dominant.displayName);
-    }
+    final result = service.getStructuredSuggestions(bigFiveScores, dominant);
+    final title = service.buildTitle(bigFiveScores, dominant);
 
     if (mounted) {
       setState(() {
-        _suggestions = suggestions;
+        _suggestionResult = result;
         _title = title;
         _loaded = true;
       });
@@ -150,14 +140,16 @@ class _ResultScreenState extends State<ResultScreen> {
                 const SizedBox(height: 20),
                 _buildScoreTrend(combined),
                 const SizedBox(height: 20),
-                if (_loaded)
+                if (_loaded && _suggestionResult != null)
                   SuggestionCard(
                     title: _title,
-                    suggestions: _suggestions,
+                    traitSuggestions: _suggestionResult!.traitSuggestions,
                     icon: Icons.lightbulb_outline_rounded,
                     color: domEmotion.color,
                     isCollapsible: false,
                   )
+                else if (_loaded && _suggestionResult == null)
+                  const SizedBox.shrink()
                 else
                   const Center(
                     child: Padding(

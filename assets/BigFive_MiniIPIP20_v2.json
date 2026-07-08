@@ -1,0 +1,176 @@
+{
+    "instrument_info": {
+        "nama": "Kuesioner Kepribadian Big Five - Versi Pendek (Mini-IPIP, 20 item)",
+        "basis": "Mini-IPIP (Donnellan, Oswald, Baird, & Lucas, 2006), diterjemahkan ke Bahasa Indonesia",
+        "referensi_utama": [
+            "Donnellan, M. B., Oswald, F. L., Baird, B. M., & Lucas, R. E. (2006). The Mini-IPIP scales: Tiny-yet-effective measures of the Big Five factors of personality. Psychological Assessment, 18(2), 192-203.",
+            "International Personality Item Pool (IPIP). Mini-IPIP Scoring Key. Diakses dari https://ipip.ori.org/MiniIPIPKey.htm — item berstatus domain publik.",
+            "Alansari, B. M. (2025). Psychometric Properties of the Arabic Version of the Mini-IPIP Five-Factor Personality Scale in Kuwait. European Psychiatry, DOI: 10.1192/j.eurpsy.2025.1902 — contoh validasi lintas budaya terbaru (2025) yang menunjukkan struktur lima faktor Mini-IPIP tetap konsisten.",
+            "Untuk konteks Indonesia, lihat juga: Akhtar, H., & Azwar, S. (2018/2019). Development and validation of a short scale for measuring Big Five personality traits: The IPIP-BFM-25 Indonesia — instrumen pendek serupa (25 item) yang dikembangkan dan divalidasi khusus untuk populasi Indonesia, dan masih terus dikutip dalam penelitian 2023-2025.",
+            "Reliabilitas rata-rata (Cronbach's alpha) dari 4 studi asli Donnellan dkk. (2006), sebagaimana dirangkum ulang di Perez-Diaz dkk. (2018, PMC): Extraversion .81, Agreeableness .73, Conscientiousness .70, Neuroticism .74, Openness/Intellect .69 — semua berada di atas atau mendekati ambang minimum yang umum diterima (.60-.70) untuk skala pendek 4 item per dimensi."
+        ],
+        "catatan_metodologis": "Mini-IPIP adalah versi ringkas dari IPIP-50 yang dikembangkan dengan tujuan memaksimalkan reliabilitas dan independensi antar-dimensi meski jumlah itemnya jauh lebih sedikit (20 vs 50 item). Studi aslinya (Donnellan dkk., 2006) melaporkan reliabilitas dan validitas konvergen yang memadai untuk penggunaan riset maupun aplikasi skrining singkat, dan struktur lima faktornya terus terkonfirmasi pada validasi lintas budaya terbaru.",
+        "skala_jawaban": {
+            "1": "Sangat Tidak Sesuai",
+            "2": "Tidak Sesuai",
+            "3": "Netral / Ragu-ragu",
+            "4": "Sesuai",
+            "5": "Sangat Sesuai"
+        },
+        "instruksi": "Bacalah tiap pernyataan berikut dan pilih angka 1-5 yang paling menggambarkan diri Anda secara umum.",
+        "catatan_reliabilitas": {
+            "ringkasan": "Karena hanya 4 item per trait (dibanding 10 item pada IPIP-50), reliabilitas Mini-IPIP secara konsisten sedikit lebih rendah dibanding versi panjang, meski masih dalam batas dapat diterima untuk skrining cepat.",
+            "trait_paling_rendah_reliabilitasnya": "Openness/Intellect (rata-rata alpha ~.61-.69 di berbagai studi) - skor pada dimensi ini paling perlu diinterpretasi dengan hati-hati, terutama untuk skor yang berada di sekitar batas kategori.",
+            "implikasi_praktis": "Untuk skor yang jatuh persis di tepi batas kategori (mis. 2.75 atau 3.25, sangat dekat dengan ambang 2.80/3.20), pertimbangkan itu sebagai 'kemungkinan Netral' walau perhitungan murni menempatkannya di kategori Rendah/Tinggi, karena margin kesalahan pengukuran pada skala 4-item bisa mencapai sekitar +/-0.3 - 0.4 poin."
+        }
+    },
+    "big_five_questionnaire": [
+        {
+            "id": 1,
+            "dimension": "E",
+            "dimension_name": "Extraversion (Ekstraversi)",
+            "keyed": "+",
+            "statement": "Saya adalah sosok yang menghidupkan suasana dalam sebuah pesta atau kumpul-kumpul."
+        },
+        {
+            "id": 2,
+            "dimension": "A",
+            "dimension_name": "Agreeableness (Keramahan)",
+            "keyed": "+",
+            "statement": "Saya mudah berempati dengan apa yang dirasakan orang lain."
+        },
+        {
+            "id": 3,
+            "dimension": "C",
+            "dimension_name": "Conscientiousness (Kehati-hatian)",
+            "keyed": "+",
+            "statement": "Saya langsung menyelesaikan tugas atau pekerjaan rumah begitu ada kesempatan."
+        },
+        {
+            "id": 4,
+            "dimension": "N",
+            "dimension_name": "Neuroticism (Neurotisisme)",
+            "keyed": "+",
+            "statement": "Suasana hati saya sering berubah-ubah."
+        },
+        {
+            "id": 5,
+            "dimension": "O",
+            "dimension_name": "Openness / Intellect (Keterbukaan)",
+            "keyed": "+",
+            "statement": "Saya memiliki imajinasi yang hidup."
+        },
+        {
+            "id": 6,
+            "dimension": "E",
+            "dimension_name": "Extraversion (Ekstraversi)",
+            "keyed": "-",
+            "statement": "Saya cenderung tidak banyak bicara."
+        },
+        {
+            "id": 7,
+            "dimension": "A",
+            "dimension_name": "Agreeableness (Keramahan)",
+            "keyed": "-",
+            "statement": "Saya tidak terlalu peduli dengan masalah yang dihadapi orang lain."
+        },
+        {
+            "id": 8,
+            "dimension": "C",
+            "dimension_name": "Conscientiousness (Kehati-hatian)",
+            "keyed": "-",
+            "statement": "Saya sering lupa mengembalikan barang ke tempat asalnya."
+        },
+        {
+            "id": 9,
+            "dimension": "N",
+            "dimension_name": "Neuroticism (Neurotisisme)",
+            "keyed": "-",
+            "statement": "Saya cenderung merasa tenang hampir sepanjang waktu."
+        },
+        {
+            "id": 10,
+            "dimension": "O",
+            "dimension_name": "Openness / Intellect (Keterbukaan)",
+            "keyed": "-",
+            "statement": "Saya tidak tertarik dengan ide-ide yang abstrak."
+        },
+        {
+            "id": 11,
+            "dimension": "E",
+            "dimension_name": "Extraversion (Ekstraversi)",
+            "keyed": "+",
+            "statement": "Saya senang mengobrol dengan banyak orang berbeda saat menghadiri acara."
+        },
+        {
+            "id": 12,
+            "dimension": "A",
+            "dimension_name": "Agreeableness (Keramahan)",
+            "keyed": "+",
+            "statement": "Saya bisa merasakan emosi yang sedang dirasakan orang lain."
+        },
+        {
+            "id": 13,
+            "dimension": "C",
+            "dimension_name": "Conscientiousness (Kehati-hatian)",
+            "keyed": "+",
+            "statement": "Saya menyukai keteraturan dalam segala hal."
+        },
+        {
+            "id": 14,
+            "dimension": "N",
+            "dimension_name": "Neuroticism (Neurotisisme)",
+            "keyed": "+",
+            "statement": "Saya mudah merasa kesal atau marah."
+        },
+        {
+            "id": 15,
+            "dimension": "O",
+            "dimension_name": "Openness / Intellect (Keterbukaan)",
+            "keyed": "-",
+            "statement": "Saya kesulitan memahami ide-ide yang abstrak."
+        },
+        {
+            "id": 16,
+            "dimension": "E",
+            "dimension_name": "Extraversion (Ekstraversi)",
+            "keyed": "-",
+            "statement": "Saya lebih suka berada di belakang layar daripada tampil di depan."
+        },
+        {
+            "id": 17,
+            "dimension": "A",
+            "dimension_name": "Agreeableness (Keramahan)",
+            "keyed": "-",
+            "statement": "Sebenarnya saya tidak terlalu tertarik pada orang lain."
+        },
+        {
+            "id": 18,
+            "dimension": "C",
+            "dimension_name": "Conscientiousness (Kehati-hatian)",
+            "keyed": "-",
+            "statement": "Saya cenderung membuat kekacauan dalam mengerjakan sesuatu."
+        },
+        {
+            "id": 19,
+            "dimension": "N",
+            "dimension_name": "Neuroticism (Neurotisisme)",
+            "keyed": "-",
+            "statement": "Saya jarang merasa sedih atau murung."
+        },
+        {
+            "id": 20,
+            "dimension": "O",
+            "dimension_name": "Openness / Intellect (Keterbukaan)",
+            "keyed": "-",
+            "statement": "Saya merasa daya imajinasi saya kurang berkembang."
+        }
+    ],
+    "panduan_skoring": {
+        "langkah_1": "Untuk item dengan keyed '+', skor = nilai jawaban apa adanya (1-5).",
+        "langkah_2": "Untuk item dengan keyed '-', skor dibalik: 1->5, 2->4, 3->3, 4->2, 5->1.",
+        "langkah_3": "Rata-ratakan skor 4 item per dimensi (E, A, C, N, O) untuk mendapatkan skor akhir tiap trait (skala 1-5).",
+        "interpretasi_umum": "Gunakan ambang batas berikut agar konsisten dengan sistem rekomendasi saran (lihat saran_bigfive_v2.json -> ambang_batas_trait): skor 1.00-2.79 = Rendah, skor 2.80-3.20 = Netral (trait tidak dominan ke arah mana pun), skor 3.21-5.00 = Tinggi. Zona Netral sengaja dibuat lebar untuk mengakomodasi margin kesalahan pengukuran pada skala pendek 4-item ini.",
+        "langkah_4_konsistensi_sistem": "Skor akhir dari kuesioner ini (skala 1.00-5.00 per trait) dirancang untuk langsung dipakai sebagai input 'skorTraits' pada file saran_bigfive_v2.json, tanpa perlu konversi skala tambahan."
+    }
+}

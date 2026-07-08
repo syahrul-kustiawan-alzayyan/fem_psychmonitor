@@ -1,0 +1,700 @@
+{
+    "sistem_info": {
+        "nama": "Basis Data Saran Big Five + Emosi - Versi 2 (Diperbaiki)",
+        "versi": "2.0",
+        "perubahan_dari_v1": [
+            "Menambah metadata dan penjelasan metodologis yang sebelumnya tidak ada.",
+            "Mendefinisikan ambang batas skor High/Low secara eksplisit, plus zona 'Netral' agar tidak terlalu sensitif di titik tengah (skor 2.8-3.2).",
+            "Menambah lapisan keselamatan yang meng-override seluruh saran saat ada indikasi krisis atau distres berkepanjangan.",
+            "Menambah logika penggabungan eksplisit: dari 5 trait, sistem memilih 2 trait paling dominan (paling menyimpang dari titik tengah) alih-alih menampilkan ke-25 saran sekaligus.",
+            "Konten 300 saran asli (5 trait x 2 level x 6 emosi x 5 saran) DIPERTAHANKAN UTUH, tidak diubah - hanya dibungkus lapisan logika baru."
+        ],
+        "catatan_relasi_dengan_sistem_lain": "File ini adalah jalur alternatif yang memakai SELURUH profil 5 trait sekaligus (bukan 1 trait relevan seperti di BigFive_SistemSaranEmosi_6Emosi.json). Gunakan salah satu sebagai standar utama aplikasi Anda, atau dokumentasikan konteks pemakaian masing-masing agar tidak tumpang tindih."
+    },
+    "ambang_batas_trait": {
+        "skala_skor": "1.00 - 5.00 (hasil rata-rata item per trait dari kuesioner Big Five, mis. BigFive_MiniIPIP20.json)",
+        "Rendah": {
+            "min": 1.0,
+            "max": 2.79,
+            "label_data": "low"
+        },
+        "Netral": {
+            "min": 2.8,
+            "max": 3.2,
+            "label_data": null,
+            "catatan": "Trait tidak cukup menonjol ke arah mana pun; TIDAK dipakai sebagai trait dominan dalam penggabungan saran."
+        },
+        "Tinggi": {
+            "min": 3.21,
+            "max": 5.0,
+            "label_data": "high"
+        },
+        "catatan_desain": "Zona Netral sengaja dibuat lebar (2.80-3.20) untuk mencegah ketidakstabilan klasifikasi di sekitar titik tengah 3.0, dibanding median split sederhana (>3.0 vs <=3.0) yang terlalu sensitif terhadap perbedaan skor kecil."
+    },
+    "lapisan_keselamatan": {
+        "prioritas": "SELALU dicek pertama kali, sebelum logika trait/penggabungan apa pun dijalankan. Skor Big Five TIDAK PERNAH dipakai untuk menahan/menunda rujukan pada layer ini.",
+        "emosi_negatif": [
+            "Sad",
+            "Angry",
+            "Fear",
+            "Disgust"
+        ],
+        "kondisi_trigger": [
+            {
+                "id": "krisis_eksplisit",
+                "kondisi": "input.indikasiKrisis == true",
+                "penjelasan": "Ada indikasi keinginan menyakiti diri sendiri atau orang lain, eksplisit maupun tersirat."
+            },
+            {
+                "id": "distres_berkepanjangan",
+                "kondisi": "input.emosi IN lapisan_keselamatan.emosi_negatif AND input.intensitas == 'Kuat' AND input.berlangsungLama == true",
+                "penjelasan": "Emosi negatif dengan intensitas kuat yang berlangsung lama/berulang, bukan sesaat."
+            }
+        ],
+        "jika_salah_satu_terpenuhi": {
+            "aksi": "STOP - jangan lanjut ke logika trait/penggabungan",
+            "output": {
+                "tipe": "RUJUKAN_KESELAMATAN",
+                "pesan_validasi": "Apa yang kamu rasakan saat ini valid. Kamu tidak perlu menghadapinya sendirian.",
+                "tindakan": [
+                    "Hubungi layanan bantuan profesional kesehatan mental atau hotline krisis di daerahmu.",
+                    "Jika ada bahaya langsung terhadap keselamatan, segera hubungi layanan darurat setempat.",
+                    "Cari satu orang yang kamu percaya untuk menemani sampai bantuan profesional tersedia."
+                ],
+                "catatan_untuk_developer": "Lengkapi daftar tindakan ini dengan nomor hotline resmi & terkini sesuai lokasi pengguna sebelum dipakai produksi."
+            }
+        }
+    },
+    "logika_penggabungan": {
+        "penjelasan_umum": "Alih-alih menampilkan saran dari SEMUA 5 trait (25 kalimat), sistem memilih trait yang paling 'menonjol' (paling jauh dari titik tengah 3.0) pada profil pengguna, karena trait itulah yang paling menentukan gaya saran yang relevan.",
+        "alur_keputusan": [
+            {
+                "urutan": 1,
+                "nama_langkah": "cek_lapisan_keselamatan",
+                "kondisi": "lihat lapisan_keselamatan.kondisi_trigger",
+                "jika_terpenuhi": {
+                    "aksi": "STOP",
+                    "output": "lapisan_keselamatan.jika_salah_satu_terpenuhi.output"
+                },
+                "jika_tidak_terpenuhi": {
+                    "aksi": "LANJUT_KE_LANGKAH",
+                    "target": 2
+                }
+            },
+            {
+                "urutan": 2,
+                "nama_langkah": "hitung_deviasi_tiap_trait",
+                "formula": "untuk setiap trait T di [O, C, E, A, N]: deviasi[T] = ABS(skorTraits[T] - 3.0)",
+                "aksi": "LANJUT_KE_LANGKAH",
+                "target": 3
+            },
+            {
+                "urutan": 3,
+                "nama_langkah": "saring_trait_netral",
+                "formula": "trait_kandidat = SEMUA trait DIMANA skorTraits[T] BERADA DI LUAR zona Netral (2.80-3.20)",
+                "kondisi_khusus": "JIKA trait_kandidat KOSONG (semua trait netral) MAKA gunakan 'saran_default_netral' dan STOP di sini.",
+                "aksi": "LANJUT_KE_LANGKAH",
+                "target": 4
+            },
+            {
+                "urutan": 4,
+                "nama_langkah": "urutkan_dan_pilih_dominan",
+                "formula": "urutkan trait_kandidat berdasarkan deviasi[T] SECARA MENURUN; ambil maksimal 2 teratas -> trait_dominan_1, trait_dominan_2",
+                "aksi": "LANJUT_KE_LANGKAH",
+                "target": 5
+            },
+            {
+                "urutan": 5,
+                "nama_langkah": "tentukan_level_tiap_trait_dominan",
+                "formula": "untuk setiap trait dominan: level = LOOKUP(ambang_batas_trait, skorTraits[trait]) -> hasil 'Tinggi' atau 'Rendah' (sudah pasti bukan Netral karena sudah difilter di langkah 3)",
+                "aksi": "LANJUT_KE_LANGKAH",
+                "target": 6
+            },
+            {
+                "urutan": 6,
+                "nama_langkah": "ambil_saran_dari_basis_data",
+                "formula": "untuk setiap trait dominan: label = (level=='Tinggi') ? 'high' : 'low'; ambil 2 saran teratas (index 0 dan 1) dari bigfive_recommendations[trait][label][emosi]",
+                "aksi": "LANJUT_KE_LANGKAH",
+                "target": 7
+            },
+            {
+                "urutan": 7,
+                "nama_langkah": "susun_output_akhir",
+                "aksi": "STOP",
+                "output_template": {
+                    "tipe": "SARAN_PERSONAL_MULTI_TRAIT",
+                    "emosi": "{{input.emosi}}",
+                    "trait_dominan": [
+                        {
+                            "trait": "{{trait_dominan_1}}",
+                            "level": "{{level_1}}",
+                            "saran": "{{2 kalimat dari trait_dominan_1}}"
+                        },
+                        {
+                            "trait": "{{trait_dominan_2}}",
+                            "level": "{{level_2}}",
+                            "saran": "{{2 kalimat dari trait_dominan_2}}"
+                        }
+                    ],
+                    "total_saran_ditampilkan": "maksimal 4 (2 saran x 2 trait dominan)"
+                }
+            }
+        ],
+        "saran_default_netral": {
+            "penjelasan": "Dipakai HANYA jika seluruh 5 trait pengguna berada di zona Netral (kasus langka, profil sangat rata-rata).",
+            "Happy": [
+                "Nikmati momen ini dengan cara yang paling terasa alami bagi Anda."
+            ],
+            "Sad": [
+                "Beri diri waktu untuk merasakan ini, lalu lakukan aktivitas yang biasanya menenangkan."
+            ],
+            "Angry": [
+                "Beri jeda sebentar sebelum merespons, lalu sampaikan apa yang dirasakan secara jujur."
+            ],
+            "Fear": [
+                "Kenali dulu apa yang memicu rasa ini, lalu ambil satu langkah kecil yang terasa aman."
+            ],
+            "Disgust": [
+                "Beri diri ruang untuk menjauh dari pemicu, lalu evaluasi jika perlu tindakan lanjutan."
+            ],
+            "Neutral": [
+                "Manfaatkan momen tenang ini sesuai kebutuhan saat itu, tanpa harus memaksakan agenda tertentu."
+            ]
+        }
+    },
+    "contoh_kasus": [
+        {
+            "input": {
+                "emosi": "Sad",
+                "intensitas": "Sedang",
+                "skorTraits": {
+                    "O": 3.0,
+                    "C": 2.9,
+                    "E": 1.8,
+                    "A": 3.1,
+                    "N": 4.2
+                }
+            },
+            "hasil_langkah_demi_langkah": {
+                "langkah_1": "Tidak ada indikasi krisis / distres berkepanjangan -> lanjut.",
+                "langkah_2_deviasi": {
+                    "O": 0.0,
+                    "C": 0.1,
+                    "E": 1.2,
+                    "A": 0.1,
+                    "N": 1.2
+                },
+                "langkah_3": "Trait kandidat (di luar zona netral 2.80-3.20): E (1.8) dan N (4.2). O, C, A masuk zona netral -> disaring.",
+                "langkah_4": "Dua trait dominan: E (deviasi 1.2) dan N (deviasi 1.2) - keduanya diambil karena hanya 2 kandidat yang lolos.",
+                "langkah_5": "Level: E=1.8 -> 'Rendah'/'low'. N=4.2 -> 'Tinggi'/'high'.",
+                "langkah_6_saran": {
+                    "E_low_Sad": [
+                        "Beri diri ruang untuk menyendiri tanpa gangguan.",
+                        "Lakukan introspeksi dan journaling di tempat yang tenang."
+                    ],
+                    "N_high_Sad": [
+                        "Praktikkan self-compassion dan validasi emosi sendiri.",
+                        "Gunakan teknik grounding untuk kembali ke saat ini."
+                    ]
+                },
+                "output_akhir": {
+                    "tipe": "SARAN_PERSONAL_MULTI_TRAIT",
+                    "emosi": "Sad",
+                    "trait_dominan": [
+                        {
+                            "trait": "E",
+                            "level": "Rendah",
+                            "saran": [
+                                "Beri diri ruang untuk menyendiri tanpa gangguan.",
+                                "Lakukan introspeksi dan journaling di tempat yang tenang."
+                            ]
+                        },
+                        {
+                            "trait": "N",
+                            "level": "Tinggi",
+                            "saran": [
+                                "Praktikkan self-compassion dan validasi emosi sendiri.",
+                                "Gunakan teknik grounding untuk kembali ke saat ini."
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "input": {
+                "emosi": "Fear",
+                "intensitas": "Kuat",
+                "berlangsungLama": true,
+                "skorTraits": {
+                    "O": 3.0,
+                    "C": 3.0,
+                    "E": 2.5,
+                    "A": 3.0,
+                    "N": 4.5
+                }
+            },
+            "hasil_langkah_demi_langkah": {
+                "langkah_1": "Kondisi 'distres_berkepanjangan' terpenuhi (emosi negatif + Kuat + berlangsungLama) -> STOP di sini.",
+                "output": "Gunakan lapisan_keselamatan.jika_salah_satu_terpenuhi.output; skor trait tidak lagi relevan untuk kasus ini."
+            }
+        }
+    ],
+    "bigfive_recommendations": {
+        "O": {
+            "name": "Openness (Keterbukaan)",
+            "high": {
+                "Happy": [
+                    "Eksplorasi ide kreatif baru yang sudah lama ingin dicoba.",
+                    "Mulai proyek seni atau menulis untuk menuangkan imajinasi.",
+                    "Bagikan penemuan inspiratif dengan komunitas.",
+                    "Coba pengalaman baru yang merangsang rasa ingin tahu.",
+                    "Rancang visi jangka panjang yang inovatif."
+                ],
+                "Sad": [
+                    "Izinkan diri melamun dan menjelajahi dunia imajinasi.",
+                    "Baca buku fiksi atau puisi sebagai bentuk pelarian yang sehat.",
+                    "Tulis jurnal reflektif tentang perasaan secara mendalam.",
+                    "Dengarkan musik eksperimental yang menenangkan.",
+                    "Ciptakan karya seni yang mengekspresikan suasana hati."
+                ],
+                "Angry": [
+                    "Salurkan energi emosi ke dalam aktivitas kreatif.",
+                    "Tulis puisi atau prosa singkat tentang apa yang membuat frustrasi.",
+                    "Lakukan sesi improvisasi musik atau seni.",
+                    "Ganti suasana dengan menjelajahi tempat baru dan asing.",
+                    "Baca perspektif filosofis untuk melihat situasi dari sudut pandang berbeda."
+                ],
+                "Fear": [
+                    "Gunakan imajinasi untuk memvisualisasikan skenario positif.",
+                    "Eksplorasi berbagai kemungkinan solusi secara kreatif.",
+                    "Dengarkan musik ambient atau meditatif.",
+                    "Arahkan rasa ingin tahu pada mekanisme di balik ketakutan.",
+                    "Buat jurnal visual berupa sketsa atau kolase tentang kekhawatiran."
+                ],
+                "Disgust": [
+                    "Alihkan perhatian dengan mengeksplorasi konten estetik yang indah.",
+                    "Ciptakan ulang lingkungan sekitar agar lebih artistik.",
+                    "Baca literatur yang memperluas wawasan dan perspektif.",
+                    "Lakukan eksperimen kecil dalam rutinitas harian.",
+                    "Fokus pada hal-hal baru yang menarik minat intelektual."
+                ],
+                "Neutral": [
+                    "Pelajari keterampilan baru yang menantang kreativitas.",
+                    "Kunjungi galeri seni atau museum virtual.",
+                    "Baca artikel tentang topik yang belum pernah dijelajahi.",
+                    "Coba resep masakan baru dari budaya berbeda.",
+                    "Meditasi visualisasi untuk memperluas kesadaran diri."
+                ]
+            },
+            "low": {
+                "Happy": [
+                    "Nikmati rutinitas yang sudah dikenal dan memberikan kenyamanan.",
+                    "Lakukan aktivitas yang menghasilkan hasil nyata dan terukur.",
+                    "Habiskan waktu merawat lingkungan sekitar.",
+                    "Praktikkan kegiatan yang sudah dikuasai dengan presisi.",
+                    "Bagikan kebahagiaan melalui tindakan praktis untuk orang lain."
+                ],
+                "Sad": [
+                    "Lakukan aktivitas rutin yang familier untuk menstabilkan mood.",
+                    "Fokus pada tugas-tugas konkret yang bisa diselesaikan.",
+                    "Habiskan waktu di alam terbuka dengan pemandangan yang tenang.",
+                    "Dengarkan musik dengan melodi sederhana dan menenangkan.",
+                    "Berpegang pada jadwal harian untuk menjaga struktur."
+                ],
+                "Angry": [
+                    "Salurkan energi ke aktivitas fisik yang terstruktur.",
+                    "Buat daftar langkah konkret untuk mengatasi sumber masalah.",
+                    "Lakukan pekerjaan manual yang membutuhkan konsentrasi penuh.",
+                    "Tenangkan diri dengan melakukan pernapasan teratur.",
+                    "Fokus pada fakta dan data, bukan pada spekulasi."
+                ],
+                "Fear": [
+                    "Kumpulkan informasi faktual untuk mengurangi ketidakpastian.",
+                    "Buat rencana langkah-demi-langkah yang praktis.",
+                    "Pegang teguh pada rutinitas yang sudah terbukti aman.",
+                    "Cari kepastian dari sumber yang terpercaya dan otoritatif.",
+                    "Fokus pada hal-hal yang bisa dikendalikan secara langsung."
+                ],
+                "Disgust": [
+                    "Bersihkan dan atur ulang lingkungan sekitar.",
+                    "Terapkan prosedur standar untuk mengatasi sumber ketidaknyamanan.",
+                    "Fokus pada tugas-tugas yang sudah dikenal dan dikuasai.",
+                    "Hindari hal-hal baru yang berpotensi memicu keengganan.",
+                    "Kembali pada kebiasaan yang sudah teruji keandalannya."
+                ],
+                "Neutral": [
+                    "Kerjakan proyek perbaikan atau perawatan di rumah.",
+                    "Atur ulang sistem penyimpanan atau organisasi barang.",
+                    "Baca buku non-fiksi atau artikel informatif.",
+                    "Lakukan aktivitas outdoor yang sederhana dan terencana.",
+                    "Praktikkan mindfulness dengan fokus pada sensasi fisik."
+                ]
+            }
+        },
+        "C": {
+            "name": "Conscientiousness (Kehati-hatian)",
+            "high": {
+                "Happy": [
+                    "Rayakan pencapaian target yang sudah direncanakan.",
+                    "Nikmati keteraturan dan kerapian yang sudah diciptakan.",
+                    "Tinjau daftar prestasi dan progres tujuan jangka panjang.",
+                    "Rencanakan proyek baru dengan struktur yang detail.",
+                    "Bagikan sistem atau metode kerja yang efektif dengan orang lain."
+                ],
+                "Sad": [
+                    "Buat jadwal harian yang terstruktur untuk menjaga produktivitas.",
+                    "Selesaikan tugas-tugas kecil yang tertunda untuk membangun rasa pencapaian.",
+                    "Lakukan aktivitas yang memberikan rasa kontrol dan keteraturan.",
+                    "Refleksikan tanggung jawab sebagai pengingat makna hidup.",
+                    "Istirahat terjadwal untuk memulihkan energi tanpa mengganggu rutinitas."
+                ],
+                "Angry": [
+                    "Salurkan frustrasi ke dalam tugas yang membutuhkan ketelitian.",
+                    "Bersihkan dan atur ulang ruang kerja secara metodis.",
+                    "Evaluasi ulang ekspektasi dan standar yang mungkin terlalu tinggi.",
+                    "Buat daftar prioritas untuk mengatasi sumber kemarahan secara bertahap.",
+                    "Lakukan aktivitas repetitif yang menenangkan pikiran."
+                ],
+                "Fear": [
+                    "Buat rencana kontingensi terperinci untuk mengantisipasi skenario buruk.",
+                    "Kumpulkan data dan fakta untuk mengurangi ketidakpastian.",
+                    "Susun langkah-langkah mitigasi secara sistematis.",
+                    "Pecah masalah besar menjadi tugas-tugas kecil yang manageable.",
+                    "Tetap berpegang pada jadwal sebagai jangkar stabilitas."
+                ],
+                "Disgust": [
+                    "Terapkan sistem organisasi yang lebih ketat.",
+                    "Buat standar operasional prosedur untuk mencegah pengulangan.",
+                    "Bersihkan lingkungan secara menyeluruh dan higienis.",
+                    "Dokumentasikan apa yang salah untuk referensi di masa depan.",
+                    "Fokus pada perbaikan sistem yang terukur."
+                ],
+                "Neutral": [
+                    "Tinjau ulang dan optimalkan sistem produktivitas pribadi.",
+                    "Rapikan file digital dan fisik yang berantakan.",
+                    "Buat perencanaan jangka menengah dan panjang.",
+                    "Audit pengeluaran dan keuangan pribadi.",
+                    "Pelajari metode manajemen waktu yang baru."
+                ]
+            },
+            "low": {
+                "Happy": [
+                    "Nikmati momen spontan tanpa perlu merencanakan semuanya.",
+                    "Biarkan diri mengikuti alur tanpa tekanan target.",
+                    "Rayakan fleksibilitas dan kemampuan beradaptasi.",
+                    "Coba pendekatan baru yang tidak terstruktur dalam berkarya.",
+                    "Bersosialisasi dan berbagi tawa tanpa beban jadwal."
+                ],
+                "Sad": [
+                    "Izinkan diri untuk tidak produktif sesaat tanpa rasa bersalah.",
+                    "Lakukan aktivitas santai yang tidak membutuhkan perencanaan.",
+                    "Cari hiburan ringan seperti menonton film atau acara favorit.",
+                    "Buang daftar tugas dan ikuti kata hati sejenak.",
+                    "Manjakan diri dengan kegiatan impulsif yang menyenangkan."
+                ],
+                "Angry": [
+                    "Salurkan energi ke aktivitas fisik yang spontan dan intens.",
+                    "Tulis atau ekspresikan kemarahan tanpa sensor terlebih dahulu.",
+                    "Lompat ke aktivitas baru untuk mengalihkan pikiran.",
+                    "Biarkan diri 'ngambek' sesaat sebagai bentuk pelepasan emosi.",
+                    "Cari distraksi dengan melakukan sesuatu yang tidak terduga."
+                ],
+                "Fear": [
+                    "Hadapi ketakutan secara spontan tanpa terlalu banyak berpikir.",
+                    "Cari dukungan dari orang lain secara langsung.",
+                    "Alihkan perhatian dengan aktivitas menyenangkan yang mendadak.",
+                    "Ingatkan diri bahwa tidak semuanya harus direncanakan.",
+                    "Lakukan sesuatu yang menyenangkan sebagai pelarian sementara."
+                ],
+                "Disgust": [
+                    "Tinggalkan situasi dengan cepat tanpa perlu merapikan.",
+                    "Alihkan perhatian ke hal lain yang lebih menarik.",
+                    "Lompat ke aktivitas baru untuk reset suasana hati.",
+                    "Gunakan humor spontan untuk meredakan ketegangan.",
+                    "Jangan paksakan diri untuk tetap berada dalam situasi tersebut."
+                ],
+                "Neutral": [
+                    "Lakukan kegiatan tanpa rencana yang kaku.",
+                    "Eksplorasi hobi baru secara iseng.",
+                    "Scroll dan cari inspirasi dari berbagai sumber acak.",
+                    "Coba pendekatan berbeda dalam menyelesaikan tugas harian.",
+                    "Biarkan hari berjalan tanpa daftar tugas yang ketat."
+                ]
+            }
+        },
+        "E": {
+            "name": "Extraversion (Ekstraversi)",
+            "high": {
+                "Happy": [
+                    "Adakan kumpul-kumpul dengan teman-teman terdekat.",
+                    "Bagikan kegembiraan dengan orang-orang di sekitar.",
+                    "Ikuti acara sosial atau komunitas yang menarik.",
+                    "Lakukan aktivitas yang melibatkan interaksi dengan banyak orang.",
+                    "Jadilah pusat perhatian yang positif dan menghibur."
+                ],
+                "Sad": [
+                    "Cari dukungan dari teman atau keluarga terdekat.",
+                    "Ceritakan perasaan kepada orang yang dipercaya.",
+                    "Keluar rumah dan berada di keramaian untuk mengalihkan pikiran.",
+                    "Ikut serta dalam kegiatan kelompok yang ringan dan menyenangkan.",
+                    "Minta teman untuk menemani ngobrol atau jalan-jalan."
+                ],
+                "Angry": [
+                    "Venting atau curhat ke teman yang bisa dipercaya.",
+                    "Diskusikan masalah secara langsung dengan pihak terkait.",
+                    "Lakukan olahraga tim atau kelas kebugaran kelompok.",
+                    "Ekspresikan kemarahan secara verbal dengan cara yang asertif.",
+                    "Cari mediasi dari teman atau figur otoritas."
+                ],
+                "Fear": [
+                    "Cari teman untuk menemani dan memberikan rasa aman.",
+                    "Diskusikan ketakutan dengan kelompok pendukung.",
+                    "Berada di lingkungan yang terang dan ramai.",
+                    "Ikuti kegiatan sosial sebagai distraksi yang sehat.",
+                    "Minta pendapat dari banyak orang untuk mendapat perspektif."
+                ],
+                "Disgust": [
+                    "Bicarakan kekesalan dengan lingkaran pertemanan.",
+                    "Cari lingkungan sosial yang lebih positif dan menyenangkan.",
+                    "Ajak teman untuk melakukan aktivitas bersama dan melupakan masalah.",
+                    "Ekspresikan ketidaksukaan secara terbuka dan tegas.",
+                    "Gunakan energi sosial untuk mencari pengalaman baru yang lebih baik."
+                ],
+                "Neutral": [
+                    "Hubungi teman lama untuk sekadar bertukar kabar.",
+                    "Hadiri acara atau workshop untuk memperluas jaringan.",
+                    "Lakukan aktivitas yang melibatkan kerja tim.",
+                    "Kunjungi tempat baru yang ramai dan hidup.",
+                    "Ikut serta dalam kegiatan sukarela atau komunitas."
+                ]
+            },
+            "low": {
+                "Happy": [
+                    "Nikmati waktu berkualitas sendirian dengan hobi favorit.",
+                    "Lakukan refleksi diri dalam suasana yang tenang.",
+                    "Baca buku yang memperkaya wawasan dalam kedamaian.",
+                    "Manjakan diri dengan perawatan diri (self-care) di rumah.",
+                    "Habiskan waktu dengan 1-2 orang terdekat secara intim."
+                ],
+                "Sad": [
+                    "Beri diri ruang untuk menyendiri tanpa gangguan.",
+                    "Lakukan introspeksi dan journaling di tempat yang tenang.",
+                    "Dengarkan musik yang menenangkan dalam kesendirian.",
+                    "Habiskan waktu dengan hewan peliharaan atau tanaman.",
+                    "Ciptakan sudut nyaman di rumah untuk memulihkan energi."
+                ],
+                "Angry": [
+                    "Mundur ke ruang pribadi untuk menenangkan diri.",
+                    "Tuliskan kemarahan di jurnal tanpa perlu membagikannya.",
+                    "Lakukan meditasi atau pernapasan dalam di tempat sunyi.",
+                    "Dengarkan musik instrumental untuk meredakan ketegangan.",
+                    "Berjalan sendirian di alam untuk menjernihkan pikiran."
+                ],
+                "Fear": [
+                    "Ciptakan lingkungan yang aman dan tenang di sekitar.",
+                    "Lakukan grounding dengan fokus pada sensasi fisik.",
+                    "Gunakan teknik pernapasan untuk menenangkan sistem saraf.",
+                    "Tarik diri dari stimulasi berlebih dan cari ketenangan.",
+                    "Tuliskan kekhawatiran untuk memprosesnya secara internal."
+                ],
+                "Disgust": [
+                    "Jaga jarak dan ciptakan ruang aman pribadi.",
+                    "Hindari konfrontasi langsung dan lebih baik menjauh.",
+                    "Fokus pada aktivitas sendirian yang menyenangkan.",
+                    "Bersihkan lingkungan pribadi dari hal-hal yang mengganggu.",
+                    "Gunakan waktu menyendiri untuk memulihkan keseimbangan."
+                ],
+                "Neutral": [
+                    "Nikmati waktu sendirian untuk membaca atau belajar.",
+                    "Lakukan aktivitas yang membutuhkan konsentrasi penuh.",
+                    "Rapikan dan atur ulang ruang pribadi.",
+                    "Jalan-jalan santai sendirian di taman.",
+                    "Dengarkan podcast atau audiobook favorit."
+                ]
+            }
+        },
+        "A": {
+            "name": "Agreeableness (Keramahan)",
+            "high": {
+                "Happy": [
+                    "Bantu orang lain yang membutuhkan bantuan.",
+                    "Berikan pujian tulus kepada orang-orang di sekitar.",
+                    "Lakukan kegiatan sukarela atau amal.",
+                    "Adakan acara kecil untuk mempererat hubungan.",
+                    "Bagikan kebahagiaan dengan memasak atau memberi hadiah."
+                ],
+                "Sad": [
+                    "Cari dukungan emosional dari orang-orang terdekat.",
+                    "Bantu orang lain sebagai cara mengalihkan kesedihan.",
+                    "Bicarakan perasaan dengan teman yang empatik.",
+                    "Terima bantuan dan dukungan dari orang lain.",
+                    "Luangkan waktu untuk merawat hubungan yang berarti."
+                ],
+                "Angry": [
+                    "Cari solusi yang menguntungkan semua pihak (win-win).",
+                    "Mediasi konflik dengan pendekatan yang lembut.",
+                    "Ekspresikan kekecewaan dengan cara yang tidak menyakiti.",
+                    "Ingatkan diri pada nilai-nilai kebaikan dan empati.",
+                    "Minta maaf jika perlu dan cari jalan tengah."
+                ],
+                "Fear": [
+                    "Cari dukungan dari komunitas atau kelompok.",
+                    "Diskusikan kekhawatiran dengan orang yang peduli.",
+                    "Bergabung dengan grup dukungan yang sesuai.",
+                    "Minta bantuan tanpa merasa menjadi beban.",
+                    "Percayakan kekhawatiran pada figur yang dipercaya."
+                ],
+                "Disgust": [
+                    "Coba pahami perspektif pihak lain sebelum menghakimi.",
+                    "Tetapkan batasan yang sehat dengan tetap hormat.",
+                    "Cari dialog daripada konfrontasi untuk menyelesaikan masalah.",
+                    "Ingatkan diri pada nilai-nilai kemanusiaan.",
+                    "Jaga hubungan baik meskipun ada perbedaan."
+                ],
+                "Neutral": [
+                    "Hubungi teman atau keluarga untuk sekadar menyapa.",
+                    "Lakukan kebaikan kecil secara acak.",
+                    "Dengarkan cerita orang lain dengan penuh perhatian.",
+                    "Ikut serta dalam kegiatan sosial di lingkungan sekitar.",
+                    "Luangkan waktu untuk menjadi relawan."
+                ]
+            },
+            "low": {
+                "Happy": [
+                    "Rayakan pencapaian pribadi tanpa perlu validasi orang lain.",
+                    "Nikmati kemandirian dan kebebasan dalam menentukan pilihan.",
+                    "Fokus pada target dan ambisi pribadi.",
+                    "Lakukan aktivitas kompetitif yang menantang.",
+                    "Manfaatkan momentum untuk advokasi diri sendiri."
+                ],
+                "Sad": [
+                    "Proses kesedihan secara mandiri tanpa melibatkan orang lain.",
+                    "Fokus pada pemecahan masalah secara logis.",
+                    "Lakukan aktivitas yang memperkuat kemandirian.",
+                    "Analisis penyebab kesedihan secara objektif.",
+                    "Beri diri waktu sendiri untuk memulihkan diri."
+                ],
+                "Angry": [
+                    "Tegaskan pendirian dan batasan dengan jelas.",
+                    "Konfrontasi masalah secara langsung dan faktual.",
+                    "Salurkan kemarahan ke dalam kompetisi atau tantangan.",
+                    "Jangan ragu untuk mengatakan 'tidak'.",
+                    "Prioritaskan kepentingan dan kebenaran pribadi."
+                ],
+                "Fear": [
+                    "Analisis ancaman secara logis dan rasional.",
+                    "Buat rencana perlindungan diri secara mandiri.",
+                    "Hadapi sumber ketakutan dengan keberanian.",
+                    "Kumpulkan kekuatan internal tanpa bergantung pada orang lain.",
+                    "Fokus pada kemampuan diri untuk mengatasi situasi."
+                ],
+                "Disgust": [
+                    "Singkirkan sumber ketidaknyamanan dengan tegas.",
+                    "Jangan ragu untuk memutus hubungan yang toksik.",
+                    "Prioritaskan kepentingan dan kenyamanan diri sendiri.",
+                    "Ekspresikan ketidaksukaan secara langsung tanpa basa-basi.",
+                    "Buat jarak yang jelas dari hal-hal yang mengganggu."
+                ],
+                "Neutral": [
+                    "Fokus pada pengembangan diri dan kompetensi pribadi.",
+                    "Tetapkan target ambisius tanpa perlu persetujuan orang lain.",
+                    "Analisis situasi secara kritis dan independen.",
+                    "Lakukan aktivitas yang memperkuat kemandirian.",
+                    "Gunakan waktu untuk merencanakan strategi pribadi."
+                ]
+            }
+        },
+        "N": {
+            "name": "Neuroticism (Neurotisisme)",
+            "high": {
+                "Happy": [
+                    "Nikmati momen tenang dan stabil tanpa kekhawatiran.",
+                    "Rayakan pencapaian kecil dengan penuh syukur.",
+                    "Praktikkan mindfulness untuk memperkuat rasa aman.",
+                    "Dokumentasikan hal-hal positif yang terjadi hari ini.",
+                    "Luangkan waktu untuk aktivitas yang menenangkan saraf."
+                ],
+                "Sad": [
+                    "Praktikkan self-compassion dan validasi emosi sendiri.",
+                    "Gunakan teknik grounding untuk kembali ke saat ini.",
+                    "Buat jurnal untuk mengidentifikasi pemicu suasana hati.",
+                    "Lakukan aktivitas fisik ringan untuk meningkatkan mood.",
+                    "Cari dukungan profesional jika perlu."
+                ],
+                "Angry": [
+                    "Lakukan teknik pernapasan dalam sebelum bereaksi.",
+                    "Jeda sejenak dan tinggalkan situasi yang memicu.",
+                    "Tuliskan emosi untuk meredakan intensitas.",
+                    "Praktikkan progressive muscle relaxation.",
+                    "Kenali pemicu dan pola reaksi emosi."
+                ],
+                "Fear": [
+                    "Praktikkan pernapasan diafragma untuk menenangkan sistem saraf.",
+                    "Gunakan teknik 5-4-3-2-1 grounding untuk mengurangi kecemasan.",
+                    "Identifikasi distorsi kognitif yang memperburuk ketakutan.",
+                    "Buat jurnal kecemasan untuk melacak pola pemicu.",
+                    "Cari terapi atau konseling untuk strategi koping jangka panjang."
+                ],
+                "Disgust": [
+                    "Praktikkan toleransi terhadap ketidaknyamanan secara bertahap.",
+                    "Gunakan teknik mindfulness untuk mengamati reaksi tanpa menghakimi.",
+                    "Identifikasi akar keengganan untuk memahami respons emosi.",
+                    "Cari perspektif yang lebih seimbang terhadap situasi.",
+                    "Lakukan self-soothing dengan aktivitas yang menenangkan."
+                ],
+                "Neutral": [
+                    "Praktikkan meditasi mindfulness secara rutin.",
+                    "Buat rutinitas tidur yang teratur dan sehat.",
+                    "Pelajari teknik manajemen stres dan regulasi emosi.",
+                    "Lakukan yoga atau peregangan untuk melepaskan ketegangan.",
+                    "Kurangi stimulasi berlebih dari media sosial dan berita."
+                ]
+            },
+            "low": {
+                "Happy": [
+                    "Nikmati stabilitas emosi yang alami.",
+                    "Manfaatkan ketenangan untuk mendukung orang lain.",
+                    "Lakukan aktivitas berani yang menantang zona nyaman.",
+                    "Bagikan ketenangan dan perspektif positif dengan sekitar.",
+                    "Jadikan diri pilar stabilitas bagi orang-orang terdekat."
+                ],
+                "Sad": [
+                    "Proses kesedihan dengan perspektif yang seimbang.",
+                    "Gunakan pendekatan logis untuk mengatasi penyebab kesedihan.",
+                    "Pertahankan rutinitas harian sebagai jangkar stabilitas.",
+                    "Bantu orang lain yang mungkin mengalami masa sulit.",
+                    "Ingatkan diri bahwa emosi negatif bersifat sementara."
+                ],
+                "Angry": [
+                    "Tangani konflik dengan kepala dingin dan rasional.",
+                    "Gunakan ketenangan alami untuk meredakan situasi.",
+                    "Konfrontasi masalah secara langsung tanpa dramatisasi.",
+                    "Jadilah penengah dalam konflik yang melibatkan orang lain.",
+                    "Fokus pada solusi daripada reaksi emosional."
+                ],
+                "Fear": [
+                    "Hadapi situasi berisiko dengan keberanian yang tenang.",
+                    "Gunakan stabilitas emosi untuk mengambil keputusan rasional.",
+                    "Bantu orang lain yang merasa cemas dengan ketenangan Anda.",
+                    "Tetap fokus pada fakta dan probabilitas objektif.",
+                    "Manfaatkan ketahanan mental untuk menghadapi tantangan."
+                ],
+                "Disgust": [
+                    "Tangani situasi tidak nyaman dengan kepala dingin.",
+                    "Berikan perspektif yang rasional tentang hal yang memicu.",
+                    "Atasi sumber masalah secara langsung dan efisien.",
+                    "Jangan biarkan reaksi emosi mengaburkan penilaian.",
+                    "Tunjukkan keteladanan dalam menghadapi situasi sulit."
+                ],
+                "Neutral": [
+                    "Manfaatkan stabilitas untuk merencanakan tujuan baru.",
+                    "Bantu orang lain yang sedang mengalami gejolak emosi.",
+                    "Lakukan refleksi diri tanpa terjebak overthinking.",
+                    "Kembangkan ketahanan mental melalui tantangan baru.",
+                    "Nikmati kedamaian batin dan gunakan untuk berkarya."
+                ]
+            }
+        }
+    }
+}

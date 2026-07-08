@@ -617,6 +617,14 @@ class AppLocalizations {
       'restore_success_desc': 'Pembelian Anda berhasil dipulihkan.',
       'restore_failed_title': 'Pemulihan Gagal',
       'restore_failed_desc': 'Tidak ada pembelian yang dapat dipulihkan.',
+
+      // ── Daily Detection Limit ──
+      'daily_limit_title': 'Batas Harian Tercapai',
+      'daily_limit_message': 'Kamu telah menggunakan 5 deteksi gratis hari ini. Tonton iklan untuk mendapatkan 1 deteksi tambahan?',
+      'watch_ad': 'Tonton Iklan',
+      'remaining_detections': 'Sisa Deteksi Hari Ini',
+      'remaining_unlimited': 'Tak Terbatas',
+      'remaining_prefix': 'Sisa',
     },
 
     // ════════════════════════════════════════════
@@ -1210,6 +1218,14 @@ class AppLocalizations {
       'restore_success_desc': 'Your purchases have been restored successfully.',
       'restore_failed_title': 'Restore Failed',
       'restore_failed_desc': 'No purchases could be restored.',
+
+      // ── Daily Detection Limit ──
+      'daily_limit_title': 'Daily Limit Reached',
+      'daily_limit_message': 'You\'ve used 5 free detections today. Watch an ad to unlock 1 more detection?',
+      'watch_ad': 'Watch Ad',
+      'remaining_detections': 'Remaining Today',
+      'remaining_unlimited': 'Unlimited',
+      'remaining_prefix': 'Remaining',
     },
   };
 }

@@ -398,7 +398,7 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
       for (int i = 0; i < modelLabels.length && i < output[0].length; i++) {
         final val = output[0][i];
-        scores[modelLabels[i]] = val is num ? (val as num).toDouble() : 0.0;
+        scores[modelLabels[i]] = (val as num).toDouble();
       }
 
       // Normalisasi
@@ -582,7 +582,7 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
       for (int i = 0; i < modelLabels.length && i < output[0].length; i++) {
         final val = output[0][i];
-        scores[modelLabels[i]] = val is num ? (val as num).toDouble() : 0.0;
+        scores[modelLabels[i]] = (val as num).toDouble();
       }
 
       // Normalisasi

@@ -10,6 +10,7 @@ import '../main.dart';
 import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
 import '../services/database_service.dart';
+import '../services/storage_service.dart';
 import '../services/subscription_service.dart';
 import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
@@ -206,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                     const SizedBox(height: AppTheme.spaceXl),
 
-                    // ── Tombol CTA Rekam ────────────────────────────
+                    // ── Sisa Deteksi Harian ─────────────────────────
                     FadeTransition(
                       opacity: AnimationUtils.fadeInAnimation(
                         _staggerCtrl,
@@ -217,6 +218,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         position: AnimationUtils.slideUpAnimation(
                           _staggerCtrl,
                           3,
+                          0.15,
+                        ),
+                        child: _buildRemainingDetections(context),
+                      ),
+                    ),
+
+                    const SizedBox(height: AppTheme.spaceXl),
+
+                    // ── Tombol CTA Rekam ────────────────────────────
+                    FadeTransition(
+                      opacity: AnimationUtils.fadeInAnimation(
+                        _staggerCtrl,
+                        4,
+                        0.15,
+                      ),
+                      child: SlideTransition(
+                        position: AnimationUtils.slideUpAnimation(
+                          _staggerCtrl,
+                          4,
                           0.15,
                         ),
                         child: _buildCTAButton(context),
@@ -230,13 +250,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       FadeTransition(
                         opacity: AnimationUtils.fadeInAnimation(
                           _staggerCtrl,
-                          4,
+                          5,
                           0.15,
                         ),
                         child: SlideTransition(
                           position: AnimationUtils.slideUpAnimation(
                             _staggerCtrl,
-                            4,
+                            5,
                             0.15,
                           ),
                           child: _buildOverallSuggestion(context, historyList),
@@ -250,13 +270,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       FadeTransition(
                         opacity: AnimationUtils.fadeInAnimation(
                           _staggerCtrl,
-                          5,
+                          6,
                           0.15,
                         ),
                         child: SlideTransition(
                           position: AnimationUtils.slideUpAnimation(
                             _staggerCtrl,
-                            5,
+                            6,
                             0.15,
                           ),
                           child: _buildRecentHistory(context, historyList),
@@ -1112,6 +1132,100 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   // ─────────────────────────────────────────────────────────────
+  // Widget: Sisa Deteksi Harian
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildRemainingDetections(BuildContext context) {
+    return FutureBuilder<int>(
+      future: StorageService.getRemainingDetections(),
+      builder: (context, snapshot) {
+        final premium = context.watch<PremiumProvider>();
+        final remaining = snapshot.data ?? 5;
+        final isLow = remaining <= 2;
+
+        return GlassCard(
+          useBlur: !(Platform.isWindows || Platform.isLinux || Platform.isMacOS),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (premium.isPremium
+                      ? const Color(0xFF10B981)
+                      : isLow
+                          ? const Color(0xFFF87171)
+                          : const Color(0xFFF59E0B)
+                  ).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  premium.isPremium
+                      ? Icons.auto_awesome_rounded
+                      : Icons.wifi_tethering_rounded,
+                  color: premium.isPremium
+                      ? const Color(0xFF10B981)
+                      : isLow
+                          ? const Color(0xFFF87171)
+                          : const Color(0xFFF59E0B),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.tr('remaining_detections'),
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.textS(context),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      premium.isPremium
+                          ? AppLocalizations.tr('remaining_unlimited')
+                          : '$remaining/5',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: premium.isPremium
+                            ? const Color(0xFF10B981)
+                            : isLow
+                                ? const Color(0xFFF87171)
+                                : AppTheme.textP(context),
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (!premium.isPremium && remaining > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${AppLocalizations.tr('remaining_prefix')} $remaining',
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF10B981),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // Widget: Tombol CTA Rekam — Besar, Elegan, Animated
   // ─────────────────────────────────────────────────────────────
   Widget _buildCTAButton(BuildContext context) {
@@ -1285,106 +1399,49 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // Widget: Rekomendasi Psikis Keseluruhan
+  // Widget: Rekomendasi Psikis Keseluruhan (Big Five OCEAN v2)
   // ─────────────────────────────────────────────────────────────
   Widget _buildOverallSuggestion(
     BuildContext context,
     List<EmotionRecord> history,
   ) {
-    final emotionCount = <EmotionType, int>{};
-    for (final r in history) {
-      emotionCount[r.emotion] = (emotionCount[r.emotion] ?? 0) + 1;
-    }
-    final dominant = emotionCount.isNotEmpty
-        ? emotionCount.entries.reduce((a, b) => a.value >= b.value ? a : b).key
+    final dominant = history.isNotEmpty
+        ? history.first.emotion
         : EmotionType.neutral;
 
-    // Gunakan FutureBuilder untuk mengambil Big Five dan saran dari SuggestionService
     return FutureBuilder<AppUser?>(
       future: DatabaseService.getUser(),
       builder: (context, userSnapshot) {
         final user = userSnapshot.data;
         final bigFiveScores = user?.bigFiveScores ?? {};
-        final psychLabel = bigFiveScores.isNotEmpty
-            ? bigFiveScores.entries.map((e) => '${e.key}:${e.value.toStringAsFixed(1)}').join(' ')
-            : AppLocalizations.tr('info');
 
         return FutureBuilder<void>(
           future: SuggestionService().load(),
           builder: (context, _) {
             final svc = SuggestionService();
-            final suggestions = svc.getSuggestions(bigFiveScores, dominant);
+            final result = svc.getStructuredSuggestions(bigFiveScores, dominant);
             final title = svc.buildTitle(bigFiveScores, dominant);
+
+            if (result.isSafetyReferral) {
+              return _buildSafetyReferral(context, result);
+            }
+
+            if (result.isEmpty) return const SizedBox.shrink();
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Section Header
                 _buildSectionHeader(
                   context,
                   icon: Icons.auto_awesome_rounded,
                   title: AppLocalizations.tr('psych_recommendation'),
-                  trailingLabel: psychLabel,
-                  trailingColor: AppTheme.primaryColor,
                 ),
-
                 const SizedBox(height: 14),
-
-                // Emosi dominan info banner
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: dominant.color.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                    border: Border.all(
-                      color: dominant.color.withValues(alpha: 0.22),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        dominant.assetIconPath,
-                        width: 60,
-                        height: 60,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: '${AppLocalizations.tr('dominant_emotion')}: ',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w400,
-                                  color: AppTheme.textS(context),
-                                ),
-                              ),
-                              TextSpan(
-                                text: dominant.displayName,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.textP(context),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Card saran collapsible — dari SuggestionService
                 SuggestionCard(
                   title: title,
-                  suggestions: suggestions,
+                  traitSuggestions: result.traitSuggestions,
                   icon: Icons.tips_and_updates_rounded,
-                  color: AppTheme.iconColor(context),
+                  color: dominant.color,
                   isCollapsible: true,
                 ),
               ],
@@ -1392,6 +1449,97 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           },
         );
       },
+    );
+  }
+
+  // ── Safety Referral Card ──
+  Widget _buildSafetyReferral(BuildContext context, SuggestionResult result) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFDC2626), Color(0xFFEF4444)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFDC2626).withValues(alpha: 0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.emergency_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  AppLocalizations.locale.startsWith('en')
+                      ? 'Safety Referral'
+                      : 'Rujukan Keselamatan',
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (result.safetyMessage != null)
+            Text(
+              result.safetyMessage!,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: Colors.white.withValues(alpha: 0.95),
+                height: 1.5,
+              ),
+            ),
+          if (result.safetyActions != null) ...[
+            const SizedBox(height: 12),
+            ...result.safetyActions!.map((action) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.arrow_right_rounded,
+                          color: Colors.white, size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          action,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.9),
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+        ],
+      ),
     );
   }
 

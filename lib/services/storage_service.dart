@@ -35,4 +35,37 @@ class StorageService {
     await prefs.remove(_keyFirstLaunch);
     await prefs.remove(_keyUserName);
   }
+
+  // ── Daily Detection Limit ─────────────────────────────────────
+  static const String _keyDetectDate = 'detection_date';
+  static const String _keyDetectCount = 'detection_count';
+
+  /// Sisa deteksi gratis hari ini (max 5)
+  static Future<int> getRemainingDetections() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayStr();
+    final savedDate = prefs.getString(_keyDetectDate) ?? '';
+    if (savedDate != today) return 5;
+    final count = prefs.getInt(_keyDetectCount) ?? 0;
+    return (5 - count).clamp(0, 5);
+  }
+
+  /// Tambah 1 hitungan deteksi hari ini
+  static Future<void> incrementDetectionCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayStr();
+    final savedDate = prefs.getString(_keyDetectDate) ?? '';
+    if (savedDate != today) {
+      await prefs.setString(_keyDetectDate, today);
+      await prefs.setInt(_keyDetectCount, 1);
+    } else {
+      final count = (prefs.getInt(_keyDetectCount) ?? 0) + 1;
+      await prefs.setInt(_keyDetectCount, count);
+    }
+  }
+
+  static String _todayStr() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
 }

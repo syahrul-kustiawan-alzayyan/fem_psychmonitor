@@ -8,7 +8,6 @@ import '../l10n/app_localizations.dart';
 import '../main.dart';
 import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
-import '../services/ad_service.dart';
 import '../services/subscription_service.dart';
 import '../screens/onboarding_screen.dart';
 import '../theme/app_theme.dart';
@@ -65,15 +64,6 @@ class _AuthScreenState extends State<AuthScreen>
     super.dispose();
   }
 
-  Future<void> _showInterstitialBeforeNavigation(VoidCallback navigate) async {
-    final premium = context.read<PremiumProvider>();
-    if (!premium.isPremium) {
-      await AdService().showInterstitialAd();
-    }
-    if (!mounted) return;
-    navigate();
-  }
-
   // ── Login Handler ──
   Future<void> _handleLogin() async {
     if (!_loginFormKey.currentState!.validate()) return;
@@ -95,11 +85,9 @@ class _AuthScreenState extends State<AuthScreen>
         if (uid != null) {
           await SubscriptionService().identifyUser(uid, context.read<PremiumProvider>());
         }
-        _showInterstitialBeforeNavigation(() {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const AppRouter()),
-          );
-        });
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AppRouter()),
+        );
         break;
       }
       case 'new_user': {
@@ -191,11 +179,9 @@ class _AuthScreenState extends State<AuthScreen>
         if (uid != null) {
           await SubscriptionService().identifyUser(uid, context.read<PremiumProvider>());
         }
-        _showInterstitialBeforeNavigation(() {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const AppRouter()),
-          );
-        });
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AppRouter()),
+        );
         break;
       }
       case 'new_user': {

@@ -15,6 +15,7 @@ class ConfigService {
   static String get admobBannerBottom => _get('ADMOB_BANNER_BOTTOM');
   static String get admobInterstitial => _get('ADMOB_INTERSTITIAL');
   static String get admobAppOpen => _get('ADMOB_APP_OPEN');
+  static String get admobRewarded => _get('ADMOB_REWARDED');
   static String get admobAppId => _get('ADMOB_APP_ID');
 
   // Google Sign-In
