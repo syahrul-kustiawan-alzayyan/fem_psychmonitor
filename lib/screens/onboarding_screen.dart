@@ -144,11 +144,6 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
       backgroundColor: AppTheme.bg(context),
       body: Column(
         children: [
-          Consumer<PremiumProvider>(
-            builder: (context, premium, _) => premium.isPremium
-                ? const SizedBox.shrink()
-                : AdService().buildBannerWidget(height: 50, isTop: true),
-          ),
           Expanded(
             child: PageView(
               controller: _pageController,
@@ -170,9 +165,26 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
             ),
           ),
           Consumer<PremiumProvider>(
-            builder: (context, premium, _) => premium.isPremium
-                ? const SizedBox.shrink()
-                : AdService().buildBannerWidget(height: 50, isTop: false),
+            builder: (context, premium, _) {
+              if (premium.isPremium) return const SizedBox.shrink();
+              return Container(
+                width: double.infinity,
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).padding.bottom + 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface(context).withValues(alpha: 0.6),
+                  border: Border(
+                    top: BorderSide(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                    ),
+                  ),
+                ),
+                child: Center(
+                  child: AdService().buildBannerWidget(height: 50, isTop: true),
+                ),
+              );
+            },
           ),
         ],
       ),

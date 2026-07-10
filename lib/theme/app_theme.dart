@@ -80,7 +80,7 @@ class AppTheme {
 
   // ── Gradien Utama (Rose → Coral) ──────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primaryLight, primaryColor],
+    colors: [primaryColor, primaryDark],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

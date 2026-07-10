@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
@@ -592,6 +594,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           final baseScore100 = ((60 - basePsychScore) / 60 * 100).round();
           final adjustment100 = emotionAdjustment;
           displayScore100 = ((baseScore100 + adjustment100).clamp(0, 100)).round();
+          // Override skor untuk testing safety layer
+          if (FirebaseAuth.instance.currentUser?.uid ==
+              '3v01CZB4LQMblWB2Z2AHv5Sv8q63') {
+            displayScore100 = 20;
+          }
         }
 
         // Tentukan warna dan info berdasarkan skor (0-100, tinggi = baik)
@@ -942,6 +949,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ],
                         ),
                       ),
+                    ],
+
+                    // Safety layer (butuh perhatian klinis)
+                    if (displayScore100 != null && displayScore100 < 25) ...[
+                      const SizedBox(height: 16),
+                      _buildPsychSafetyReferral(context),
                     ],
 
                     // Deteksi terakhir (jika ada)
@@ -1415,39 +1428,48 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         final user = userSnapshot.data;
         final bigFiveScores = user?.bigFiveScores ?? {};
 
-        return FutureBuilder<void>(
-          future: SuggestionService().load(),
-          builder: (context, _) {
-            final svc = SuggestionService();
-            final result = svc.getStructuredSuggestions(bigFiveScores, dominant);
-            final title = svc.buildTitle(bigFiveScores, dominant);
+          return FutureBuilder<void>(
+            future: SuggestionService().load(),
+            builder: (context, _) {
+              final svc = SuggestionService();
+              final result = svc.getStructuredSuggestions(bigFiveScores, dominant);
+              final title = svc.buildTitle(bigFiveScores, dominant);
 
-            if (result.isSafetyReferral) {
-              return _buildSafetyReferral(context, result);
-            }
+              if (result.isEmpty) return const SizedBox.shrink();
 
-            if (result.isEmpty) return const SizedBox.shrink();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader(
+                    context,
+                    icon: Icons.auto_awesome_rounded,
+                    title: AppLocalizations.tr('psych_recommendation'),
+                  ),
+                  const SizedBox(height: 14),
+                  SuggestionCard(
+                    title: title,
+                    traitSuggestions: result.traitSuggestions,
+                    icon: Icons.tips_and_updates_rounded,
+                    color: dominant.color,
+                    isCollapsible: true,
+                  ),
+                ],
+              );
+            },
+          );
+      },
+    );
+  }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSectionHeader(
-                  context,
-                  icon: Icons.auto_awesome_rounded,
-                  title: AppLocalizations.tr('psych_recommendation'),
-                ),
-                const SizedBox(height: 14),
-                SuggestionCard(
-                  title: title,
-                  traitSuggestions: result.traitSuggestions,
-                  icon: Icons.tips_and_updates_rounded,
-                  color: dominant.color,
-                  isCollapsible: true,
-                ),
-              ],
-            );
-          },
-        );
+  // ── Safety Referral (inside psych card) ──
+  Widget _buildPsychSafetyReferral(BuildContext context) {
+    return FutureBuilder<SuggestionResult?>(
+      future: SuggestionService().getSafetyData(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const SizedBox.shrink();
+        }
+        return _buildSafetyReferral(context, snapshot.data!);
       },
     );
   }
@@ -1493,8 +1515,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Expanded(
                 child: Text(
                   AppLocalizations.locale.startsWith('en')
-                      ? 'Safety Referral'
-                      : 'Rujukan Keselamatan',
+                      ? 'Need Help?'
+                      : 'Butuh Bantuan?',
                   style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -1538,6 +1560,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 )),
           ],
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => launchUrl(Uri.parse('tel:199')),
+              icon: const Icon(Icons.phone_rounded, size: 18),
+              label: Text(
+                AppLocalizations.locale.startsWith('en')
+                    ? 'Call 199 (Sejiwa)'
+                    : 'Hubungi 199 (Sejiwa)',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFFDC2626),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+            ),
+          ),
         ],
       ),
     );

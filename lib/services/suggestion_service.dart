@@ -122,17 +122,22 @@ class SuggestionService {
 
   // ── Safety Layer ──────────────────────────────────────────────
 
-  /// Cek apakah ada indikasi krisis/distres berkepanjangan
-  bool _checkSafetyLayer(EmotionType emotion, {bool isProlonged = false}) {
-    if (_safetyLayer == null) return false;
-
-    final negativeEmotions = (_safetyLayer!['emosi_negatif'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList() ??
-        ['Sad', 'Angry', 'Fear', 'Disgust'];
-
-    final emotionKey = _emotionToJsonKey(emotion);
-    return negativeEmotions.contains(emotionKey) && isProlonged;
+  /// Get safety data regardless of emotion/scores (for psych card display)
+  Future<SuggestionResult?> getSafetyData() async {
+    await load();
+    final safetyData = _safetyLayer?['jika_salah_satu_terpenuhi']
+        as Map<String, dynamic>?;
+    final output = safetyData?['output'] as Map<String, dynamic>?;
+    if (output == null) return null;
+    return SuggestionResult(
+      emotion: EmotionType.neutral,
+      traitSuggestions: [],
+      isSafetyReferral: true,
+      safetyMessage: output['pesan_validasi']?.toString(),
+      safetyActions: (output['tindakan'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+    );
   }
 
   // ── Core Logic v2 ────────────────────────────────────────────
@@ -140,29 +145,12 @@ class SuggestionService {
   /// Dapatkan saran terstruktur (multi-trait) berdasarkan v2 logic
   SuggestionResult getStructuredSuggestions(
     Map<String, double> bigFiveScores,
-    EmotionType emotion, {
-    bool isProlonged = false,
-  }) {
+    EmotionType emotion,
+  ) {
     if (_recommendations == null || _recommendations!.isEmpty) {
       return SuggestionResult(
         emotion: emotion,
         traitSuggestions: [],
-      );
-    }
-
-    // Langkah 1: Cek lapisan keselamatan
-    if (_checkSafetyLayer(emotion, isProlonged: isProlonged)) {
-      final safetyData = _safetyLayer!['jika_salah_satu_terpenuhi']
-          as Map<String, dynamic>?;
-      final output = safetyData?['output'] as Map<String, dynamic>?;
-      return SuggestionResult(
-        emotion: emotion,
-        traitSuggestions: [],
-        isSafetyReferral: true,
-        safetyMessage: output?['pesan_validasi']?.toString(),
-        safetyActions: (output?['tindakan'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList(),
       );
     }
 

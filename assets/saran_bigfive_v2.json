@@ -57,11 +57,10 @@
                 "tipe": "RUJUKAN_KESELAMATAN",
                 "pesan_validasi": "Apa yang kamu rasakan saat ini valid. Kamu tidak perlu menghadapinya sendirian.",
                 "tindakan": [
-                    "Hubungi layanan bantuan profesional kesehatan mental atau hotline krisis di daerahmu.",
-                    "Jika ada bahaya langsung terhadap keselamatan, segera hubungi layanan darurat setempat.",
+                    "Hubungi Sejiwa (layanan bantuan psikologis) di 199, tekan ekstensi 8 — tersedia 24 jam.",
+                    "Jika ada bahaya langsung terhadap keselamatan, segera hubungi layanan darurat setempat (110/118).",
                     "Cari satu orang yang kamu percaya untuk menemani sampai bantuan profesional tersedia."
-                ],
-                "catatan_untuk_developer": "Lengkapi daftar tindakan ini dengan nomor hotline resmi & terkini sesuai lokasi pengguna sebelum dipakai produksi."
+                ]
             }
         }
     },
