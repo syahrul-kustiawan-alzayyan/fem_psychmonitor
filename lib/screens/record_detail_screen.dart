@@ -66,10 +66,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
     await service.load();
 
     final bigFiveScores = user?.bigFiveScores ?? {};
-    final combined = _combinedScores;
-    final dominant = combined.entries.reduce(
-      (a, b) => a.value >= b.value ? a : b,
-    ).key;
+    final dominant = widget.record.emotion;
 
     final result = service.getStructuredSuggestions(bigFiveScores, dominant);
     final title = service.buildTitle(bigFiveScores, dominant);
