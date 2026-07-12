@@ -187,6 +187,10 @@ class _AuthScreenState extends State<AuthScreen>
         _showSetPasswordDialog();
         break;
 
+      case 'has_password':
+        _showHasPasswordDialog();
+        break;
+
       case 'cancelled':
         break;
 
@@ -744,6 +748,85 @@ class _AuthScreenState extends State<AuthScreen>
       context: context,
       barrierDismissible: false,
       builder: (ctx) => const _SetPasswordDialog(),
+    );
+  }
+
+  void _showHasPasswordDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surface(ctx),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryColor.withValues(alpha: 0.15),
+                    AppTheme.primaryDark.withValues(alpha: 0.08),
+                  ],
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.email_rounded,
+                color: Color(0xFFE8728A),
+                size: 48,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Email Sudah Terdaftar',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textP(context),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Email ini sudah terdaftar menggunakan password. Silakan login menggunakan email dan password, bukan Google.',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: AppTheme.textS(context),
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'Login dengan Password',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

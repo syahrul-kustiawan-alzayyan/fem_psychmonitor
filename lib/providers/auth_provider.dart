@@ -265,6 +265,15 @@ class AuthProvider extends ChangeNotifier {
         idToken: idToken,
       );
 
+      // Cek dulu apakah email ini sudah punya password
+      // ignore: deprecated_member_use
+      final methods = await _auth.fetchSignInMethodsForEmail(googleUser.email);
+      if (methods.contains('password')) {
+        // Email sudah terdaftar dengan password — jangan sign-in ke Firebase
+        await googleSignIn.disconnect();
+        return 'has_password';
+      }
+
       // Sign in ke Firebase dengan credential Google
       // Firebase otomatis membuat akun jika belum ada (register otomatis)
       final userCredential = await _auth.signInWithCredential(credential);
@@ -279,9 +288,12 @@ class AuthProvider extends ChangeNotifier {
         await prefs.setString(_keyEmail, _email);
 
         // Cek apakah user sudah punya password terlink
-        final hasPassword = userCredential.user!.providerData.any(
-          (info) => info.providerId == 'password',
-        );
+        await userCredential.user!.reload();
+        final currentUser = _auth.currentUser;
+        final hasPassword = currentUser?.providerData.any(
+              (info) => info.providerId == 'password',
+            ) ??
+            false;
         if (!hasPassword) {
           notifyListeners();
           return 'needs_password';
@@ -357,6 +369,13 @@ class AuthProvider extends ChangeNotifier {
       );
       await user.linkWithCredential(credential);
       return true;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'provider-already-linked') {
+        // Password sudah terlink dari sesi sebelumnya — anggap sukses
+        return true;
+      }
+      debugPrint('Link password error: ${e.code} - ${e.message}');
+      return false;
     } catch (e) {
       debugPrint('Link password error: $e');
       return false;
