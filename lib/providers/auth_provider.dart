@@ -278,6 +278,15 @@ class AuthProvider extends ChangeNotifier {
         await prefs.setString(_keyUsername, _username);
         await prefs.setString(_keyEmail, _email);
 
+        // Cek apakah user sudah punya password terlink
+        final hasPassword = userCredential.user!.providerData.any(
+          (info) => info.providerId == 'password',
+        );
+        if (!hasPassword) {
+          notifyListeners();
+          return 'needs_password';
+        }
+
         // Cek apakah user baru (pertama kali login dengan Google)
         final isNewUser =
             userCredential.additionalUserInfo?.isNewUser ?? false;
@@ -334,6 +343,23 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Google Sign-In error: $e');
       return 'error';
+    }
+  }
+
+  /// Link password ke akun Google agar bisa login via email/password
+  Future<bool> linkPassword(String password) async {
+    try {
+      final user = _auth.currentUser;
+      if (user?.email == null) return false;
+      final credential = EmailAuthProvider.credential(
+        email: user!.email!,
+        password: password,
+      );
+      await user.linkWithCredential(credential);
+      return true;
+    } catch (e) {
+      debugPrint('Link password error: $e');
+      return false;
     }
   }
 

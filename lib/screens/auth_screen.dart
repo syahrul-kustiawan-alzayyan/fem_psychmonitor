@@ -10,6 +10,7 @@ import '../l10n/app_localizations.dart';
 import '../main.dart';
 import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
+import '../services/database_service.dart';
 import '../services/subscription_service.dart';
 import '../screens/onboarding_screen.dart';
 import '../theme/app_theme.dart';
@@ -180,6 +181,10 @@ class _AuthScreenState extends State<AuthScreen>
         }
         if (!mounted) return;
         _showOnboardingRequiredDialog();
+        break;
+
+      case 'needs_password':
+        _showSetPasswordDialog();
         break;
 
       case 'cancelled':
@@ -731,6 +736,14 @@ class _AuthScreenState extends State<AuthScreen>
           ],
         ),
       ),
+    );
+  }
+
+  void _showSetPasswordDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const _SetPasswordDialog(),
     );
   }
 
@@ -1654,6 +1667,287 @@ class _VerificationDialogState extends State<_VerificationDialog>
         ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+/// ─────────────────────────────────────────────────────────────
+/// _SetPasswordDialog - Dialog untuk membuat password bagi akun Google
+/// ─────────────────────────────────────────────────────────────
+class _SetPasswordDialog extends StatefulWidget {
+  const _SetPasswordDialog();
+
+  @override
+  State<_SetPasswordDialog> createState() => _SetPasswordDialogState();
+}
+
+class _SetPasswordDialogState extends State<_SetPasswordDialog> {
+  final _passCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
+  bool _obscure = true;
+  bool _obscureConfirm = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _passCtrl.dispose();
+    _confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppTheme.surface(context),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.15),
+                  AppTheme.primaryDark.withValues(alpha: 0.08),
+                ],
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.lock_outline_rounded,
+              color: Color(0xFFE8728A),
+              size: 48,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Buat Password',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textP(context),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Buat password untuk akun Google Anda agar bisa login juga menggunakan email dan password.',
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: AppTheme.textS(context),
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          TextFormField(
+            controller: _passCtrl,
+            obscureText: _obscure,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: AppTheme.textP(context),
+            ),
+            decoration: InputDecoration(
+              hintText: 'Password minimal 6 karakter',
+              hintStyle: GoogleFonts.poppins(
+                fontSize: 13,
+                color: AppTheme.textH(context),
+              ),
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(left: 14, right: 8),
+                child: Icon(
+                  Icons.lock_outlined,
+                  color: AppTheme.textH(context),
+                  size: 20,
+                ),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscure
+                      ? Icons.visibility_off_rounded
+                      : Icons.visibility_rounded,
+                  color: AppTheme.textH(context),
+                  size: 20,
+                ),
+                onPressed: () => setState(() => _obscure = !_obscure),
+              ),
+              filled: true,
+              fillColor: AppTheme.surfVar(context).withValues(alpha: 0.7),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _confirmCtrl,
+            obscureText: _obscureConfirm,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: AppTheme.textP(context),
+            ),
+            decoration: InputDecoration(
+              hintText: 'Konfirmasi password',
+              hintStyle: GoogleFonts.poppins(
+                fontSize: 13,
+                color: AppTheme.textH(context),
+              ),
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(left: 14, right: 8),
+                child: Icon(
+                  Icons.lock_outlined,
+                  color: AppTheme.textH(context),
+                  size: 20,
+                ),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureConfirm
+                      ? Icons.visibility_off_rounded
+                      : Icons.visibility_rounded,
+                  color: AppTheme.textH(context),
+                  size: 20,
+                ),
+                onPressed: () =>
+                    setState(() => _obscureConfirm = !_obscureConfirm),
+              ),
+              filled: true,
+              fillColor: AppTheme.surfVar(context).withValues(alpha: 0.7),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: _isLoading
+                  ? null
+                  : () async {
+                      final pass = _passCtrl.text.trim();
+                      final confirm = _confirmCtrl.text.trim();
+
+                      if (pass.length < 6) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Password minimal 6 karakter'),
+                            backgroundColor: const Color(0xFFEF4444),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      if (pass != confirm) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Password tidak cocok'),
+                            backgroundColor: const Color(0xFFEF4444),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+
+                      setState(() => _isLoading = true);
+                      final ok = await context
+                          .read<AuthProvider>()
+                          .linkPassword(pass);
+
+                      if (!context.mounted) return;
+
+                      if (ok) {
+                        Navigator.of(context).pop();
+                        final appUser = await DatabaseService.getUser();
+                        if (!context.mounted) return;
+                        if (appUser == null ||
+                            appUser.bigFiveScores.isEmpty) {
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (ctx) => OnboardingScreen(
+                                onCompleted: () {
+                                  Navigator.of(ctx).pushReplacement(
+                                    MaterialPageRoute(
+                                      builder: (_) => const MainNavigation(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        } else {
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (_) => const AppRouter(),
+                            ),
+                          );
+                        }
+                      } else {
+                        setState(() => _isLoading = false);
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              'Gagal menyimpan password. Coba lagi.',
+                            ),
+                            backgroundColor: const Color(0xFFEF4444),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                elevation: 0,
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.5,
+                      ),
+                    )
+                  : Text(
+                      'Simpan Password',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
