@@ -46,7 +46,9 @@ class OnboardingScreen extends StatelessWidget {
         mbtiType: mbtiType,
         mbtiScores: mbtiScores,
         bigFiveScores: bigFiveScores,
-        psychologicalScore: psychScore == 0 ? null : psychScore,
+        psychologicalScore: psychScore != null
+            ? ((60 - psychScore) / 60 * 100).round()
+            : null,
         createdAt: DateTime.now(),
       );
 

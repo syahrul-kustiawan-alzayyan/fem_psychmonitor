@@ -634,6 +634,7 @@ class AppLocalizations {
       'reset': 'Reset',
       'reward_earned_title': 'Reward Didapatkan!',
       'reward_earned_message': 'Terima kasih telah menonton iklan. Kamu bisa melakukan 1 deteksi emosi tambahan sekarang.',
+      'login_successful': 'Login Berhasil',
     },
 
     // ════════════════════════════════════════════
@@ -1244,7 +1245,7 @@ class AppLocalizations {
       'reset': 'Reset',
       'reward_earned_title': 'Reward Earned!',
       'reward_earned_message': 'Thank you for watching the ad. You can now do 1 additional emotion detection.',
-      'start_recording': 'Start Recording',
+      'login_successful': 'Login Successful',
     },
   };
 }

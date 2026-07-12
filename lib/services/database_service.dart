@@ -100,6 +100,7 @@ class DatabaseService {
       'mbti_type': user.mbtiType,
       'mbti_scores': user.mbtiScores,
       'bigfive_scores': user.bigFiveScores.map((k, v) => MapEntry(k, v)),
+      'psych_score': user.psychologicalScore,
       'updated_at': FieldValue.serverTimestamp(),
     });
   }

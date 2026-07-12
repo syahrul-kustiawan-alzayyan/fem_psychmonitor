@@ -256,7 +256,7 @@ class ResultSection extends StatelessWidget {
 
     final displayScore100 = ((60 - psyScore) / 60 * 100).round();
 
-    if (displayScore100 >= 75) {
+    if (displayScore100 >= 76) {
       category = AppLocalizations.tr('psych_excellent');
       advice = AppLocalizations.tr('overall_exc_1');
       cardColor = const Color(0xFF22C55E);
@@ -266,7 +266,7 @@ class ResultSection extends StatelessWidget {
         AppLocalizations.tr('result_rec_2'),
         AppLocalizations.tr('result_rec_3'),
       ];
-    } else if (displayScore100 >= 50) {
+    } else if (displayScore100 >= 51) {
       category = AppLocalizations.tr('psych_good');
       advice = AppLocalizations.tr('overall_good_2');
       cardColor = const Color(0xFF84CC16);
@@ -276,7 +276,7 @@ class ResultSection extends StatelessWidget {
         AppLocalizations.tr('result_rec_5'),
         AppLocalizations.tr('result_rec_6'),
       ];
-    } else if (displayScore100 >= 25) {
+    } else if (displayScore100 >= 26) {
       category = AppLocalizations.tr('psych_fair');
       advice = AppLocalizations.tr('overall_fair_2');
       cardColor = const Color(0xFFF59E0B);

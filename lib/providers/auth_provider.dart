@@ -54,142 +54,127 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Login menggunakan Firebase Auth.
+  /// Login atau auto-register jika email belum terdaftar.
   /// Returns:
-  ///   'success' — login berhasil dan email sudah diverifikasi
-  ///   'email_not_verified' — login berhasil tapi email belum diverifikasi
-  ///   'error' — gagal login (credential salah, dll)
-  Future<String> login({
+  ///   'success' — login berhasil, email sudah diverifikasi
+  ///   'new_user' — user baru (perlu onboarding), email sudah diverifikasi
+  ///   'verification_sent' — akun baru dibuat, email verifikasi terkirim
+  ///   'email_not_verified' — email sudah terdaftar tapi belum diverifikasi
+  ///   'error' — gagal
+  Future<String> loginOrRegister({
     required String email,
     required String password,
   }) async {
     try {
-      final credential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      UserCredential credential;
+      bool isNewUser = false;
 
-      if (credential.user != null) {
-        // Cek apakah email sudah diverifikasi
-        // Reload user data untuk mendapat status terbaru
-        await credential.user!.reload();
-        final refreshedUser = _auth.currentUser;
-
-        if (refreshedUser != null && !refreshedUser.emailVerified) {
-          // Email belum diverifikasi — sign out dan kembalikan status
-          await _auth.signOut();
-          return 'email_not_verified';
-        }
-
-        _isLoggedIn = true;
-        _email = credential.user!.email ?? email;
-
-        // Ambil username dari Firestore jika ada
-        final appUser = await DatabaseService.getUser();
-        _username = appUser?.name ?? credential.user!.displayName ?? email.split('@').first;
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_keyUsername, _username);
-        await prefs.setString(_keyEmail, _email);
-
-        // Link onboarding records safely
-        final hasPending = prefs.getBool('pending_onboarding_data') ?? false;
-
-        if (appUser == null && !hasPending) {
-          // Brand new user — create minimal user and redirect to onboarding
-          final minimalUser = AppUser(
-            name: _username,
-            mbtiType: '',
-            mbtiScores: {},
-            bigFiveScores: {},
-            createdAt: DateTime.now(),
+      try {
+        credential = await _auth.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+      } on FirebaseAuthException {
+        try {
+          credential = await _auth.createUserWithEmailAndPassword(
+            email: email,
+            password: password,
           );
-          await DatabaseService.insertUser(minimalUser);
-          notifyListeners();
-          return 'new_user';
+          isNewUser = true;
+        } on FirebaseAuthException catch (e2) {
+          if (e2.code == 'email-already-in-use') {
+            // ignore: deprecated_member_use
+            final methods = await _auth.fetchSignInMethodsForEmail(email);
+            if (methods.contains('google.com')) {
+              return 'google_account';
+            }
+            return 'email_already_in_use';
+          }
+          rethrow;
         }
+      }
 
+      if (credential.user == null) return 'error';
+
+      // Kirim email verifikasi untuk user baru
+      if (isNewUser) {
+        final username = email.split('@').first;
+        await credential.user!.updateDisplayName(username);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_keyUsername, username);
+        final actionCodeSettings = ActionCodeSettings(
+          url: 'https://fem-psychmonitor.firebaseapp.com/__/auth/action',
+          handleCodeInApp: true,
+          iOSBundleId: 'com.fempsychmonitor',
+          androidPackageName: 'com.fempsychmonitor',
+          androidInstallApp: true,
+          androidMinimumVersion: '1',
+        );
+        await credential.user!.sendEmailVerification(actionCodeSettings);
+        await _auth.signOut();
+        return 'verification_sent';
+      }
+
+      // User existing — cek verifikasi email
+      await credential.user!.reload();
+      final refreshedUser = _auth.currentUser;
+      if (refreshedUser != null && !refreshedUser.emailVerified) {
+        await _auth.signOut();
+        return 'email_not_verified';
+      }
+
+      // Email sudah diverifikasi — login sukses
+      _isLoggedIn = true;
+      _email = credential.user!.email ?? email;
+      final appUser = await DatabaseService.getUser();
+      _username = appUser?.name ?? credential.user!.displayName ?? email.split('@').first;
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyUsername, _username);
+      await prefs.setString(_keyEmail, _email);
+
+      final hasPending = prefs.getBool('pending_onboarding_data') ?? false;
+
+      if (appUser == null && !hasPending) {
+        final minimalUser = AppUser(
+          name: _username,
+          mbtiType: '',
+          mbtiScores: {},
+          bigFiveScores: {},
+          createdAt: DateTime.now(),
+        );
+        await DatabaseService.insertUser(minimalUser);
+        notifyListeners();
+        return 'new_user';
+      }
+
+      if (hasPending) {
+        try {
+          await OnboardingScreen.savePendingOnboardingToFirestore();
+        } catch (_) {}
+        notifyListeners();
+        return 'success';
+      }
+
+      if (appUser!.bigFiveScores.isEmpty) {
         if (hasPending) {
-          // User completed onboarding offline — sync to Firestore
           try {
             await OnboardingScreen.savePendingOnboardingToFirestore();
           } catch (_) {}
           notifyListeners();
           return 'success';
         }
-
-        // Existing user with Firestore record
-        if (appUser!.bigFiveScores.isEmpty) {
-          // Cek dulu apakah ada data pending yang harus disync
-          if (hasPending) {
-            try {
-              await OnboardingScreen.savePendingOnboardingToFirestore();
-            } catch (_) {}
-            notifyListeners();
-            return 'success';
-          }
-          notifyListeners();
-          return 'new_user';
-        }
-
         notifyListeners();
-        return 'success';
+        return 'new_user';
       }
-      return 'error';
+
+      notifyListeners();
+      return 'success';
     } on FirebaseAuthException catch (e) {
-      debugPrint('Login error: ${e.code} - ${e.message}');
+      debugPrint('Login/Register error: ${e.code} - ${e.message}');
       return e.code;
     } catch (e) {
-      debugPrint('Login error: $e');
-      return 'error';
-    }
-  }
-
-  /// Register menggunakan Firebase Auth + kirim email verifikasi.
-  /// Returns:
-  ///   'success' — akun berhasil dibuat, email verifikasi terkirim
-  ///   'email_exists' — email sudah terdaftar
-  ///   'error' — gagal
-  Future<String> register({
-    required String email,
-    required String password,
-    required String username,
-  }) async {
-    try {
-      final credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      if (credential.user != null) {
-        // Update display name di Firebase Auth
-        await credential.user!.updateDisplayName(username);
-
-        // Kirim email verifikasi
-        await credential.user!.sendEmailVerification();
-
-        // Simpan username lokal
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_keyUsername, username);
-
-        _username = username;
-
-        // Sign out setelah register karena email belum diverifikasi
-        await _auth.signOut();
-        _isLoggedIn = false;
-
-        notifyListeners();
-        return 'success';
-      }
-      return 'error';
-    } on FirebaseAuthException catch (e) {
-      debugPrint('Register error: ${e.code} - ${e.message}');
-      if (e.code == 'email-already-in-use') {
-        return 'email_exists';
-      }
-      return e.code;
-    } catch (e) {
-      debugPrint('Register error: $e');
+      debugPrint('Login/Register error: $e');
       return 'error';
     }
   }
@@ -200,19 +185,55 @@ class AuthProvider extends ChangeNotifier {
     required String password,
   }) async {
     try {
-      // Login sementara untuk kirim ulang email
       final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
       if (credential.user != null) {
-        await credential.user!.sendEmailVerification();
+        final actionCodeSettings = ActionCodeSettings(
+          url: 'https://fem-psychmonitor.firebaseapp.com/__/auth/action',
+          handleCodeInApp: true,
+          iOSBundleId: 'com.fempsychmonitor',
+          androidPackageName: 'com.fempsychmonitor',
+          androidInstallApp: true,
+          androidMinimumVersion: '1',
+        );
+        await credential.user!.sendEmailVerification(actionCodeSettings);
         await _auth.signOut();
         return true;
       }
       return false;
     } catch (e) {
       debugPrint('Resend verification error: $e');
+      return false;
+    }
+  }
+
+  /// Cek apakah email sudah diverifikasi (tanpa register ulang)
+  Future<bool> checkEmailVerified(String email, String password) async {
+    try {
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final verified = credential.user?.emailVerified ?? false;
+      if (!verified) {
+        await _auth.signOut();
+      }
+      return verified;
+    } catch (e) {
+      debugPrint('Check email verified error: $e');
+      return false;
+    }
+  }
+
+  /// Kirim email reset password
+  Future<bool> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return true;
+    } catch (e) {
+      debugPrint('Reset password error: $e');
       return false;
     }
   }

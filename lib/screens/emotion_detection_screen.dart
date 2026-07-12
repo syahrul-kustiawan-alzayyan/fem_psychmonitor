@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:record/record.dart';
 import 'package:whisper_kit/whisper_kit.dart';
 import 'package:path_provider/path_provider.dart';
@@ -156,7 +157,8 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
 
     final premium = context.read<PremiumProvider>();
     if (!premium.isPremium) {
-      final remaining = await StorageService.getRemainingDetections();
+      final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+      final remaining = await StorageService.getRemainingDetections(uid);
       if (remaining <= 0) {
         if (!mounted) return;
         final watched = await _showRewardedAdDialog();
@@ -350,6 +352,17 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
       );
 
       final recId = await DatabaseService.insertRecording(record);
+
+      // Update psychological score di Firebase dengan adjustment emosi
+      final currentUser = await DatabaseService.getUser();
+      if (currentUser?.psychologicalScore != null) {
+        final emotionScore = dominant.key.emotionValue * dominant.value;
+        final newScore = ((currentUser!.psychologicalScore! + emotionScore).clamp(0, 100)).round();
+        await DatabaseService.updateUser(
+          currentUser.copyWith(psychologicalScore: newScore),
+        );
+      }
+
       final savedRecord = RecordingData(
         id: recId,
         userId: record.userId,
@@ -365,7 +378,8 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
       );
 
       if (!context.read<PremiumProvider>().isPremium) {
-        await StorageService.incrementDetectionCount();
+        final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+        await StorageService.incrementDetectionCount(uid);
       }
 
       if (mounted) {
@@ -400,8 +414,9 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
   }
 
   Widget _buildRemainingChip() {
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
     return FutureBuilder<int>(
-      future: StorageService.getRemainingDetections(),
+      future: StorageService.getRemainingDetections(uid),
       builder: (context, snapshot) {
         final premium = context.watch<PremiumProvider>();
         final remaining = snapshot.data ?? 5;

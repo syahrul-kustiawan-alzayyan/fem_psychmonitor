@@ -577,23 +577,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       future: DatabaseService.getUser(),
       builder: (context, snapshot) {
         final user = snapshot.data;
-        final basePsychScore = user?.psychologicalScore; // 0-60 (tinggi = buruk)
+        final basePsychScore = user?.psychologicalScore; // 0-100 (tinggi = baik)
 
-        // Gunakan skor emosi terakhir (paling baru)
-        double emotionAdjustment = 0;
-        if (history.isNotEmpty) {
-          emotionAdjustment = history.first.emotionScore;
-        }
-
-        // Konversi ke skala 0-100 (tinggi = sehat)
-        // Skor kuesioner: 0-60 → invert ke 0-100
-        // Base: (60 - psychScore) / 60 * 100
-        // Adjustment: emotionAdjustment range -5..+5 → mapped to ±17 poin
+        // Skor langsung 0-100 dari Firebase (tinggi = sehat)
+        // Skor sudah termasuk adjustment dari rekaman emosi sebelumnya
         int? displayScore100;
         if (basePsychScore != null) {
-          final baseScore100 = ((60 - basePsychScore) / 60 * 100).round();
-          final adjustment100 = emotionAdjustment;
-          displayScore100 = ((baseScore100 + adjustment100).clamp(0, 100)).round();
+          displayScore100 = basePsychScore;
           // Override skor untuk testing safety layer
           if (FirebaseAuth.instance.currentUser?.uid ==
               '3v01CZB4LQMblWB2Z2AHv5Sv8q63') {
@@ -616,21 +606,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           statusIcon = Icons.help_outline_rounded;
           emoji = '📋';
           description = AppLocalizations.tr('fill_questionnaire_to_see_score');
-        } else if (displayScore100 >= 75) {
-          primaryColor = const Color(0xFF10B981); // Green - Baik
+        } else if (displayScore100 >= 76) {
+          primaryColor = const Color(0xFF10B981); // Green - Optimal
           secondaryColor = const Color(0xFF34D399);
           statusLabel = AppLocalizations.tr('psych_excellent');
           statusIcon = Icons.check_circle_rounded;
           emoji = '😊';
           description = _getHealthClassDescription(displayScore100);
-        } else if (displayScore100 >= 50) {
+        } else if (displayScore100 >= 51) {
           primaryColor = const Color(0xFFF59E0B); // Amber - Cukup
           secondaryColor = const Color(0xFFFBBF24);
           statusLabel = AppLocalizations.tr('psych_good');
           statusIcon = Icons.check_circle_outline_rounded;
           emoji = '🙂';
           description = _getHealthClassDescription(displayScore100);
-        } else if (displayScore100 >= 25) {
+        } else if (displayScore100 >= 26) {
           primaryColor = const Color(0xFFF97316); // Orange - Rentan
           secondaryColor = const Color(0xFFFB923C);
           statusLabel = AppLocalizations.tr('psych_fair');
@@ -909,7 +899,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             Row(
                               children: [
                                 Icon(
-                                  emotionAdjustment >= 0
+                                  history.first.emotionScore >= 0
                                       ? Icons.trending_up_rounded
                                       : Icons.trending_down_rounded,
                                   color: Colors.white.withValues(alpha: 0.85),
@@ -918,7 +908,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
-                                    emotionAdjustment >= 0
+                                    history.first.emotionScore >= 0
                                         ? AppLocalizations.tr('positive_emotions_increase')
                                         : AppLocalizations.tr('negative_emotions_decrease'),
                                     style: GoogleFonts.poppins(
@@ -934,9 +924,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    emotionAdjustment >= 0
-                                        ? '+${(emotionAdjustment.abs() / 5 * 17).round()}'
-                                        : '-${(emotionAdjustment.abs() / 5 * 17).round()}',
+                                    history.first.emotionScore >= 0
+                                        ? '+${(history.first.emotionScore.abs() / 5 * 17).round()}'
+                                        : '-${(history.first.emotionScore.abs() / 5 * 17).round()}',
                                     style: GoogleFonts.poppins(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
@@ -952,7 +942,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ],
 
                     // Safety layer (butuh perhatian klinis)
-                    if (displayScore100 != null && displayScore100 < 25) ...[
+                    if (displayScore100 != null && displayScore100 < 26) ...[
                       const SizedBox(height: 16),
                       _buildPsychSafetyReferral(context),
                     ],
@@ -1024,36 +1014,36 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Path aset level mental berdasarkan skor
   String _mentalLevelIcon(int? score) {
     if (score == null) return 'assets/icon/level mental/butuh perhatian.png';
-    if (score >= 75) return 'assets/icon/level mental/baik.png';
-    if (score >= 50) return 'assets/icon/level mental/cukup.png';
-    if (score >= 25) return 'assets/icon/level mental/rentan.png';
+    if (score >= 76) return 'assets/icon/level mental/baik.png';
+    if (score >= 51) return 'assets/icon/level mental/cukup.png';
+    if (score >= 26) return 'assets/icon/level mental/rentan.png';
     return 'assets/icon/level mental/butuh perhatian.png';
   }
 
   // Helper untuk kategori skor 0-100 (tinggi = baik)
   String _getScoreCategory100(int score) {
-    if (score >= 75) return AppLocalizations.tr('psych_excellent');
-    if (score >= 50) return AppLocalizations.tr('psych_good');
-    if (score >= 25) return AppLocalizations.tr('psych_fair');
+    if (score >= 76) return AppLocalizations.tr('psych_excellent');
+    if (score >= 51) return AppLocalizations.tr('psych_good');
+    if (score >= 26) return AppLocalizations.tr('psych_fair');
     return AppLocalizations.tr('psych_needs_attention');
   }
 
   // Helper untuk get description kelas kesehatan mental
   String _getHealthClassDescription(int score) {
-    if (score >= 90) return AppLocalizations.tr('overall_exc_4');
-    if (score >= 80) return AppLocalizations.tr('overall_exc_3');
-    if (score >= 75) return AppLocalizations.tr('overall_exc_2');
-    if (score >= 65) return AppLocalizations.tr('overall_good_4');
-    if (score >= 60) return AppLocalizations.tr('overall_good_3');
-    if (score >= 55) return AppLocalizations.tr('overall_good_2');
-    if (score >= 50) return AppLocalizations.tr('overall_good_1');
-    if (score >= 40) return AppLocalizations.tr('overall_fair_5');
-    if (score >= 35) return AppLocalizations.tr('overall_fair_4');
-    if (score >= 30) return AppLocalizations.tr('overall_fair_3');
-    if (score >= 25) return AppLocalizations.tr('overall_fair_2');
-    if (score >= 15) return AppLocalizations.tr('overall_attn_5');
-    if (score >= 10) return AppLocalizations.tr('overall_attn_4');
-    if (score >= 5)  return AppLocalizations.tr('overall_attn_3');
+    if (score >= 91) return AppLocalizations.tr('overall_exc_4');
+    if (score >= 81) return AppLocalizations.tr('overall_exc_3');
+    if (score >= 76) return AppLocalizations.tr('overall_exc_2');
+    if (score >= 66) return AppLocalizations.tr('overall_good_4');
+    if (score >= 61) return AppLocalizations.tr('overall_good_3');
+    if (score >= 56) return AppLocalizations.tr('overall_good_2');
+    if (score >= 51) return AppLocalizations.tr('overall_good_1');
+    if (score >= 41) return AppLocalizations.tr('overall_fair_5');
+    if (score >= 36) return AppLocalizations.tr('overall_fair_4');
+    if (score >= 31) return AppLocalizations.tr('overall_fair_3');
+    if (score >= 26) return AppLocalizations.tr('overall_fair_2');
+    if (score >= 16) return AppLocalizations.tr('overall_attn_5');
+    if (score >= 11) return AppLocalizations.tr('overall_attn_4');
+    if (score >= 6)  return AppLocalizations.tr('overall_attn_3');
     return AppLocalizations.tr('overall_attn_2');
   }
 
@@ -1148,8 +1138,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Widget: Sisa Deteksi Harian
   // ─────────────────────────────────────────────────────────────
   Widget _buildRemainingDetections(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
     return FutureBuilder<int>(
-      future: StorageService.getRemainingDetections(),
+      future: StorageService.getRemainingDetections(uid),
       builder: (context, snapshot) {
         final premium = context.watch<PremiumProvider>();
         final remaining = snapshot.data ?? 5;

@@ -36,31 +36,31 @@ class StorageService {
     await prefs.remove(_keyUserName);
   }
 
-  // ── Daily Detection Limit ─────────────────────────────────────
-  static const String _keyDetectDate = 'detection_date';
-  static const String _keyDetectCount = 'detection_count';
+  // ── Daily Detection Limit (per-akun) ──────────────────────────
+  static String _detectDateKey(String uid) => 'detection_date_$uid';
+  static String _detectCountKey(String uid) => 'detection_count_$uid';
 
-  /// Sisa deteksi gratis hari ini (max 5)
-  static Future<int> getRemainingDetections() async {
+  /// Sisa deteksi gratis hari ini (max 5, per-akun)
+  static Future<int> getRemainingDetections(String uid) async {
     final prefs = await SharedPreferences.getInstance();
     final today = _todayStr();
-    final savedDate = prefs.getString(_keyDetectDate) ?? '';
+    final savedDate = prefs.getString(_detectDateKey(uid)) ?? '';
     if (savedDate != today) return 5;
-    final count = prefs.getInt(_keyDetectCount) ?? 0;
+    final count = prefs.getInt(_detectCountKey(uid)) ?? 0;
     return (5 - count).clamp(0, 5);
   }
 
-  /// Tambah 1 hitungan deteksi hari ini
-  static Future<void> incrementDetectionCount() async {
+  /// Tambah 1 hitungan deteksi hari ini (per-akun)
+  static Future<void> incrementDetectionCount(String uid) async {
     final prefs = await SharedPreferences.getInstance();
     final today = _todayStr();
-    final savedDate = prefs.getString(_keyDetectDate) ?? '';
+    final savedDate = prefs.getString(_detectDateKey(uid)) ?? '';
     if (savedDate != today) {
-      await prefs.setString(_keyDetectDate, today);
-      await prefs.setInt(_keyDetectCount, 1);
+      await prefs.setString(_detectDateKey(uid), today);
+      await prefs.setInt(_detectCountKey(uid), 1);
     } else {
-      final count = (prefs.getInt(_keyDetectCount) ?? 0) + 1;
-      await prefs.setInt(_keyDetectCount, count);
+      final count = (prefs.getInt(_detectCountKey(uid)) ?? 0) + 1;
+      await prefs.setInt(_detectCountKey(uid), count);
     }
   }
 

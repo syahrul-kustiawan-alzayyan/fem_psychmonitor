@@ -44,9 +44,9 @@ class AppUser {
 
   String get mentalHealthCategory {
     if (psychologicalScore == null) return 'Belum Dinilai';
-    if (psychologicalScore! <= 15) return 'Sehat Optimal';
-    if (psychologicalScore! <= 30) return 'Cukup Sehat';
-    if (psychologicalScore! <= 45) return 'Rentan';
+    if (psychologicalScore! >= 76) return 'Sehat Optimal';
+    if (psychologicalScore! >= 51) return 'Cukup';
+    if (psychologicalScore! >= 26) return 'Rentan';
     return 'Butuh Perhatian Klinis';
   }
 
@@ -54,11 +54,11 @@ class AppUser {
     if (psychologicalScore == null) {
       return 'Anda belum mengisi kuesioner kesehatan mental.';
     }
-    if (psychologicalScore! <= 15) {
+    if (psychologicalScore! >= 76) {
       return 'Kondisi kesehatan mental Anda sangat baik. Anda memiliki mekanisme koping yang tangguh, batasan personal yang sehat, dan mampu mengelola stres serta tuntutan sosial dengan sangat efektif. Tetap pertahankan gaya hidup sehat dan dukungan sosial Anda.';
-    } else if (psychologicalScore! <= 30) {
+    } else if (psychologicalScore! >= 51) {
       return 'Kesehatan mental Anda secara umum stabil, namun ada beberapa pemicu stres (seperti beban ganda atau fluktuasi hormonal) yang mulai memengaruhi rutinitas. Ini adalah fase wajar. Sangat disarankan untuk meningkatkan waktu istirahat dan self-care.';
-    } else if (psychologicalScore! <= 45) {
+    } else if (psychologicalScore! >= 26) {
       return 'Anda sedang menghadapi tantangan emosional yang signifikan. Terdapat gejala kelelahan mental (burnout), kecemasan, atau masalah citra diri yang mulai mengganggu fungsi harian. Mulailah berbicara dengan orang terpercaya atau pertimbangkan sesi konseling awal.';
     } else {
       return 'Skor ini mengindikasikan distres psikologis yang tinggi. Anda mungkin merasa kewalahan, putus asa, atau mengalami gejala psikosomatis yang mengganggu kesehatan fisik. Sangat disarankan untuk segera mencari bantuan profesional (psikolog klinis/psikiater) untuk mendapatkan intervensi yang tepat.';
@@ -69,11 +69,11 @@ class AppUser {
     if (psychologicalScore == null) {
       return 'Silakan isi kuesioner kesehatan mental untuk mendapatkan saran.';
     }
-    if (psychologicalScore! <= 15) {
+    if (psychologicalScore! >= 76) {
       return 'Pertahankan rutinitas sehat dan terus mendukung mereka yang membutuhkan.';
-    } else if (psychologicalScore! <= 30) {
+    } else if (psychologicalScore! >= 51) {
       return 'Tambahkan waktu istirahat dan aktivitas self-care ke dalam kegiatan sehari-hari Anda.';
-    } else if (psychologicalScore! <= 45) {
+    } else if (psychologicalScore! >= 26) {
       return 'Segera bicarakan dengan orang terpercaya atau konsultan profesional.';
     } else {
       return 'Segera cari bantuan profesional (psikolog klinis atau psikiater).';

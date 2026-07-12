@@ -433,6 +433,7 @@ class _MainNavigationState extends State<MainNavigation>
     final themeMode = context.watch<ThemeProvider>().themeMode;
 
     return Scaffold(
+      backgroundColor: AppTheme.bg(context),
       body: IndexedStack(
         key: ValueKey('nav_${localeName}_${themeMode.index}'),
         index: _currentIndex,

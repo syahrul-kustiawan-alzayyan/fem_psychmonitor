@@ -897,7 +897,7 @@ class _HistoryScreenState extends State<HistoryScreen>
       );
     }
 
-    final baseScore100 = ((60 - _psychScore!) / 60 * 100).toDouble();
+    final baseScore100 = _psychScore!.toDouble();
 
     final spots = List.generate(
       history.length,
@@ -911,9 +911,9 @@ class _HistoryScreenState extends State<HistoryScreen>
     final avgScore = spots.fold<double>(0, (sum, s) => sum + s.y) / spots.length;
 
     Color scoreColor(double s) {
-      if (s >= 75) return const Color(0xFF10B981);
-      if (s >= 50) return const Color(0xFFF59E0B);
-      if (s >= 25) return const Color(0xFFF97316);
+      if (s >= 76) return const Color(0xFF10B981);
+      if (s >= 51) return const Color(0xFFF59E0B);
+      if (s >= 26) return const Color(0xFFF97316);
       return const Color(0xFFEF4444);
     }
 
@@ -931,7 +931,7 @@ class _HistoryScreenState extends State<HistoryScreen>
           child: Row(
             children: [
               Icon(
-                avgScore >= 50 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                avgScore >= 51 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
                 color: scoreColor(avgScore),
                 size: 18,
               ),
@@ -1204,11 +1204,11 @@ class _HistoryScreenState extends State<HistoryScreen>
                 return touchedSpots.map((spot) {
                   final i = spot.spotIndex;
                   String label;
-                  if (spot.y >= 75) {
+                  if (spot.y >= 76) {
                     label = AppLocalizations.tr('psych_excellent');
-                  } else if (spot.y >= 50) {
+                  } else if (spot.y >= 51) {
                     label = AppLocalizations.tr('psych_good');
-                  } else if (spot.y >= 25) {
+                  } else if (spot.y >= 26) {
                     label = AppLocalizations.tr('psych_fair');
                   } else {
                     label = AppLocalizations.tr('psych_needs_attention');
