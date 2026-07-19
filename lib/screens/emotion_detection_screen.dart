@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:record/record.dart';
 import 'package:whisper_kit/whisper_kit.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
@@ -268,6 +270,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
       debugPrint('🎙️ Stop recording error: $e');
     }
     final path = recordedPath ?? _wavPath;
+    _wavPath = path; // sync untuk upload nanti
 
     // Step 2: Transcribe with Whisper (offline, no Google Services)
     String transcript = '';
@@ -352,6 +355,28 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
       );
 
       final recId = await DatabaseService.insertRecording(record);
+
+      // Upload audio ke Firebase Storage
+      if (_wavPath != null) {
+        try {
+          final file = File(_wavPath!);
+          if (!file.existsSync()) {
+            debugPrint('⚠️ File audio tidak ditemukan: $_wavPath');
+          } else {
+            debugPrint('📤 Upload audio: $_wavPath (${await file.length()} bytes)');
+            final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+            final ref = FirebaseStorage.instanceFor(bucket: 'fem-psychmonitor.firebasestorage.app').ref(
+              'recordings/$uid/$recId.wav',
+            );
+            await ref.putFile(file);
+            final audioUrl = await ref.getDownloadURL();
+            debugPrint('✅ Audio uploaded: $audioUrl');
+            await DatabaseService.updateRecordingAudioUrl(recId, audioUrl);
+          }
+        } catch (e) {
+          debugPrint('❌ Upload audio gagal: $e');
+        }
+      }
 
       // Update psychological score di Firebase dengan adjustment emosi
       final currentUser = await DatabaseService.getUser();

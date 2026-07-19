@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "637727281592-1u6kqsgsb86fn93vjh22f3bttr69gkha.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fempsychmonitor",
+            "certificate_hash": "00022b708ba1ce63a94827210d22c494076ffffc"
+          }
+        },
+        {
           "client_id": "637727281592-3gtirje69k0qkrpb2j3oj16fmbk3a2ql.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

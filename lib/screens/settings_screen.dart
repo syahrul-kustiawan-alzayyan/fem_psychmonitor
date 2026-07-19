@@ -262,7 +262,7 @@ class SettingsScreen extends StatelessWidget {
               // Footer: versi app
               Center(
                 child: Text(
-                  'Fem-Psych Monitor v2.0.0',
+                  'Fem-Psych Monitor v2.0.2',
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     color: AppTheme.textH(context),

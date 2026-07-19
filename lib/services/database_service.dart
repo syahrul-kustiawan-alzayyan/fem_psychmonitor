@@ -16,14 +16,17 @@ class DatabaseService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Helper: dapatkan UID user yang sedang login
-  static String? get _currentUid => FirebaseAuth.instance.currentUser?.uid;
+  static String? get currentUid => FirebaseAuth.instance.currentUser?.uid;
 
-  /// Reference ke dokumen user saat ini
-  static DocumentReference? get _userDoc {
-    final uid = _currentUid;
+  /// Reference ke dokumen user saat ini (public untuk eksternal)
+  static DocumentReference? get userDocRef {
+    final uid = currentUid;
     if (uid == null) return null;
     return _firestore.collection('users').doc(uid);
   }
+
+  /// Internal reference
+  static DocumentReference? get _userDoc => userDocRef;
 
   // ═══════════════════════════════════════════════════════════════
   // USER CRUD
@@ -31,7 +34,7 @@ class DatabaseService {
 
   /// Simpan user baru ke Firestore, return user id (UID string → int hash)
   static Future<int> insertUser(AppUser user) async {
-    final uid = _currentUid;
+    final uid = currentUid;
     if (uid == null) throw Exception('User not authenticated');
 
     final email = FirebaseAuth.instance.currentUser?.email ?? '';
@@ -64,7 +67,7 @@ class DatabaseService {
 
       final data = snapshot.data() as Map<String, dynamic>;
       return AppUser(
-        id: _currentUid.hashCode,
+        id: currentUid.hashCode,
         name: data['name'] as String? ?? 'User',
         mbtiType: data['mbti_type'] as String? ?? '',
         mbtiScores: Map<String, int>.from(
@@ -141,6 +144,7 @@ class DatabaseService {
       'transcript_text': recording.transcriptText,
       'duration_seconds': recording.durationSeconds,
       'trigger_tag': recording.triggerTag,
+      'audio_url': recording.audioUrl,
     });
 
     return newDoc.id.hashCode;
@@ -203,6 +207,24 @@ class DatabaseService {
       }
     } catch (e) {
       debugPrint('Error updating recording trigger: $e');
+    }
+  }
+
+  /// Update audio URL untuk recording tertentu
+  static Future<void> updateRecordingAudioUrl(int recordingId, String audioUrl) async {
+    final docRef = _userDoc;
+    if (docRef == null) return;
+
+    try {
+      final querySnapshot = await docRef.collection('recordings').get();
+      for (final doc in querySnapshot.docs) {
+        if (doc.id.hashCode == recordingId) {
+          await doc.reference.update({'audio_url': audioUrl});
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error updating recording audio URL: $e');
     }
   }
 
@@ -384,6 +406,7 @@ class RecordingData {
   final String transcriptText;
   final int durationSeconds;
   final String triggerTag;
+  final String audioUrl;
 
   const RecordingData({
     this.id,
@@ -397,6 +420,7 @@ class RecordingData {
     this.transcriptText = '',
     this.durationSeconds = 0,
     this.triggerTag = '',
+    this.audioUrl = '',
   });
 
   /// Factory dari Firestore document
@@ -445,6 +469,7 @@ class RecordingData {
       transcriptText: data['transcript_text'] as String? ?? '',
       durationSeconds: (data['duration_seconds'] as num?)?.toInt() ?? 0,
       triggerTag: data['trigger_tag'] as String? ?? '',
+      audioUrl: data['audio_url'] as String? ?? '',
     );
   }
 
