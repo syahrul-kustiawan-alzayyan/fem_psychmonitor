@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   firebase_core
   firebase_storage
   flutter_litert_flex
+  printing
   record_windows
   url_launcher_windows
 )

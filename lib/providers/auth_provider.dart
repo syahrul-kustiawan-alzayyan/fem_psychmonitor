@@ -16,10 +16,12 @@ class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   bool _isLoggedIn = false;
+  bool _isAdmin = false;
   String _email = '';
   String _username = '';
 
   bool get isLoggedIn => _isLoggedIn;
+  bool get isAdmin => _isAdmin;
   String get email => _email;
   String get username => _username;
 
@@ -33,9 +35,18 @@ class AuthProvider extends ChangeNotifier {
       _isLoggedIn = true;
       _email = currentUser.email ?? '';
       _username = prefs.getString(_keyUsername) ?? currentUser.displayName ?? currentUser.email?.split('@').first ?? 'User';
+      // Check admin status
+      try {
+        final doc = await DatabaseService.userDocRef?.get();
+        final data = doc?.data() as Map<String, dynamic>?;
+        _isAdmin = data?['isAdmin'] == true;
+      } catch (_) {
+        _isAdmin = false;
+      }
       await prefs.setString(_keyEmail, _email);
     } else {
       _isLoggedIn = false;
+      _isAdmin = false;
       _email = '';
       _username = '';
     }
@@ -115,8 +126,24 @@ class AuthProvider extends ChangeNotifier {
         return 'verification_sent';
       }
 
-      // User existing — cek verifikasi email
+      // Admin bypass — check admin status before email verification
       await credential.user!.reload();
+      final adminDoc = await DatabaseService.userDocRef?.get();
+      final adminData = adminDoc?.data() as Map<String, dynamic>?;
+      final isAdmin = adminData?['isAdmin'] == true;
+      if (isAdmin) {
+        _isLoggedIn = true;
+        _isAdmin = true;
+        _email = credential.user!.email ?? email;
+        _username = 'Admin';
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_keyUsername, _username);
+        await prefs.setString(_keyEmail, _email);
+        notifyListeners();
+        return 'admin';
+      }
+
+      // User existing — cek verifikasi email (skip untuk admin)
       final refreshedUser = _auth.currentUser;
       if (refreshedUser != null && !refreshedUser.emailVerified) {
         await _auth.signOut();
@@ -392,6 +419,7 @@ class AuthProvider extends ChangeNotifier {
 
     await _auth.signOut();
     _isLoggedIn = false;
+    _isAdmin = false;
     _email = '';
     _username = '';
 

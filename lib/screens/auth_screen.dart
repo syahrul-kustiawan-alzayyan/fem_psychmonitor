@@ -12,6 +12,7 @@ import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
 import '../services/database_service.dart';
 import '../services/subscription_service.dart';
+import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gradient_background.dart';
@@ -100,6 +101,29 @@ class _AuthScreenState extends State<AuthScreen>
         );
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const AppRouter()),
+        );
+        break;
+
+      case 'admin':
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                const Text('Admin login successful'),
+              ],
+            ),
+            backgroundColor: const Color(0xFF8B5CF6),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
         );
         break;
 

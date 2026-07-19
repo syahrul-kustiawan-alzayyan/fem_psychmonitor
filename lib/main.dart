@@ -5,12 +5,15 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 
 import 'l10n/app_localizations.dart';
 import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/premium_provider.dart';
+import 'providers/admin_provider.dart';
 import 'theme/app_theme.dart';
 import 'services/ad_service.dart';
 import 'services/subscription_service.dart';
@@ -70,6 +73,41 @@ void main() async {
     }
   }
 
+  // Auto-create admin account if not exists
+  final adminEmail = ConfigService.adminEmail;
+  final adminPassword = ConfigService.adminPassword;
+  if (adminEmail.isNotEmpty && adminPassword.isNotEmpty) {
+    final exists = await DatabaseService.adminExists();
+    if (!exists) {
+      try {
+        final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: adminEmail,
+          password: adminPassword,
+        );
+        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+          'name': 'Admin',
+          'email': adminEmail,
+          'isAdmin': true,
+          'mbti_type': '',
+          'mbti_scores': {},
+          'bigfive_scores': {},
+          'psych_score': null,
+          'created_at': FieldValue.serverTimestamp(),
+        });
+        await userCredential.user!.updateDisplayName('Admin');
+        debugPrint('Admin account created: $adminEmail');
+      } on FirebaseAuthException catch (e) {
+        if (e.code != 'email-already-in-use') {
+          debugPrint('Failed to create admin: $e');
+        }
+      }
+    } else {
+      debugPrint('Admin account already exists');
+    }
+  }
+
+  final adminProvider = AdminProvider();
+
   runApp(
     MultiProvider(
       providers: [
@@ -77,6 +115,7 @@ void main() async {
         ChangeNotifierProvider.value(value: themeProvider),
         ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider.value(value: premiumProvider),
+        ChangeNotifierProvider.value(value: adminProvider),
       ],
       child: const FemPhysicsMonitorApp(),
     ),

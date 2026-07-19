@@ -229,6 +229,91 @@ class DatabaseService {
   }
 
   // ═══════════════════════════════════════════════════════════════
+  // ADMIN METHODS
+  // ═══════════════════════════════════════════════════════════════
+
+  /// Get ALL users from Firestore (admin only)
+  static Future<List<Map<String, dynamic>>> getAllUsers() async {
+    try {
+      final snapshot = await _firestore.collection('users').get();
+      final users = <Map<String, dynamic>>[];
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        data['uid'] = doc.id;
+        users.add(data);
+      }
+      return users;
+    } catch (e) {
+      debugPrint('Error getting all users: $e');
+      return [];
+    }
+  }
+
+  /// Get a specific user by UID
+  static Future<AppUser?> getUserByUid(String uid) async {
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (!doc.exists) return null;
+      final data = doc.data()!;
+      return AppUser(
+        id: uid.hashCode,
+        name: data['name'] as String? ?? 'User',
+        mbtiType: data['mbti_type'] as String? ?? '',
+        mbtiScores: Map<String, int>.from(
+          (data['mbti_scores'] as Map?)?.map(
+            (k, v) => MapEntry(k.toString(), (v as num).toInt()),
+          ) ?? {},
+        ),
+        bigFiveScores: Map<String, double>.from(
+          (data['bigfive_scores'] as Map?)?.map(
+            (k, v) => MapEntry(k.toString(), (v as num).toDouble()),
+          ) ?? {},
+        ),
+        psychologicalScore: data['psych_score'] != null
+            ? (data['psych_score'] as num).toInt()
+            : null,
+        createdAt: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      );
+    } catch (e) {
+      debugPrint('Error getting user by UID: $e');
+      return null;
+    }
+  }
+
+  /// Get recordings for a specific user by UID
+  static Future<List<RecordingData>> getUserRecordings(String uid) async {
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('recordings')
+          .orderBy('date', descending: true)
+          .get();
+      return snapshot.docs.map((doc) {
+        return RecordingData.fromFirestore(doc.id, doc.data());
+      }).toList();
+    } catch (e) {
+      debugPrint('Error getting user recordings: $e');
+      return [];
+    }
+  }
+
+  /// Check if admin account exists
+  static Future<bool> adminExists() async {
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .where('isAdmin', isEqualTo: true)
+          .limit(1)
+          .get();
+      return snapshot.docs.isNotEmpty;
+    } catch (e) {
+      debugPrint('Error checking admin: $e');
+      return false;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
   // EMOTION SNAPSHOT CRUD
   // ═══════════════════════════════════════════════════════════════
 

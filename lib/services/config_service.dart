@@ -28,6 +28,10 @@ class ConfigService {
   static String get firebaseApiKey => _get('FIREBASE_API_KEY');
   static String get firebaseProjectId => _get('FIREBASE_PROJECT_ID');
 
+  // Admin
+  static String get adminEmail => _get('ADMIN_EMAIL');
+  static String get adminPassword => _get('ADMIN_PASSWORD');
+
   static String _get(String key) {
     return dotenv.env[key] ?? '';
   }
