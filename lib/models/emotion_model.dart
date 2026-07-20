@@ -43,12 +43,12 @@ extension EmotionTypeExtension on EmotionType {
   /// Nama tampilan dalam Bahasa Indonesia/Inggris
   String get displayName {
     switch (this) {
-      case EmotionType.happy:   return 'Happy';
-      case EmotionType.sad:     return 'Sad';
-      case EmotionType.angry:   return 'Angry';
-      case EmotionType.disgust: return 'Disgust';
-      case EmotionType.neutral: return 'Neutral';
-      case EmotionType.fear:    return 'Fear';
+      case EmotionType.happy:   return AppLocalizations.tr('emotion_happy');
+      case EmotionType.sad:     return AppLocalizations.tr('emotion_sad');
+      case EmotionType.angry:   return AppLocalizations.tr('emotion_angry');
+      case EmotionType.disgust: return AppLocalizations.tr('emotion_disgust');
+      case EmotionType.neutral: return AppLocalizations.tr('emotion_neutral');
+      case EmotionType.fear:    return AppLocalizations.tr('emotion_fear');
     }
   }
 
@@ -90,7 +90,15 @@ extension EmotionTypeExtension on EmotionType {
 
   /// Warna representatif (dari AppTheme)
   Color get color {
-    return AppTheme.emotionColors[displayName] ?? AppTheme.primaryColor;
+    const lookup = {
+      EmotionType.happy:   Color(0xFFFCD34D),
+      EmotionType.sad:     Color(0xFF93C5FD),
+      EmotionType.angry:   Color(0xFFFCA5A5),
+      EmotionType.disgust: Color(0xFF6EE7B7),
+      EmotionType.neutral: Color(0xFFCBD5E1),
+      EmotionType.fear:    Color(0xFFC4B5FD),
+    };
+    return lookup[this] ?? AppTheme.primaryColor;
   }
 
   /// Pesan psikologis singkat

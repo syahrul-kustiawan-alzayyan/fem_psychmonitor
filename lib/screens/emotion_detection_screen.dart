@@ -883,8 +883,15 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     final e = emotion ?? EmotionType.neutral;
     final scores = _currentScores;
     final conf = scores[e] ?? 0;
-    final bgColors = AppTheme.emotionBgColors;
-    final bgColor = bgColors[e.displayName] ?? AppTheme.surfVar(context);
+    const bgColors = {
+      EmotionType.happy:   Color(0xFFFEF9C3),
+      EmotionType.sad:     Color(0xFFDBEAFE),
+      EmotionType.angry:   Color(0xFFFEE2E2),
+      EmotionType.disgust: Color(0xFFD1FAE5),
+      EmotionType.neutral: Color(0xFFF1F5F9),
+      EmotionType.fear:    Color(0xFFEDE9FE),
+    };
+    final bgColor = bgColors[e] ?? AppTheme.surfVar(context);
     return Container(
       height: 200,
       decoration: BoxDecoration(

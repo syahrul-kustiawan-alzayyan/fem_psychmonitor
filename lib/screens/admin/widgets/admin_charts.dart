@@ -24,7 +24,7 @@ class EmotionDistributionBarChart extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: AppTheme.surface(context),
-          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+          borderRadius: BorderRadius.circular(22),
           boxShadow: AppTheme.cardShadow,
         ),
         child: Center(
@@ -146,23 +146,9 @@ class EmotionDistributionBarChart extends StatelessWidget {
                         final emotion = EmotionType.values[idx];
                         return Padding(
                           padding: const EdgeInsets.only(top: 6),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                emotion.emoji,
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                emotion.displayName.substring(0, emotion.displayName.length.clamp(0, 4)),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppTheme.textS(context),
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            emotion.emoji,
+                            style: const TextStyle(fontSize: 13),
                           ),
                         );
                       },

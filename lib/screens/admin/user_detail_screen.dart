@@ -268,7 +268,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 backgroundColor: AppTheme.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  borderRadius: BorderRadius.circular(22),
                 ),
               ),
             ),
@@ -302,7 +302,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: AppTheme.cardShadow,
       ),
       child: Column(
@@ -419,7 +419,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           end: Alignment.bottomRight,
           colors: [color, color.withValues(alpha: 0.8)],
         ),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.35),
@@ -515,7 +515,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: AppTheme.cardShadow,
       ),
       child: Column(
@@ -523,13 +523,24 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.psychology_rounded, size: 18, color: AppTheme.iconColor(context)),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Icon(
+                  Icons.psychology_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 10),
               Text(
                 'Tipe Kepribadian MBTI',
                 style: GoogleFonts.poppins(
                   fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: AppTheme.textP(context),
                 ),
               ),
@@ -543,7 +554,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 decoration: BoxDecoration(
                   gradient: AppTheme.primaryGradient,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  borderRadius: BorderRadius.circular(22),
                   boxShadow: [
                     BoxShadow(
                       color: AppTheme.primaryColor.withValues(alpha: 0.3),
@@ -661,7 +672,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppTheme.surface(context),
-          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+          borderRadius: BorderRadius.circular(22),
           boxShadow: AppTheme.cardShadow,
         ),
         child: Column(
@@ -669,13 +680,24 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.person_search_rounded, size: 18, color: AppTheme.iconColor(context)),
-                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.primaryGradient,
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: const Icon(
+                    Icons.person_search_rounded,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 10),
                 Text(
                   'Profil Big Five',
                   style: GoogleFonts.poppins(
                     fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.textP(context),
                   ),
                 ),
@@ -709,7 +731,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: AppTheme.cardShadow,
       ),
       child: Column(
@@ -814,13 +836,24 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       children: [
         Row(
           children: [
-            Icon(Icons.mic_rounded, size: 18, color: AppTheme.iconColor(context)),
-            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: const Icon(
+                Icons.mic_rounded,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+            const SizedBox(width: 10),
             Text(
               'Riwayat Rekaman',
               style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
                 color: AppTheme.textP(context),
               ),
             ),
@@ -850,7 +883,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: AppTheme.surface(context),
-              borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+              borderRadius: BorderRadius.circular(22),
               boxShadow: AppTheme.cardShadow,
             ),
             child: Center(
@@ -892,7 +925,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppTheme.surface(context),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          borderRadius: BorderRadius.circular(22),
           boxShadow: AppTheme.cardShadow,
         ),
         child: Row(
@@ -1193,7 +1226,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           ),
           const SizedBox(width: 8),
           SizedBox(
-            width: 60,
+            width: 75,
             child: Text(
               emotion.displayName,
               style: GoogleFonts.poppins(
@@ -1201,6 +1234,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 fontWeight: FontWeight.w500,
                 color: AppTheme.textP(context),
               ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(width: 8),

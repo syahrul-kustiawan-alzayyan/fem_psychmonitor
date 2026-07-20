@@ -308,17 +308,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             // ── User List Section Header ─────────────
                             Row(
                               children: [
-                                Icon(
-                                  Icons.people_rounded,
-                                  size: 18,
-                                  color: AppTheme.iconColor(context),
+                                Container(
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                    gradient: AppTheme.primaryGradient,
+                                    borderRadius: BorderRadius.circular(9),
+                                  ),
+                                  child: const Icon(
+                                    Icons.people_rounded,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 10),
                                 Text(
                                   'Semua Pengguna',
                                   style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
                                     color: AppTheme.textP(context),
                                   ),
                                 ),
@@ -395,7 +402,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 backgroundColor: AppTheme.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  borderRadius: BorderRadius.circular(22),
                 ),
               ),
             ),
@@ -438,12 +445,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
             decoration: BoxDecoration(
               color: AppTheme.surface(context),
-              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              borderRadius: BorderRadius.circular(22),
               boxShadow: AppTheme.cardShadow,
-              border: Border.all(
-                color: c.color.withValues(alpha: 0.15),
-                width: 1,
-              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -489,53 +492,46 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        boxShadow: AppTheme.cardShadow,
+    return TextField(
+      controller: _searchController,
+      onChanged: (v) => setState(() => _searchQuery = v),
+      style: GoogleFonts.poppins(
+        fontSize: 13,
+        color: AppTheme.textP(context),
       ),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (v) => setState(() => _searchQuery = v),
-        style: GoogleFonts.poppins(
+      decoration: InputDecoration(
+        hintText: 'Cari pengguna...',
+        hintStyle: GoogleFonts.poppins(
           fontSize: 13,
-          color: AppTheme.textP(context),
+          color: AppTheme.textH(context),
         ),
-        decoration: InputDecoration(
-          hintText: 'Cari pengguna...',
-          hintStyle: GoogleFonts.poppins(
-            fontSize: 13,
-            color: AppTheme.textH(context),
-          ),
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: AppTheme.textH(context),
-            size: 20,
-          ),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                  icon: Icon(
-                    Icons.clear_rounded,
-                    color: AppTheme.textH(context),
-                    size: 18,
-                  ),
-                )
-              : null,
-          filled: true,
-          fillColor: AppTheme.surfVar(context),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spaceMd,
-            vertical: AppTheme.spaceMd,
-          ),
+        prefixIcon: Icon(
+          Icons.search_rounded,
+          color: AppTheme.textH(context),
+          size: 20,
+        ),
+        suffixIcon: _searchQuery.isNotEmpty
+            ? IconButton(
+                onPressed: () {
+                  _searchController.clear();
+                  setState(() => _searchQuery = '');
+                },
+                icon: Icon(
+                  Icons.clear_rounded,
+                  color: AppTheme.textH(context),
+                  size: 18,
+                ),
+              )
+            : null,
+        filled: true,
+        fillColor: AppTheme.surfVar(context),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(22),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceMd,
+          vertical: AppTheme.spaceMd,
         ),
       ),
     );
@@ -592,7 +588,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppTheme.surface(context),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          borderRadius: BorderRadius.circular(22),
           boxShadow: AppTheme.cardShadow,
         ),
         child: Row(
