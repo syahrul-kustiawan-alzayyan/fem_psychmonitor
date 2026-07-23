@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/theme_provider.dart';
-import '../../services/storage_service.dart';
 import '../../theme/app_theme.dart';
 import '../auth_screen.dart';
 
@@ -304,9 +303,7 @@ class WelcomeSection extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   GestureDetector(
-                    onTap: () async {
-                      await StorageService.setOnboardingComplete('');
-                      if (!context.mounted) return;
+                    onTap: () {
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
                           builder: (context) => const AuthScreen(),

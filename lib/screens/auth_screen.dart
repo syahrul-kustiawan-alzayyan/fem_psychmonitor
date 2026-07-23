@@ -11,6 +11,7 @@ import '../main.dart';
 import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
 import '../services/database_service.dart';
+import '../services/storage_service.dart';
 import '../services/subscription_service.dart';
 import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/onboarding_screen.dart';
@@ -82,6 +83,7 @@ class _AuthScreenState extends State<AuthScreen>
           await SubscriptionService()
               .identifyUser(uid, context.read<PremiumProvider>());
         }
+        await StorageService.setOnboardingComplete('');
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -175,6 +177,7 @@ class _AuthScreenState extends State<AuthScreen>
           await SubscriptionService()
               .identifyUser(uid, context.read<PremiumProvider>());
         }
+        await StorageService.setOnboardingComplete('');
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -874,10 +877,32 @@ class _AuthScreenState extends State<AuthScreen>
       backgroundColor: Colors.transparent,
       body: GradientBackground(
         useOverlay: true,
+        gradient: Theme.of(context).brightness == Brightness.dark
+            ? LinearGradient(
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.15),
+                  Color(0xFF2D1B2E),
+                  Color(0xFF0F172A),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: [0.0, 0.4, 1.0],
+              )
+            : LinearGradient(
+                colors: [
+                  Color(0xFFFFF5F7),
+                  Color(0xFFFCE4EC),
+                  Color(0xFFFFF0F5),
+                  Color(0xFFF8FAFC),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: [0.0, 0.3, 0.65, 1.0],
+              ),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
+              padding: const EdgeInsets.symmetric(horizontal: 28),
               child: FadeTransition(
                 opacity: _fadeAnim,
                 child: SlideTransition(
@@ -888,27 +913,26 @@ class _AuthScreenState extends State<AuthScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const SizedBox(height: 12),
-
-                        // ── Logo ────────────────────────
-                        Image.asset(
-                          'assets/logo.png',
-                          width: 88,
-                          height: 88,
-                          fit: BoxFit.contain,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.asset(
+                            'assets/logo.png',
+                            width: 72,
+                            height: 72,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                         const SizedBox(height: 14),
-
-                        // ── App title ────────────────────────────
                         Text(
                           'Fem-Psych Monitor',
                           style: GoogleFonts.poppins(
                             fontSize: 24,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                             color: AppTheme.textP(context),
                             letterSpacing: -0.5,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
                           AppLocalizations.tr('app_subtitle'),
                           style: GoogleFonts.poppins(
@@ -916,144 +940,154 @@ class _AuthScreenState extends State<AuthScreen>
                             color: AppTheme.textS(context),
                           ),
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 40),
 
-                        // ── Premium Card ────────────────────
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(AppTheme.spaceXl),
-                          decoration: BoxDecoration(
-                            color: AppTheme.surface(context),
-                            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                            border: Border.all(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                                blurRadius: 30,
-                                spreadRadius: 0,
-                                offset: const Offset(0, 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Masuk',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textP(context),
+                                ),
                               ),
-                              BoxShadow(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.06),
-                                blurRadius: 60,
-                                spreadRadius: 0,
-                                offset: const Offset(0, 16),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Masukkan email dan password untuk melanjutkan',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: AppTheme.textS(context),
+                                ),
                               ),
                             ],
                           ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // ── Decorative accent ──────────
-                                  Container(
-                                    width: 32,
-                                    height: 3.5,
-                                    decoration: BoxDecoration(
-                                      gradient: AppTheme.primaryGradient,
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-
-                                  // ── Card header ────────────────
-                                  Text(
-                                    'Masuk',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppTheme.textP(context),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Masukkan email dan password untuk melanjutkan',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12.5,
-                                      color: AppTheme.textS(context),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-
-                                  // ── Email field ────────────────
-                                  _buildField(
-                                    controller: _email,
-                                    label: 'Email',
-                                    hint: 'contoh@email.com',
-                                    icon: Icons.email_outlined,
-                                    keyboardType: TextInputType.emailAddress,
-                                    validator: (v) {
-                                      if (v == null || v.isEmpty) return 'Email wajib diisi';
-                                      if (!v.contains('@') || !v.contains('.')) {
-                                        return 'Format email tidak valid';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: 18),
-
-                                  // ── Password field ─────────────
-                                  _buildField(
-                                    controller: _password,
-                                    label: 'Password',
-                                    hint: 'Minimal 6 karakter',
-                                    icon: Icons.lock_outlined,
-                                    obscure: _obscure,
-                                    suffix: IconButton(
-                                      icon: Icon(
-                                        _obscure
-                                            ? Icons.visibility_off_rounded
-                                            : Icons.visibility_rounded,
-                                        color: AppTheme.textH(context),
-                                        size: 20,
-                                      ),
-                                      onPressed: () =>
-                                          setState(() => _obscure = !_obscure),
-                                    ),
-                                    validator: (v) {
-                                      if (v == null || v.isEmpty) return 'Password wajib diisi';
-                                      if (v.length < 6) return 'Minimal 6 karakter';
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: 20),
-
-                                  // ── Privacy checkbox ──────────
-                                  _buildPrivacyCheckbox(),
-                                  const SizedBox(height: 18),
-
-                                  // ── Login button ──────────────
-                                  _buildPrimaryButton(
-                                    label: 'Masuk',
-                                    onTap: _handleLogin,
-                                    disabled: !_acceptedPrivacy,
-                                  ),
-                                  const SizedBox(height: 22),
-
-                                  // ── Divider ───────────────────
-                                  _buildDivider(),
-                                  const SizedBox(height: 18),
-
-                                  // ── Google button ─────────────
-                                  _buildGoogleButton(),
-                                  const SizedBox(height: 12),
-
-                                  // ── Footnote ──────────────────
-                                  Text(
-                                    'Email baru akan otomatis terdaftar. Cek email untuk verifikasi.',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 9.5,
-                                      color: AppTheme.textH(context),
-                                      height: 1.3,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                          ),
+                        ),
                         const SizedBox(height: 28),
+
+                        _buildField(
+                          controller: _email,
+                          label: 'Email',
+                          icon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Email wajib diisi';
+                            if (!v.contains('@') || !v.contains('.')) {
+                              return 'Format email tidak valid';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        _buildField(
+                          controller: _password,
+                          label: 'Password',
+                          icon: Icons.lock_outlined,
+                          obscure: _obscure,
+                          suffix: IconButton(
+                            icon: Icon(
+                              _obscure
+                                  ? Icons.visibility_off_rounded
+                                  : Icons.visibility_rounded,
+                              color: AppTheme.textH(context),
+                              size: 20,
+                            ),
+                            onPressed: () =>
+                                setState(() => _obscure = !_obscure),
+                          ),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Password wajib diisi';
+                            if (v.length < 6) return 'Minimal 6 karakter';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 24),
+
+                        _buildPrimaryButton(
+                          label: 'Masuk',
+                          onTap: () {
+                            if (!_acceptedPrivacy) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          'Centang kebijakan privasi terlebih dahulu',
+                                          style: GoogleFonts.poppins(fontSize: 13),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: AppTheme.primaryColor,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                              return;
+                            }
+                            _handleLogin();
+                          },
+                        ),
+                        const SizedBox(height: 24),
+
+                        _buildDivider(),
+                        const SizedBox(height: 20),
+
+                        _buildGoogleButton(
+                          onTap: () {
+                            if (!_acceptedPrivacy) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          'Centang kebijakan privasi terlebih dahulu',
+                                          style: GoogleFonts.poppins(fontSize: 13),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: const Color(0xFF4285F4),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                              return;
+                            }
+                            _handleGoogleSignIn();
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        _buildPrivacyCheckbox(),
+                        const SizedBox(height: 28),
+
+                        Text(
+                          'Email baru akan otomatis terdaftar. Cek email untuk verifikasi.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            color: AppTheme.textS(context),
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
@@ -1069,110 +1103,126 @@ class _AuthScreenState extends State<AuthScreen>
   Widget _buildField({
     required TextEditingController controller,
     required String label,
-    required String hint,
     required IconData icon,
     bool obscure = false,
     Widget? suffix,
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textP(context),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscure,
+        keyboardType: keyboardType,
+        validator: validator,
+        style: GoogleFonts.poppins(
+          fontSize: 15,
+          color: AppTheme.textP(context),
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          hintText: label,
+          hintStyle: GoogleFonts.poppins(
+            fontSize: 15,
+            color: AppTheme.textH(context),
+            fontWeight: FontWeight.w400,
+          ),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(left: 18, right: 12),
+            child: Icon(icon, color: AppTheme.textH(context), size: 22),
+          ),
+          suffixIcon: suffix != null
+              ? Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: suffix,
+                )
+              : null,
+          filled: true,
+          fillColor: AppTheme.surface(context),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 18,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: AppTheme.surfVar(context),
+              width: 1.5,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: AppTheme.surfVar(context),
+              width: 1.5,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: AppTheme.primaryColor,
+              width: 1.5,
+            ),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(
+              color: Color(0xFFF87171),
+              width: 1.5,
+            ),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(
+              color: Color(0xFFF87171),
+              width: 1.5,
+            ),
           ),
         ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          obscureText: obscure,
-          keyboardType: keyboardType,
-          validator: validator,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: AppTheme.textP(context),
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.poppins(
-              fontSize: 13,
-              color: AppTheme.textH(context),
-            ),
-            prefixIcon: Padding(
-              padding: const EdgeInsets.only(left: 14, right: 8),
-              child: Icon(icon, color: AppTheme.textH(context), size: 20),
-            ),
-            suffixIcon: suffix != null
-                ? Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: suffix,
-                  )
-                : null,
-            filled: true,
-            fillColor: AppTheme.surfVar(context).withValues(alpha: 0.7),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: AppTheme.primaryColor.withValues(alpha: 0.7),
-                width: 1.5,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(
-                color: Color(0xFFF87171),
-                width: 1.5,
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(
-                color: Color(0xFFF87171),
-                width: 1.5,
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
   Widget _buildPrimaryButton({
     required String label,
     required VoidCallback onTap,
-    bool disabled = false,
   }) {
-    final isDisabled = _isLoading || disabled;
+    final isDisabled = _isLoading;
     return SizedBox(
       width: double.infinity,
-      height: 52,
-      child: Material(
-        color: Colors.transparent,
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: isDisabled ? null : AppTheme.primaryGradient,
-            color: isDisabled ? AppTheme.textH(context) : null,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            boxShadow: isDisabled
-                ? []
-                : AppTheme.primaryShadow,
-          ),
+      height: 56,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          gradient: isDisabled ? null : AppTheme.primaryGradient,
+          color: isDisabled ? AppTheme.surfVar(context) : null,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isDisabled
+              ? []
+              : [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+        ),
+        child: Material(
+          color: Colors.transparent,
           child: InkWell(
             onTap: isDisabled ? null : onTap,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            borderRadius: BorderRadius.circular(16),
+            splashColor: Colors.white.withValues(alpha: 0.15),
             child: Center(
               child: _isLoading
                   ? const SizedBox(
@@ -1186,11 +1236,9 @@ class _AuthScreenState extends State<AuthScreen>
                   : Text(
                       label,
                       style: GoogleFonts.poppins(
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: isDisabled
-                            ? Colors.white.withValues(alpha: 0.5)
-                            : Colors.white,
+                        color: isDisabled ? AppTheme.textH(context) : Colors.white,
                       ),
                     ),
             ),
@@ -1211,7 +1259,7 @@ class _AuthScreenState extends State<AuthScreen>
           child: Text(
             'atau',
             style: GoogleFonts.poppins(
-              fontSize: 11.5,
+              fontSize: 12,
               color: AppTheme.textH(context),
               fontWeight: FontWeight.w500,
             ),
@@ -1288,42 +1336,65 @@ class _AuthScreenState extends State<AuthScreen>
     launch('https://fem-psychmonitor.web.app');
   }
 
-  Widget _buildGoogleButton() {
+  Widget _buildGoogleButton({VoidCallback? onTap}) {
+    final isDisabled = _isLoading || onTap == null;
     return SizedBox(
       width: double.infinity,
-      height: 50,
-      child: OutlinedButton.icon(
-        onPressed:
-            (_isLoading || !_acceptedPrivacy) ? null : _handleGoogleSignIn,
-        icon: Container(
-          width: 20,
-          height: 20,
-          alignment: Alignment.center,
-          child: Text(
-            'G',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF4285F4),
-            ),
-          ),
-        ),
-        label: Text(
-          'Lanjutkan dengan Google',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w500,
-            fontSize: 13.5,
-          ),
-        ),
+      height: 56,
+      child: OutlinedButton(
+        onPressed: isDisabled ? null : onTap,
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppTheme.textP(context),
+          foregroundColor: isDisabled
+              ? AppTheme.textH(context)
+              : AppTheme.textP(context),
           side: BorderSide(
-            color: AppTheme.primaryColor.withValues(alpha: 0.2),
-            width: 1,
+            color: isDisabled
+                ? AppTheme.surfVar(context)
+                : const Color(0xFF4285F4).withValues(alpha: 0.5),
+            width: 1.5,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            borderRadius: BorderRadius.circular(16),
           ),
+          backgroundColor: isDisabled
+              ? AppTheme.surfVar(context).withValues(alpha: 0.3)
+              : AppTheme.surface(context),
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
+              child: Center(
+                child: Text(
+                  'G',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: isDisabled
+                        ? AppTheme.textH(context)
+                        : const Color(0xFF4285F4),
+                    height: 1.1,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Text(
+              'Lanjutkan dengan Google',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                fontSize: 15,
+              ),
+            ),
+          ],
         ),
       ),
     );

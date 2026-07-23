@@ -187,51 +187,69 @@ class _FemPhysicsMonitorAppState extends State<FemPhysicsMonitorApp>
   }
 }
 
-/// Router utama: cek status onboarding dan login user dari SharedPreferences.
+enum _RouteAction { splash, onboarding, auth, main }
+
+/// Router utama: cek status onboarding, login, dan validasi data user.
 class AppRouter extends StatelessWidget {
   const AppRouter({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
+    return FutureBuilder<_RouteAction>(
       future: (() async {
+        try {
+          await WhisperInitService.instance.warmUp();
+          if (!WhisperInitService.instance.isReady) {
+            await Future.delayed(const Duration(seconds: 3));
+          }
+
+          final user = FirebaseAuth.instance.currentUser;
+          if (user != null) {
+            final appUser = await DatabaseService.getUser();
+            final hasData = appUser != null && appUser.bigFiveScores.isNotEmpty;
+            if (hasData) {
+              await StorageService.setOnboardingComplete('');
+              return _RouteAction.main;
+            }
+            return _RouteAction.onboarding;
+          }
+        } catch (_) {}
+
         final isFirstLaunch = await StorageService.isFirstLaunch();
-        await WhisperInitService.instance.warmUp();
-        if (!WhisperInitService.instance.isReady) {
-          await Future.delayed(const Duration(seconds: 3));
+        if (isFirstLaunch) {
+          return _RouteAction.onboarding;
         }
-        return isFirstLaunch;
+        return _RouteAction.auth;
       })(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const _SplashScreen();
 
-        final isFirstLaunch = snapshot.data!;
+        switch (snapshot.data!) {
+          case _RouteAction.onboarding:
+            return OnboardingScreen(
+              onCompleted: () {
+                final loggedIn = FirebaseAuth.instance.currentUser != null;
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => loggedIn
+                        ? const MainNavigation()
+                        : const AuthScreen(),
+                  ),
+                );
+              },
+            );
 
-        // Jika first launch, tampilkan onboarding dulu
-        if (isFirstLaunch) {
-          return OnboardingScreen(
-            onCompleted: () {
-              // Setelah onboarding selesai, arahkan ke AuthScreen
-              // Gunakan MaterialPageRoute untuk menghindari animation curve issues
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const AuthScreen()),
-              );
-            },
-          );
+          case _RouteAction.auth:
+            return const AuthScreen();
+
+          case _RouteAction.main:
+            return MainNavigation(
+              key: ValueKey('main_nav_${DateTime.now().millisecondsSinceEpoch}'),
+            );
+
+          case _RouteAction.splash:
+            return const _SplashScreen();
         }
-
-        // Jika bukan first launch, cek apakah sudah login
-        final authProvider = context.watch<AuthProvider>();
-
-        // Jika belum login, tampilkan AuthScreen
-        if (!authProvider.isLoggedIn) {
-          return const AuthScreen();
-        }
-
-        // Jika sudah login, langsung ke main navigation
-        return MainNavigation(
-          key: ValueKey('main_nav_${authProvider.username}'),
-        );
       },
     );
   }
@@ -371,6 +389,60 @@ class _MainNavigationState extends State<MainNavigation>
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final appUser = await DatabaseService.getUser();
+        final hasData = appUser != null && appUser.bigFiveScores.isNotEmpty;
+        if (!hasData) {
+          if (!mounted) return;
+          final go = await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: AppTheme.surface(ctx),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, color: AppTheme.primaryColor, size: 24),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text('Data Belum Lengkap', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 18))),
+                ],
+              ),
+              content: Text(
+                'Anda harus mengisi data onboarding terlebih dahulu sebelum menggunakan aplikasi.',
+                style: GoogleFonts.poppins(fontSize: 13, height: 1.5),
+              ),
+              actions: [
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text('Isi Sekarang', style: GoogleFonts.poppins()),
+                ),
+              ],
+            ),
+          );
+          if (go == true && mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (ctx) => OnboardingScreen(
+                  onCompleted: () {
+                    Navigator.of(ctx).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const MainNavigation()),
+                    );
+                  },
+                ),
+              ),
+            );
+          }
+          return;
+        }
+      }
+
       final premium = context.read<PremiumProvider>();
       if (!premium.isPremium) {
         await Navigator.push(
