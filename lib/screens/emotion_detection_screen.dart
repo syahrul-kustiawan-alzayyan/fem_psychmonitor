@@ -36,7 +36,6 @@ class EmotionDetectionScreen extends StatefulWidget {
 class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     with TickerProviderStateMixin {
   final AudioRecorder _audioRecorder = AudioRecorder();
-  Whisper? _whisper;
   String? _wavPath;
 
   bool _isRecording = false;
@@ -178,8 +177,6 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     }
 
     try {
-      _whisper = Whisper(model: WhisperModel.base);
-
       final dir = await getTemporaryDirectory();
       _wavPath = '${dir.path}/recording_${DateTime.now().millisecondsSinceEpoch}.wav';
       await _audioRecorder.start(
@@ -272,23 +269,23 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     final path = recordedPath ?? _wavPath;
     _wavPath = path; // sync untuk upload nanti
 
-    // Step 2: Transcribe with Whisper (offline, no Google Services)
+    // Step 2: Transcribe with Whisper - fallback base -> tiny -> skip
     String transcript = '';
-    if (path != null && _whisper != null) {
+    String transcriptionInfo = '';
+    if (path != null) {
       if (mounted) {
         setState(() => _processingMessage = AppLocalizations.tr('processing_transcription_first'));
       }
 
-      // Ensure model is downloaded (fallback if pre-download didn't complete)
-      if (!WhisperInitService.instance.isReady) {
-        if (mounted) {
-          setState(() => _processingMessage = 'Mengunduh model suara...');
-        }
-        await WhisperInitService.instance.warmUp();
-      }
+      await WhisperInitService.instance.warmUp();
 
+      // Try base model first
+      if (mounted) {
+        setState(() => _processingMessage = 'Transkripsi dengan model Base...');
+      }
+      final baseWhisper = Whisper(model: WhisperModel.base);
       try {
-        final result = await _whisper!.transcribe(
+        final result = await baseWhisper.transcribe(
           transcribeRequest: TranscribeRequest(
             audio: path,
             language: 'id',
@@ -296,12 +293,49 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
           ),
         );
         transcript = result.text.trim();
-        debugPrint('📝 Whisper transcript: "$transcript"');
-        if (transcript.isEmpty) {
-          debugPrint('⚠️ Whisper returned empty text for: $path');
-        }
+        transcriptionInfo = 'Transkrip: model Base';
+        debugPrint('📝 Whisper base transcript: "$transcript"');
       } catch (e) {
-        debugPrint('🎙️ Whisper transcribe error: $e');
+        debugPrint('🎙️ Base model error: $e');
+        transcript = '';
+      }
+
+      // Fallback to tiny if base failed or returned empty
+      if (transcript.isEmpty) {
+        if (mounted) {
+          setState(() => _processingMessage = 'Mencoba model Tiny...');
+        }
+        final tinyWhisper = Whisper(model: WhisperModel.tiny);
+        try {
+          final result = await tinyWhisper.transcribe(
+            transcribeRequest: TranscribeRequest(
+              audio: path,
+              language: 'id',
+              threads: 4,
+            ),
+          );
+          transcript = result.text.trim();
+          transcriptionInfo = 'Transkrip: model Tiny (Base tidak didukung)';
+          debugPrint('📝 Whisper tiny transcript: "$transcript"');
+        } catch (e) {
+          debugPrint('🎙️ Tiny model also failed: $e');
+          transcript = '';
+          transcriptionInfo = 'Transkrip tidak tersedia untuk perangkat ini';
+        }
+      }
+
+      if (transcript.isEmpty && transcriptionInfo.isEmpty) {
+        transcriptionInfo = 'Tidak ada teks terdeteksi';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(transcriptionInfo),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
 

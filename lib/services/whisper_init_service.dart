@@ -8,12 +8,15 @@ class WhisperInitService {
   WhisperInitService._();
   static final instance = WhisperInitService._();
 
-  bool _ready = false;
   bool _initializing = false;
+  bool _baseReady = false;
+  bool _tinyReady = false;
   double _progress = 0.0;
   String _statusMessage = '';
 
-  bool get isReady => _ready;
+  bool get isReady => _baseReady;
+  bool get isBaseReady => _baseReady;
+  bool get isTinyReady => _tinyReady;
   bool get isInitializing => _initializing;
   double get progress => _progress;
   String get statusMessage => _statusMessage;
@@ -37,44 +40,50 @@ class WhisperInitService {
   }
 
   Future<void> warmUp() async {
-    if (_ready) return;
     if (_initializing) {
-      // Already downloading, wait until done
-      await Future.doWhile(() => Future.delayed(const Duration(milliseconds: 200), () => _initializing && !_ready));
+      await Future.doWhile(() => Future.delayed(const Duration(milliseconds: 200), () => _initializing));
       return;
     }
     _initializing = true;
 
     try {
-      _notify(0.0, 'Memeriksa model...');
-      final dir = await getApplicationSupportDirectory();
-
-      // Check if model already exists
-      final modelFile = File(WhisperModel.base.getPath(dir.path));
-      if (modelFile.existsSync()) {
-        _ready = true;
-        _notify(1.0, 'Model sudah tersedia');
-        debugPrint('✅ Whisper base model already exists');
-        return;
-      }
-
-      _notify(0.05, 'Mengunduh model suara (~150MB)...');
-      await downloadModel(
-        model: WhisperModel.base,
-        destinationPath: dir.path,
-        onDownloadProgress: (received, total) {
-          final pct = received / total;
-          _notify(pct, 'Mengunduh model... ${(pct * 100).toStringAsFixed(0)}%');
-        },
-      );
-      _ready = true;
-      _notify(1.0, 'Model siap digunakan');
-      debugPrint('✅ Whisper base model downloaded and ready');
+      await _ensureModel(WhisperModel.base, 'Base', 0.0, 0.5);
+      await _ensureModel(WhisperModel.tiny, 'Tiny', 0.5, 1.0);
     } catch (e) {
       _notify(0.0, 'Internet diperlukan untuk mengunduh model suara');
       debugPrint('❌ Whisper model pre-download error: $e');
     } finally {
       _initializing = false;
     }
+  }
+
+  Future<void> _ensureModel(WhisperModel model, String label, double progressStart, double progressEnd) async {
+    final dir = await getApplicationSupportDirectory();
+    final modelFile = File(model.getPath(dir.path));
+    final isBase = model == WhisperModel.base;
+
+    if (modelFile.existsSync()) {
+      if (isBase) { _baseReady = true; } else { _tinyReady = true; }
+      debugPrint('✅ Whisper $label model already exists');
+      return;
+    }
+
+    _notify(progressStart, 'Mengunduh model $label...');
+    await downloadModel(
+      model: model,
+      destinationPath: dir.path,
+      onDownloadProgress: (received, total) {
+        final pct = progressStart + (received / total) * (progressEnd - progressStart);
+        _notify(pct, 'Mengunduh model $label... ${(pct * 100).toStringAsFixed(0)}%');
+      },
+    );
+
+    if (isBase) { _baseReady = true; } else { _tinyReady = true; }
+    debugPrint('✅ Whisper $label model downloaded and ready');
+  }
+
+  Future<String> getModelPath(WhisperModel model) async {
+    final dir = await getApplicationSupportDirectory();
+    return model.getPath(dir.path);
   }
 }

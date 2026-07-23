@@ -1,6 +1,6 @@
 # Fem-Psych Monitor — Panduan Pengguna
 
-**Versi 1.0.1** · 16 Juni 2026
+**Versi 2.0.5** · 22 Juli 2026
 
 ---
 
@@ -26,7 +26,7 @@
 Fem-Psych Monitor adalah aplikasi kesehatan mental untuk perempuan Indonesia. Tiga fungsi utama:
 
 - **Rekam suara** — aplikasi membaca emosi dari nada bicara dan kata-kata yang diucapkan
-- **Asesmen psikologi** — tes MBTI dan kuesioner kesehatan mental
+- **Asesmen psikologi** — tes Big Five (OCEAN) dan kuesioner kesehatan mental
 - **Pemantauan tren** — grafik yang menunjukkan perubahan kondisi emosi dari waktu ke waktu
 
 Bahasa yang didukung: Indonesia dan Inggris.
@@ -41,13 +41,13 @@ Salin file `.apk` ke ponsel, buka, lalu tap Install. Jika muncul peringatan keam
 
 ### 2.2 Pertama Kali Buka
 
-Aplikasi akan memandu kamu melewati 4 langkah sebelum bisa masuk ke halaman utama.
+Aplikasi akan memandu kamu melewati 3 langkah sebelum bisa masuk ke halaman utama.
 
 **Langkah 1: Selamat Datang**
 Tap tombol Mulai untuk melanjutkan.
 
-**Langkah 2: Tes MBTI**
-20 pertanyaan dengan dua pilihan jawaban masing-masing. Pilih yang paling mewakili dirimu. Hasilnya akan menentukan salah satu dari 16 tipe kepribadian MBTI.
+**Langkah 2: Tes Big Five (OCEAN)**
+20 pertanyaan dengan dua pilihan jawaban masing-masing. Pilih yang paling mewakili dirimu. Hasilnya akan menentukan skor kelima dimensi kepribadian: Openness, Conscientiousness, Extraversion, Agreeableness, dan Neuroticism.
 
 **Langkah 3: Kuesioner Psikologi**
 30 pertanyaan dengan skala 1–5 (Tidak Pernah sampai Sangat Sering). Jawab dengan jujur — tidak ada jawaban benar atau salah. Skor akhir dikategorikan sebagai:
@@ -60,7 +60,7 @@ Tap tombol Mulai untuk melanjutkan.
 | 46+ | Butuh Perhatian Klinis |
 
 **Langkah 4: Hasil**
-Ringkasan tipe MBTI dan skor psikologi ditampilkan. Tap tombol **Lanjut ke Login** untuk menuju halaman masuk.
+Ringkasan profil Big Five dan skor psikologi ditampilkan. Tap tombol **Lanjut ke Login** untuk menuju halaman masuk.
 
 ### 2.3 Membuat Akun
 
@@ -83,6 +83,17 @@ Tap tombol **Google**, pilih akun yang ingin digunakan. Jika alamat email belum 
 
 > Google Sign-In membutuhkan koneksi internet dan Google Play Services yang aktif.
 
+### 2.6 Mengaitkan Password ke Akun Google
+
+Jika kamu mendaftar menggunakan Google Sign-In, kamu bisa mengaitkan password ke akun tersebut agar bisa login dengan email dan password juga. Caranya:
+
+1. Buka halaman **Profil**
+2. Tap **Kaitkan Password**
+3. Masukkan password yang diinginkan (minimal 6 karakter)
+4. Tap **Simpan**
+
+Setelah dikaitkan, kamu bisa login menggunakan **Google Sign-In** atau **email + password**.
+
 ---
 
 ## 3. Beranda
@@ -99,7 +110,7 @@ Beranda adalah halaman pertama setelah login. Terdiri dari lima blok yang tersus
 
 **Tombol Mulai Rekam** — tombol bundar dengan efek pulse. Fungsi yang sama bisa diakses dari tab **Rekam** di navigasi bawah.
 
-**Saran Hari Ini** — rekomendasi berdasarkan hasil MBTI, skor psikologi, dan emosi terkini. Bisa ditutup dengan tap.
+**Saran Hari Ini** — rekomendasi berdasarkan hasil Big Five, skor psikologi, dan emosi terkini. Bisa ditutup dengan tap.
 
 **Riwayat Terbaru** — tiga rekaman terakhir. Tap salah satu untuk melihat detail. Tap **Lihat Semua** untuk membuka halaman riwayat lengkap.
 
@@ -167,7 +178,29 @@ Tap pemicu yang sesuai, lalu tombol **Simpan** akan aktif.
 
 ### 5.3 Saran Personal
 
-Berdasarkan emosi dominan yang terdeteksi, aplikasi menampilkan 3–4 saran. Contoh: jika Sad terdeteksi, saran akan mencakup opsi untuk curhat dengan orang terdekat atau melakukan kegiatan yang disukai.
+Sistem saran aplikasi menggunakan tiga input untuk menghasilkan rekomendasi:
+
+1. **Emosi dominan** — emosi dengan skor tertinggi dari hasil deteksi (Happy, Sad, Angry, Disgust, Neutral, atau Fear)
+2. **Profil Big Five** — kelima dimensi kepribadian (O, C, E, A, N) dari hasil tes
+3. **Skor psikologi** — hasil kuesioner kesehatan mental
+
+**Cara kerja:**
+
+- Aplikasi membandingkan skor Big Five dengan titik tengah (3.0). Dimensi yang skornya di luar rentang netral (2.80–3.20) dianggap signifikan
+- Setiap dimensi signifikan dikelompokkan menjadi **Tinggi** (> 3.2) atau **Rendah** (< 2.8)
+- Aplikasi mengambil **2 saran per dimensi** yang relevan dengan level dan emosi dominan
+- Saran ditampilkan per kelompok dimensi, misalnya: "Neurotisisme (Tinggi) — 2 saran", "Keramahan (Rendah) — 2 saran"
+
+**Contoh tampilan:**
+
+Jika emosi dominan **Sedih** dan Neurotisisme **Tinggi** + Keramahan **Rendah**, maka saran akan mencakup:
+
+- Neurotisisme (Tinggi): teknik relaksasi, cara mengelola kecemasan
+- Keramahan (Rendah): tips membangun hubungan yang lebih baik
+
+**Lapisan Keselamatan (Safety Layer):**
+
+Jika kondisi pengguna terdeteksi dalam tingkat krisis atau distres berkepanjangan, aplikasi akan menampilkan pesan khusus yang mendorong untuk segera mencari bantuan profesional, menggantikan saran reguler.
 
 ### 5.4 Menyimpan
 
@@ -201,7 +234,7 @@ Riwayat bisa diekspor dalam format CSV (bisa dibuka di Excel) atau JSON. Masuk k
 
 - Foto profil (bisa diganti dari galeri atau kamera)
 - Nama dan email
-- Tipe MBTI lengkap dengan deskripsi dan kekuatan
+- Profil Big Five (5 dimensi: Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism)
 - Skor psikologi dan kategori
 
 ### 7.2 Edit Profil
@@ -270,7 +303,7 @@ Halaman detail menampilkan:
 ### 11.1 Data yang Tersimpan
 
 - Profil (nama, email, foto)
-- Hasil MBTI dan skor psikologi
+- Hasil Big Five dan skor psikologi
 - Rekaman suara, transkrip, skor emosi, dan pemicu
 - Preferensi aplikasi (tema, bahasa) — disimpan di perangkat
 
@@ -278,7 +311,7 @@ Halaman detail menampilkan:
 
 Masuk ke **Profil**, gulir ke bawah, tap **Hapus Akun**. Baca peringatan, lalu tap **Hapus** untuk konfirmasi. Kamu akan diminta login ulang untuk verifikasi.
 
-Data yang akan dihapus: profil, riwayat rekaman, hasil MBTI dan psikologi, status premium.
+Data yang akan dihapus: profil, riwayat rekaman, hasil Big Five dan psikologi, status premium.
 Data yang tidak bisa dihapus: log anonim (tidak dapat dikaitkan ke individu) dan data pembayaran di Google Play / RevenueCat.
 
 Proses penghapusan berlangsung dalam dua tahap:
