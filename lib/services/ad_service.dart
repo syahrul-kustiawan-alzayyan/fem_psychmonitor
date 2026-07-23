@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/premium_provider.dart';
 
 class AdService {
@@ -167,8 +168,19 @@ class AdService {
     );
   }
 
+  static const String _keyLastAppOpen = 'last_app_open_ad_time';
+  static const int _appOpenCooldown = 3 * 60 * 60; // 3 jam dalam detik
+
   Future<void> showAppOpenAd() async {
     if (!_canShowAds || _isShowingAd || _appOpenAd == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final lastShow = prefs.getInt(_keyLastAppOpen) ?? 0;
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    if (now - lastShow < _appOpenCooldown) return;
+
+    await prefs.setInt(_keyLastAppOpen, now);
+
     _isShowingAd = true;
     final completer = Completer<void>();
     final ad = _appOpenAd!;
