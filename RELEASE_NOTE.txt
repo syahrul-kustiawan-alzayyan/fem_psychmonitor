@@ -1,0 +1,9 @@
+v2.1.0
+
+- Pembatasan iklan open app muncul setiap 3 jam sekali
+- Tampilan halaman login baru dengan gradien pink yang lebih cerah dan modern
+- Perbaikan pengguna Google Sign-In yang sebelumnya bisa langsung masuk tanpa mengisi data diri
+- Perbaikan crash pada transkripsi suara
+- Penambahan halaman Terms of Service & pembaruan Privacy Policy
+- Tombol Google Sign-In tampilan baru dengan outline biru
+- Link Kebijakan Privasi dan Ketentuan Layanan di halaman login (dapat diklik terpisah)

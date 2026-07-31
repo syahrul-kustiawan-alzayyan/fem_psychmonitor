@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -1301,28 +1302,39 @@ class _AuthScreenState extends State<AuthScreen>
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: GestureDetector(
-              onTap: () => _openPrivacyPolicy(),
-              child: RichText(
-                text: TextSpan(
-                  style: GoogleFonts.poppins(
-                    fontSize: 11.5,
-                    color: AppTheme.textS(context),
-                    height: 1.3,
-                  ),
-                  children: [
-                    TextSpan(text: 'Saya menyetujui '),
-                    TextSpan(
-                      text: 'Kebijakan Privasi',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primaryColor,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ],
+            child: RichText(
+              text: TextSpan(
+                style: GoogleFonts.poppins(
+                  fontSize: 11.5,
+                  color: AppTheme.textS(context),
+                  height: 1.3,
                 ),
+                children: [
+                  TextSpan(text: 'Saya menyetujui '),
+                  TextSpan(
+                    text: 'Kebijakan Privasi',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primaryColor,
+                      decoration: TextDecoration.underline,
+                    ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = _openPrivacyPolicy,
+                  ),
+                  TextSpan(text: ' dan '),
+                  TextSpan(
+                    text: 'Ketentuan Layanan',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primaryColor,
+                      decoration: TextDecoration.underline,
+                    ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = _openTermsOfService,
+                  ),
+                ],
               ),
             ),
           ),
@@ -1332,8 +1344,17 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   void _openPrivacyPolicy() {
-    // ignore: deprecated_member_use
-    launch('https://fem-psychmonitor.web.app');
+    launchUrl(
+      Uri.parse('https://psychmonitor.com/privacy-policy.html'),
+      mode: LaunchMode.externalApplication,
+    );
+  }
+
+  void _openTermsOfService() {
+    launchUrl(
+      Uri.parse('https://psychmonitor.com/terms-of-services.html'),
+      mode: LaunchMode.externalApplication,
+    );
   }
 
   Widget _buildGoogleButton({VoidCallback? onTap}) {
