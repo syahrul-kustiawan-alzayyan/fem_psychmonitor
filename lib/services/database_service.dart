@@ -297,6 +297,20 @@ class DatabaseService {
     }
   }
 
+  /// Cek apakah user yang sedang login adalah admin
+  static Future<bool> isCurrentUserAdmin() async {
+    final docRef = _userDoc;
+    if (docRef == null) return false;
+    try {
+      final doc = await docRef.get();
+      final data = doc.data() as Map<String, dynamic>?;
+      return data?['isAdmin'] == true;
+    } catch (e) {
+      debugPrint('Error checking current user admin: $e');
+      return false;
+    }
+  }
+
   // ═══════════════════════════════════════════════════════════════
   // EMOTION SNAPSHOT CRUD
   // ═══════════════════════════════════════════════════════════════

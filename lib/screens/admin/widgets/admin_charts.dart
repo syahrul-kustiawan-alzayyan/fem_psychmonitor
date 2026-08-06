@@ -189,66 +189,80 @@ class EmotionDistributionBarChart extends StatelessWidget {
   }
 }
 
-class PsychScoreLegend extends StatelessWidget {
-  const PsychScoreLegend({super.key});
+class MentalHealthStatusCard extends StatelessWidget {
+  final List<({String label, Color color, int count})> categories;
+  final int scored;
+
+  const MentalHealthStatusCard({
+    super.key,
+    required this.categories,
+    required this.scored,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final items = [
-      (const Color(0xFF10B981), '76-100', 'Sehat Optimal'),
-      (const Color(0xFFF59E0B), '51-75', 'Cukup'),
-      (const Color(0xFFF97316), '26-50', 'Rentan'),
-      (const Color(0xFFEF4444), '0-25', 'Butuh Perhatian'),
-    ];
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: AppTheme.textH(context).withValues(alpha: 0.06)),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        boxShadow: AppTheme.cardShadow,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: items.map((item) {
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: item.$1,
-                  borderRadius: BorderRadius.circular(2),
+      child: Column(
+        children: List.generate(categories.length, (i) {
+          final c = categories[i];
+          final pct = scored > 0 ? c.count / scored * 100 : 0.0;
+          return Padding(
+            padding: EdgeInsets.only(top: i == 0 ? 0 : 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: c.color,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        c.label,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.textP(context),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${c.count} · ${pct.toStringAsFixed(0)}%',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: c.color,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 4),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.$2,
-                    style: GoogleFonts.poppins(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: item.$1,
-                      height: 1.2,
-                    ),
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: scored > 0 ? c.count / scored : 0,
+                    minHeight: 6,
+                    backgroundColor: c.color.withValues(alpha: 0.12),
+                    valueColor: AlwaysStoppedAnimation<Color>(c.color),
                   ),
-                  Text(
-                    item.$3,
-                    style: GoogleFonts.poppins(
-                      fontSize: 8,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.textS(context),
-                      height: 1.2,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           );
-        }).toList(),
+        }),
       ),
     );
   }

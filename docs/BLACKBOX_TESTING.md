@@ -1,6 +1,6 @@
 # Dokumentasi Blackbox Testing — Fem-Psych Monitor
 
-**Aplikasi:** Fem-Psych Monitor (fem_physicsmonitor) v2.1.0+7
+**Aplikasi:** Fem-Psych Monitor (fem_physicsmonitor) v2.1.5+8
 **Platform:** Flutter (Android / iOS / Web / Desktop)
 **Metode:** Blackbox Testing (pengujian fungsional berdasarkan spesifikasi & perilaku tampilan, tanpa melihat implementasi internal)
 **Status:** **PASS** — 101/101 kasus uji otomatis lulus (lingkup Big Five OCEAN)
@@ -111,7 +111,7 @@ Seluruh **101 kasus uji lulus** (0 gagal, 0 error).
 
 | ID | Skenario | Prekondisi | Langkah | Hasil yang Diharapkan | Status |
 |---|---|---|---|---|---|
-| S-01 | Halaman pengaturan menampilkan semua section | Buka halaman Settings | 1. Amati halaman | Muncul judul Pengaturan, Bahasa, Mode Tema, Menu Profil, Panduan Aplikasi, Syarat & Ketentuan, Cadangkan Data, Hapus Data Akun, dan versi aplikasi **v2.1.0** | **PASS** |
+| S-01 | Halaman pengaturan menampilkan semua section | Buka halaman Settings | 1. Amati halaman | Muncul judul Pengaturan, Bahasa, Mode Tema, Menu Profil, Panduan Aplikasi, Syarat & Ketentuan, Cadangkan Data, Hapus Data Akun, dan versi aplikasi **v2.1.5** | **PASS** |
 | S-02 | Switch bahasa ID → EN mengubah label | Halaman Settings tampil | 1. Tekan segmen "EN" | Label berubah ke bahasa Inggris (mis. "Bahasa" → **"Language"**); `locale = en` | **PASS** |
 | S-03 | Switch tema Light → Dark mengubah ikon | Halaman Settings tampil (tema Light) | 1. Tekan pilihan "Dark" | Ikon tema berubah dari `light_mode` → **`dark_mode`** | **PASS** |
 | S-04 | Tile "Upgrade ke Premium" muncul saat non-premium | Akun non-premium | 1. Amati halaman Settings | Muncul tile **"Upgrade ke Premium"** dengan ikon bintang (`star_border`) | **PASS** |

@@ -56,8 +56,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
       for (final userDoc in usersSnapshot.docs) {
         final userData = userDoc.data();
-        final uid = userDoc.id;
 
+        // Skip akun admin — dashboard menampilkan data pengguna
+        if (userData['isAdmin'] == true) continue;
+
+        final uid = userDoc.id;
         final recordingsSnapshot = await firestore
             .collection('users')
             .doc(uid)
@@ -121,12 +124,29 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return total / scored.length;
   }
 
+  String get _todayLabel {
+    final now = DateTime.now();
+    const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+    ];
+    return '${days[now.weekday - 1]}, ${now.day} ${months[now.month - 1]} ${now.year}';
+  }
+
   Color _psychScoreColor(int? score) {
     if (score == null) return const Color(0xFF64748B);
     if (score >= 76) return const Color(0xFF10B981);
     if (score >= 51) return const Color(0xFFF59E0B);
     if (score >= 26) return const Color(0xFFF97316);
     return const Color(0xFFEF4444);
+  }
+
+  int _countInRange(int min, int max) {
+    return _users.where((u) {
+      final s = u['psych_score'] as int?;
+      return s != null && s >= min && s <= max;
+    }).length;
   }
 
   void _handleExportPDF() async {
@@ -209,56 +229,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      extendBodyBehindAppBar: true,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          title: Row(
-            children: [
-              ShaderMask(
-                shaderCallback: (bounds) =>
-                    AppTheme.primaryGradient.createShader(bounds),
-                child: const Icon(
-                  Icons.admin_panel_settings_rounded,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 10),
-              ShaderMask(
-                shaderCallback: (bounds) =>
-                    AppTheme.primaryGradient.createShader(
-                      Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                    ),
-                child: Text(
-                  'Admin Dashboard',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            IconButton(
-              onPressed: _handleExportPDF,
-              icon: const Icon(Icons.picture_as_pdf_rounded, size: 22),
-              tooltip: 'Export PDF',
-            ),
-            IconButton(
-              onPressed: _handleLogout,
-              icon: const Icon(Icons.logout_rounded, size: 22),
-              tooltip: 'Logout',
-            ),
-          ],
-        ),
-      ),
       body: GradientBackground(
         useOverlay: true,
         child: SafeArea(
@@ -280,88 +250,53 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            _buildHeader(),
                             const SizedBox(height: AppTheme.spaceMd),
 
-                            // ── Summary Cards ─────────────────────────
-                            _buildSummaryCards(),
+                            // ── Stat Cards ────────────────────────────
+                            _buildStatGrid(),
 
-                            const SizedBox(height: AppTheme.spaceXl),
+                            const SizedBox(height: AppTheme.spaceLg),
 
                             // ── Emotion Distribution Chart ───────────
+                            _buildSectionTitle(
+                              Icons.bar_chart_rounded,
+                              'Distribusi Emosi',
+                            ),
+                            const SizedBox(height: AppTheme.spaceSm),
                             EmotionDistributionBarChart(
                               emotionCounts: _emotionDistribution,
                             ),
 
-                            const SizedBox(height: AppTheme.spaceXl),
+                            const SizedBox(height: AppTheme.spaceLg),
 
-                            // ── Psych Score Legend ────────────────────
-                            const PsychScoreLegend(),
-
-                            const SizedBox(height: AppTheme.spaceXl),
-
-                            // ── Search Bar ───────────────────────────
-                            _buildSearchBar(),
-
-                            const SizedBox(height: AppTheme.spaceMd),
-
-                            // ── User List Section Header ─────────────
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(7),
-                                  decoration: BoxDecoration(
-                                    gradient: AppTheme.primaryGradient,
-                                    borderRadius: BorderRadius.circular(9),
-                                  ),
-                                  child: const Icon(
-                                    Icons.people_rounded,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  'Semua Pengguna',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppTheme.textP(context),
-                                  ),
-                                ),
-                                const Spacer(),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(
-                                      AppTheme.radiusFull,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    '${_filteredUsers.length}',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.primaryDark,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            // ── Mental Health Status ─────────────────
+                            _buildSectionTitle(
+                              Icons.health_and_safety_rounded,
+                              'Status Kesehatan Mental',
                             ),
+                            const SizedBox(height: AppTheme.spaceSm),
+                            _buildPsychStatusCard(),
+
+                            const SizedBox(height: AppTheme.spaceLg),
+
+                            // ── User List Section ────────────────────
+                            _buildSectionTitle(
+                              Icons.people_rounded,
+                              'Daftar Pengguna',
+                              trailing: '${_filteredUsers.length}',
+                            ),
+                            const SizedBox(height: AppTheme.spaceSm),
+                            _buildSearchBar(),
                             const SizedBox(height: AppTheme.spaceMd),
 
-                            // ── User List ────────────────────────────
                             if (_filteredUsers.isEmpty)
                               _buildEmptyState()
                             else
-                              ..._filteredUsers.map(
-                                (user) => _buildUserItem(user),
-                              ),
+                              ..._filteredUsers.map((user) =>
+                                  _buildUserItem(user)),
 
-                            const SizedBox(height: 100),
+                            const SizedBox(height: 40),
                           ],
                         ),
                       ),
@@ -369,6 +304,298 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ),
       ),
     );
+  }
+
+  // ── Header hero dengan gradien ──────────────────────────────────────
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(
+        AppTheme.spaceMd,
+        AppTheme.spaceMd,
+        AppTheme.spaceMd,
+        20,
+      ),
+      decoration: BoxDecoration(
+        gradient: AppTheme.primaryGradient,
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        boxShadow: AppTheme.primaryShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.16),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.25),
+                    width: 1.5,
+                  ),
+                ),
+                child: const Center(
+                  child: Text(
+                    'A',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Dashboard Admin',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _todayLabel,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 11.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _headerAction(
+                icon: Icons.picture_as_pdf_rounded,
+                tooltip: 'Export PDF',
+                onTap: _handleExportPDF,
+              ),
+              const SizedBox(width: 8),
+              _headerAction(
+                icon: Icons.logout_rounded,
+                tooltip: 'Logout',
+                onTap: _handleLogout,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Ringkasan kondisi kesehatan pengguna',
+            style: GoogleFonts.poppins(
+              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: 12.5,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            '${_users.length} pengguna terdaftar · $_totalRecordings rekaman terdeteksi',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _headerAction({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.14),
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Kartu statistik ───────────────────────────────────────────────
+  Widget _buildStatGrid() {
+    final stats = [
+      (
+        label: 'Total Pengguna',
+        value: '${_users.length}',
+        icon: Icons.people_rounded,
+        color: const Color(0xFF8B5CF6),
+      ),
+      (
+        label: 'Rata-rata Skor',
+        value: _avgPsychScore > 0 ? _avgPsychScore.toStringAsFixed(0) : '--',
+        icon: Icons.favorite_rounded,
+        color: _psychScoreColor(_avgPsychScore.round()),
+      ),
+      (
+        label: 'Total Rekaman',
+        value: '$_totalRecordings',
+        icon: Icons.mic_rounded,
+        color: const Color(0xFF10B981),
+      ),
+    ];
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < stats.length; i++)
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(left: i == 0 ? 0 : 8),
+              child: _buildStatCard(
+                label: stats[i].label,
+                value: stats[i].value,
+                icon: stats[i].icon,
+                color: stats[i].color,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(height: 12),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textP(context),
+                height: 1.1,
+              ),
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.textS(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Header section ────────────────────────────────────────────────
+  Widget _buildSectionTitle(IconData icon, String title, {String? trailing}) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            gradient: AppTheme.primaryGradient,
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Icon(icon, color: Colors.white, size: 15),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textP(context),
+            ),
+          ),
+        ),
+        if (trailing != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+            ),
+            child: Text(
+              trailing,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.primaryDark,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // ── Status kesehatan mental ───────────────────────────────────────
+  Widget _buildPsychStatusCard() {
+    final categories = [
+      (
+        label: 'Sehat Optimal',
+        color: const Color(0xFF10B981),
+        count: _countInRange(76, 100),
+      ),
+      (
+        label: 'Cukup',
+        color: const Color(0xFFF59E0B),
+        count: _countInRange(51, 75),
+      ),
+      (
+        label: 'Rentan',
+        color: const Color(0xFFF97316),
+        count: _countInRange(26, 50),
+      ),
+      (
+        label: 'Butuh Perhatian',
+        color: const Color(0xFFEF4444),
+        count: _countInRange(0, 25),
+      ),
+    ];
+    final scored = _users.where((u) => u['psych_score'] != null).length;
+
+    return MentalHealthStatusCard(categories: categories, scored: scored);
   }
 
   Widget _buildErrorState() {
@@ -407,85 +634,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryCards() {
-    final cards = [
-      (
-        value: '${_users.length}',
-        label: 'Pengguna',
-        icon: Icons.people_rounded,
-        color: AppTheme.iconColor(context),
-      ),
-      (
-        value: _avgPsychScore > 0 ? _avgPsychScore.toStringAsFixed(0) : '--',
-        label: 'Rata Skor',
-        icon: Icons.favorite_rounded,
-        color: _psychScoreColor(_avgPsychScore.round()),
-      ),
-      (
-        value: '$_totalRecordings',
-        label: 'Rekaman',
-        icon: Icons.mic_rounded,
-        color: AppTheme.primaryColor,
-      ),
-    ];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: cards.asMap().entries.map((entry) {
-          final i = entry.key;
-          final c = entry.value;
-          return Container(
-            margin: EdgeInsets.only(right: i < cards.length - 1 ? 10 : 0),
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-            decoration: BoxDecoration(
-              color: AppTheme.surface(context),
-              borderRadius: BorderRadius.circular(22),
-              boxShadow: AppTheme.cardShadow,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: c.color.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(c.icon, color: c.color, size: 18),
-                ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      c.value,
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: c.color,
-                        height: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      c.label,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.textS(context),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        }).toList(),
       ),
     );
   }
@@ -537,6 +685,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildEmptyState() {
+    final noUsers = _users.isEmpty;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(32),
@@ -548,13 +697,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       child: Column(
         children: [
           Icon(
-            Icons.search_off_rounded,
+            noUsers ? Icons.people_outline_rounded : Icons.search_off_rounded,
             size: 40,
             color: AppTheme.textH(context),
           ),
           const SizedBox(height: 8),
           Text(
-            'Tidak ada pengguna ditemukan',
+            noUsers ? 'Belum ada pengguna terdaftar' : 'Tidak ada pengguna ditemukan',
             style: GoogleFonts.poppins(
               fontSize: 14,
               color: AppTheme.textS(context),
@@ -569,6 +718,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final name = user['name'] as String;
     final email = user['email'] as String;
     final psychScore = user['psych_score'] as int?;
+    final recordings = user['recording_count'] as int? ?? 0;
     final scoreColor = _psychScoreColor(psychScore);
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
 
@@ -586,19 +736,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppTheme.surface(context),
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: AppTheme.cardShadow,
         ),
         child: Row(
           children: [
             // Avatar
             Container(
-              width: 40,
-              height: 40,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
-                  colors: [scoreColor.withValues(alpha: 0.8), scoreColor],
+                  colors: [scoreColor.withValues(alpha: 0.85), scoreColor],
                 ),
               ),
               child: Center(
@@ -612,30 +762,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
 
             // Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          name,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textP(context),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    name,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textP(context),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 1),
+                  const SizedBox(height: 2),
                   Text(
                     email.isNotEmpty ? email : 'Tidak ada email',
                     style: GoogleFonts.poppins(
@@ -645,6 +789,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.mic_none_rounded,
+                        size: 11,
+                        color: AppTheme.textH(context),
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        '$recordings rekaman',
+                        style: GoogleFonts.poppins(
+                          fontSize: 9.5,
+                          color: AppTheme.textH(context),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -653,7 +815,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
             // Score badge
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: scoreColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(AppTheme.radiusFull),

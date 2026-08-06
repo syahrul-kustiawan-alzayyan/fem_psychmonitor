@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.1.5] - 2026-08-06
+
+### 🎨 Tampilan
+- **Admin Dashboard Redesign** — Desain ulang dashboard admin dengan hero header gradien, kartu statistik, grafik distribusi emosi, status kesehatan mental, dan daftar pengguna.
+
+### 🐛 Perbaikan Bug
+- **Fix Relogin Admin** — Admin yang login kembali tidak lagi masuk ke halaman pengguna biasa; AppRouter memverifikasi `isAdmin` sebelum routing.
+- **Fix Crash Stat Card** — Perbaikan `BoxConstraints forces an infinite height` pada kartu statistik dashboard admin.
+
+### 📝 Lainnya
+- **Versi** — Update ke `2.1.5+8`.
+
 ## [2.1.0] - 2026-07-23
 
 ### ✨ New Features

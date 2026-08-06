@@ -30,7 +30,7 @@ void main() {
     expect(find.text(AppLocalizations.tr('terms_services')), findsOneWidget);
     expect(find.text(AppLocalizations.tr('backup_data')), findsOneWidget);
     expect(find.text(AppLocalizations.tr('delete_account_data')), findsOneWidget);
-    expect(find.textContaining('v2.1.0'), findsOneWidget);
+    expect(find.textContaining('v2.1.5'), findsOneWidget);
   });
 
   testWidgets('switch bahasa ID -> EN mengubah label', (WidgetTester tester) async {

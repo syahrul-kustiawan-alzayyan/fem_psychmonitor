@@ -1,3 +1,9 @@
+v2.1.5
+
+- Redesain halaman dashboard admin dengan tampilan profesional (header gradien, kartu statistik, grafik emosi, status kesehatan mental)
+- Perbaikan bug relogin admin yang masuk ke halaman pengguna biasa
+- Perbaikan crash "BoxConstraints forces an infinite height" pada kartu statistik dashboard
+
 v2.1.0
 
 - Pembatasan iklan open app muncul setiap 3 jam sekali

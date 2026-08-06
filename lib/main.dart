@@ -27,6 +27,7 @@ import 'screens/home_screen.dart';
 import 'screens/live_detection_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/premium_screen.dart';
+import 'screens/admin/admin_dashboard_screen.dart';
 
 
 void main() async {
@@ -184,7 +185,7 @@ class _FemPhysicsMonitorAppState extends State<FemPhysicsMonitorApp>
   }
 }
 
-enum _RouteAction { splash, onboarding, auth, main }
+enum _RouteAction { splash, onboarding, auth, main, admin }
 
 /// Router utama: cek status onboarding, login, dan validasi data user.
 class AppRouter extends StatelessWidget {
@@ -202,6 +203,11 @@ class AppRouter extends StatelessWidget {
 
           final user = FirebaseAuth.instance.currentUser;
           if (user != null) {
+            final isAdmin = await DatabaseService.isCurrentUserAdmin();
+            if (isAdmin) {
+              return _RouteAction.admin;
+            }
+
             final appUser = await DatabaseService.getUser();
             final hasData = appUser != null && appUser.bigFiveScores.isNotEmpty;
             if (hasData) {
@@ -243,6 +249,9 @@ class AppRouter extends StatelessWidget {
             return MainNavigation(
               key: ValueKey('main_nav_${DateTime.now().millisecondsSinceEpoch}'),
             );
+
+          case _RouteAction.admin:
+            return const AdminDashboardScreen();
 
           case _RouteAction.splash:
             return const _SplashScreen();

@@ -36,13 +36,7 @@ class AuthProvider extends ChangeNotifier {
       _email = currentUser.email ?? '';
       _username = prefs.getString(_keyUsername) ?? currentUser.displayName ?? currentUser.email?.split('@').first ?? 'User';
       // Check admin status
-      try {
-        final doc = await DatabaseService.userDocRef?.get();
-        final data = doc?.data() as Map<String, dynamic>?;
-        _isAdmin = data?['isAdmin'] == true;
-      } catch (_) {
-        _isAdmin = false;
-      }
+      _isAdmin = await DatabaseService.isCurrentUserAdmin();
       await prefs.setString(_keyEmail, _email);
     } else {
       _isLoggedIn = false;
@@ -128,9 +122,7 @@ class AuthProvider extends ChangeNotifier {
 
       // Admin bypass — check admin status before email verification
       await credential.user!.reload();
-      final adminDoc = await DatabaseService.userDocRef?.get();
-      final adminData = adminDoc?.data() as Map<String, dynamic>?;
-      final isAdmin = adminData?['isAdmin'] == true;
+      final isAdmin = await DatabaseService.isCurrentUserAdmin();
       if (isAdmin) {
         _isLoggedIn = true;
         _isAdmin = true;
