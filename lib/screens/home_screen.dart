@@ -112,7 +112,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // ── Formatted date ───────────────────────────────────────────
   String get _todayLabel {
     final now = DateTime.now();
-    final isId = AppLocalizations.currentLocale == 'id';
     final monthKeys = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
     final dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
     final wd = AppLocalizations.tr(dayKeys[now.weekday - 1]);
@@ -596,7 +595,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Color secondaryColor;
         String statusLabel;
         IconData statusIcon;
-        String emoji;
         String description;
 
         if (displayScore100 == null) {
@@ -604,35 +602,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           secondaryColor = const Color(0xFF94A3B8);
           statusLabel = AppLocalizations.tr('not_assessed');
           statusIcon = Icons.help_outline_rounded;
-          emoji = '📋';
           description = AppLocalizations.tr('fill_questionnaire_to_see_score');
         } else if (displayScore100 >= 76) {
           primaryColor = const Color(0xFF10B981); // Green - Optimal
           secondaryColor = const Color(0xFF34D399);
           statusLabel = AppLocalizations.tr('psych_excellent');
           statusIcon = Icons.check_circle_rounded;
-          emoji = '😊';
           description = _getHealthClassDescription(displayScore100);
         } else if (displayScore100 >= 51) {
           primaryColor = const Color(0xFFF59E0B); // Amber - Cukup
           secondaryColor = const Color(0xFFFBBF24);
           statusLabel = AppLocalizations.tr('psych_good');
           statusIcon = Icons.check_circle_outline_rounded;
-          emoji = '🙂';
           description = _getHealthClassDescription(displayScore100);
         } else if (displayScore100 >= 26) {
           primaryColor = const Color(0xFFF97316); // Orange - Rentan
           secondaryColor = const Color(0xFFFB923C);
           statusLabel = AppLocalizations.tr('psych_fair');
           statusIcon = Icons.warning_amber_rounded;
-          emoji = '😔';
           description = _getHealthClassDescription(displayScore100);
         } else {
           primaryColor = const Color(0xFFEF4444); // Red - Perlu perhatian
           secondaryColor = const Color(0xFFF87171);
           statusLabel = AppLocalizations.tr('psych_needs_attention');
           statusIcon = Icons.error_rounded;
-          emoji = '😰';
           description = _getHealthClassDescription(displayScore100);
         }
 

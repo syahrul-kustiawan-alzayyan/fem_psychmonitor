@@ -12,17 +12,8 @@ class OnboardingState extends ChangeNotifier {
   List<BigFiveQuestion> bigFiveQuestions = [];
   List<int?> bigFiveAnswers = [];
 
-  // MBTI (legacy, kept for compatibility)
-  List<MBTIQuestion> mbtiQuestions = [];
-  List<int?> mbtiAnswers = [];
-
   List<PsyQuestion> psyQuestions = [];
   List<int?> psyAnswers = [];
-
-  bool mbtiSkipped = false;
-  bool showManualMbti = false;
-  String mbtiType = '';
-  Map<String, int> mbtiScores = {};
 
   // Big Five results
   Map<String, double> bigFiveScores = {};
@@ -90,45 +81,6 @@ class OnboardingState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── MBTI (legacy) ──────────────────────────────────────────
-  void skipMbti() {
-    mbtiSkipped = true;
-    showManualMbti = true;
-    notifyListeners();
-  }
-
-  void doNotSkipMbti() {
-    mbtiSkipped = false;
-    showManualMbti = false;
-    mbtiType = '';
-    mbtiScores = {};
-    notifyListeners();
-  }
-
-  void setManualMbtiType(String type) {
-    mbtiType = type;
-    notifyListeners();
-  }
-
-  void setMbtiAnswer(int index, int rating) {
-    mbtiAnswers[index] = rating;
-    notifyListeners();
-  }
-
-  void calculateMbtiResult() {
-    if (!mbtiSkipped) {
-      final result = calculateMBTI(mbtiAnswers.map((e) => e ?? 0).toList(), mbtiQuestions);
-      mbtiType = result.type;
-      mbtiScores = result.scores;
-    } else {
-      if (mbtiType.isEmpty) mbtiType = 'XXXX';
-      mbtiScores = {
-        'E': 0, 'I': 0, 'S': 0, 'N': 0, 'T': 0, 'F': 0, 'J': 0, 'P': 0,
-      };
-    }
-    notifyListeners();
-  }
-
   void setPsyAnswer(int index, int value) {
     psyAnswers[index] = value;
     notifyListeners();
@@ -137,12 +89,6 @@ class OnboardingState extends ChangeNotifier {
   void calculatePsyResult() {
     psyScore = psyAnswers.fold<int>(0, (sum, val) => sum + (val ?? 0));
     notifyListeners();
-  }
-
-  bool isMbtiComplete() {
-    if (mbtiSkipped && mbtiType.isNotEmpty) return true;
-    if (!mbtiSkipped && !mbtiAnswers.contains(null)) return true;
-    return false;
   }
 
   bool isPsyComplete() {

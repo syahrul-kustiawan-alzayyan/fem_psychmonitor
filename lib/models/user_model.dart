@@ -6,8 +6,6 @@ import '../l10n/app_localizations.dart';
 class AppUser {
   final int? id;
   final String name;
-  final String mbtiType;
-  final Map<String, int> mbtiScores;
   final Map<String, double> bigFiveScores;
   final int? psychologicalScore;
   final DateTime createdAt;
@@ -15,8 +13,6 @@ class AppUser {
   const AppUser({
     this.id,
     required this.name,
-    this.mbtiType = '',
-    this.mbtiScores = const {},
     this.bigFiveScores = const {},
     this.psychologicalScore,
     required this.createdAt,
@@ -25,8 +21,6 @@ class AppUser {
   AppUser copyWith({
     int? id,
     String? name,
-    String? mbtiType,
-    Map<String, int>? mbtiScores,
     Map<String, double>? bigFiveScores,
     int? psychologicalScore,
     DateTime? createdAt,
@@ -34,8 +28,6 @@ class AppUser {
     return AppUser(
       id: id ?? this.id,
       name: name ?? this.name,
-      mbtiType: mbtiType ?? this.mbtiType,
-      mbtiScores: mbtiScores ?? this.mbtiScores,
       bigFiveScores: bigFiveScores ?? this.bigFiveScores,
       psychologicalScore: psychologicalScore ?? this.psychologicalScore,
       createdAt: createdAt ?? this.createdAt,
@@ -100,15 +92,6 @@ class AppUser {
       parts.add('$label: $level ($score)');
     }
     return parts.join('\n');
-  }
-
-  String get bigFiveProfileLabel {
-    if (!hasBigFive) return '';
-    final sorted = ['O', 'C', 'E', 'A', 'N']
-      ..sort((a, b) => (bigFiveScores[b] ?? 0).compareTo(bigFiveScores[a] ?? 0));
-    return bigFiveScores.entries
-        .map((e) => '${e.key}:${e.value.toStringAsFixed(1)}')
-        .join(' | ');
   }
 
   String get bigFiveDescription {
@@ -222,68 +205,7 @@ Map<String, double> calculateBigFive(List<int> answers, List<BigFiveQuestion> qu
 }
 
 // ==========================================
-// MODEL: Pertanyaan MBTI (existing, retained)
-// ==========================================
-class MBTIQuestion {
-  final int questionId;
-  final String question;
-  final String optionA;
-  final String optionB;
-  final String dimension;
-  final String firstType;
-  final String secondType;
-
-  const MBTIQuestion({
-    required this.questionId,
-    required this.question,
-    required this.optionA,
-    required this.optionB,
-    required this.dimension,
-    required this.firstType,
-    required this.secondType,
-  });
-
-  factory MBTIQuestion.fromJson(Map<String, dynamic> json) {
-    return MBTIQuestion(
-      questionId: json['id'],
-      dimension: json['dimension'],
-      question: json['question'],
-      optionA: json['options'][0]['answer'],
-      firstType: json['options'][0]['type'],
-      optionB: json['options'][1]['answer'],
-      secondType: json['options'][1]['type'],
-    );
-  }
-
-  String get optionAText => optionA;
-  String get optionBText => optionB;
-}
-
-({String type, Map<String, int> scores}) calculateMBTI(List<int> answers, List<MBTIQuestion> mbtiQuestions) {
-  final scores = <String, int>{
-    'E': 0, 'I': 0, 'S': 0, 'N': 0, 'T': 0, 'F': 0, 'J': 0, 'P': 0,
-  };
-
-  for (int i = 0; i < mbtiQuestions.length && i < answers.length; i++) {
-    final q = mbtiQuestions[i];
-    if (answers[i] == 0) {
-      scores[q.firstType] = (scores[q.firstType] ?? 0) + 1;
-    } else {
-      scores[q.secondType] = (scores[q.secondType] ?? 0) + 1;
-    }
-  }
-
-  final type = StringBuffer();
-  type.write(scores['E']! >= scores['I']! ? 'E' : 'I');
-  type.write(scores['S']! >= scores['N']! ? 'S' : 'N');
-  type.write(scores['T']! >= scores['F']! ? 'T' : 'F');
-  type.write(scores['J']! >= scores['P']! ? 'J' : 'P');
-
-  return (type: type.toString(), scores: scores);
-}
-
-// ==========================================
-// PsyQuestion (unchanged)
+// PsyQuestion
 // ==========================================
 class PsyQuestion {
   final int id;

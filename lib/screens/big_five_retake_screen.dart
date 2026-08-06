@@ -6,7 +6,6 @@ import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../services/database_service.dart';
 import '../widgets/gradient_background.dart';
-import '../models/user_model.dart';
 import 'onboarding/onboarding_state.dart';
 import 'onboarding/bigfive_section.dart';
 

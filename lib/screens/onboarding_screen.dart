@@ -29,22 +29,15 @@ class OnboardingScreen extends StatelessWidget {
     if (!hasPending) return;
 
     try {
-      final mbtiType = prefs.getString('pending_mbti_type') ?? '';
-      final mbtiScoresJson = prefs.getString('pending_mbti_scores') ?? '{}';
       final psychScore = prefs.getInt('pending_psych_score');
       final bigFiveJson = prefs.getString('pending_bigfive_scores') ?? '{}';
 
-      final mbtiScores = Map<String, int>.from(
-        jsonDecode(mbtiScoresJson) as Map,
-      );
       final bigFiveScores = Map<String, double>.from(
         (jsonDecode(bigFiveJson) as Map).map((k, v) => MapEntry(k.toString(), (v as num).toDouble())),
       );
 
       final user = AppUser(
         name: prefs.getString('auth_username') ?? '',
-        mbtiType: mbtiType,
-        mbtiScores: mbtiScores,
         bigFiveScores: bigFiveScores,
         psychologicalScore: psychScore != null
             ? ((60 - psychScore) / 60 * 100).round()
@@ -54,8 +47,6 @@ class OnboardingScreen extends StatelessWidget {
 
       await DatabaseService.insertUser(user);
 
-      await prefs.remove('pending_mbti_type');
-      await prefs.remove('pending_mbti_scores');
       await prefs.remove('pending_psych_score');
       await prefs.remove('pending_bigfive_scores');
       await prefs.remove('pending_onboarding_data');
@@ -116,10 +107,8 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('pending_mbti_type', state.mbtiType);
-      await prefs.setString('pending_mbti_scores', jsonEncode(state.mbtiScores));
       await prefs.setString('pending_bigfive_scores', jsonEncode(state.bigFiveScores));
-      await prefs.setInt('pending_psych_score', state.psyScore ?? 0);
+      await prefs.setInt('pending_psych_score', state.psyScore);
       await prefs.setBool('pending_onboarding_data', true);
 
       await StorageService.setOnboardingComplete('');

@@ -342,14 +342,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
-  flutter_litert_flex:
-    dependency: "direct main"
-    description:
-      name: flutter_litert_flex
-      sha256: "459ca757faaa9fc21e63ad4fa596a6c8ac9f2661bb1ce0114ac96c2a1b27419a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.8"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -665,7 +657,7 @@ packages:
     source: hosted
     version: "2.2.0"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       sha256: "75cca69d1490965be98c73ceaea117e8a04dd21217b37b292c9ddbec0d955bc5"

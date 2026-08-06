@@ -22,8 +22,6 @@ class ResultSection extends StatelessWidget {
 
     final user = AppUser(
       name: userName,
-      mbtiType: state.mbtiType,
-      mbtiScores: state.mbtiScores,
       bigFiveScores: state.bigFiveScores,
       psychologicalScore: state.psyScore,
       createdAt: DateTime.now(),
@@ -123,7 +121,6 @@ class ResultSection extends StatelessWidget {
   }
 
   Widget _buildBigFiveResultCard(BuildContext context, OnboardingState state) {
-    final isDark = context.watch<ThemeProvider>().isDark;
     final dimLabels = {
       'O': ('🎨', AppLocalizations.tr('bigfive_dim_o'), const Color(0xFF8B5CF6)),
       'C': ('📋', AppLocalizations.tr('bigfive_dim_c'), const Color(0xFF3B82F6)),

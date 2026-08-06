@@ -21,7 +21,6 @@ import 'services/database_service.dart';
 import 'services/config_service.dart';
 import 'services/storage_service.dart';
 import 'services/whisper_init_service.dart';
-import 'widgets/gradient_background.dart';
 import 'screens/auth_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
@@ -88,8 +87,6 @@ void main() async {
           'name': 'Admin',
           'email': adminEmail,
           'isAdmin': true,
-          'mbti_type': '',
-          'mbti_scores': {},
           'bigfive_scores': {},
           'psych_score': null,
           'created_at': FieldValue.serverTimestamp(),

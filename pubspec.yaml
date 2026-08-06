@@ -43,7 +43,6 @@ dependencies:
   firebase_auth: ^5.7.0
   cloud_firestore: ^5.6.12
   flutter_litert: ^1.0.3
-  flutter_litert_flex: ^0.0.1
   record: ^6.2.0
   image_picker: ^1.2.1
   google_sign_in: ^6.2.1
@@ -55,6 +54,7 @@ dependencies:
   google_generative_ai: ^0.4.6
   whisper_kit: ^0.3.1
   path_provider: ^2.1.5
+  path: ^1.9.0
   url_launcher: ^6.3.1
   pdf: ^3.11.3
   printing: ^5.13.4
@@ -91,8 +91,6 @@ flutter:
     - assets/logo.png
     - assets/banner.png
     - assets/final_female_model.tflite
-    - assets/MBTI.json
-    - assets/MBTI_en.json
     - assets/BigFive_MiniIPIP20.json
     - assets/BigFive_MiniIPIP20_en.json
     - assets/psych.json

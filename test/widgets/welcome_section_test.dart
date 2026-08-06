@@ -15,10 +15,9 @@ void main() {
   });
 
   testWidgets('WelcomeSection menampilkan tombol mulai', (WidgetTester tester) async {
-    var nextCalled = false;
     await tester.pumpWidget(wrapWithProviders(
       child: Scaffold(
-        body: WelcomeSection(onNext: () => nextCalled = true),
+        body: WelcomeSection(onNext: () {}),
       ),
     ));
     await tester.pumpAndSettle(const Duration(milliseconds: 100));

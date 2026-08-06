@@ -8,7 +8,7 @@ import '../models/user_model.dart';
 // DatabaseService — Cloud Firestore persistence
 //
 // Koleksi Firestore:
-//   • users/{uid}                                    — Data user + hasil MBTI
+//   • users/{uid}                                    — Data user + hasil asesmen
 //   • users/{uid}/recordings/{id}                    — Data recording lengkap
 //   • users/{uid}/recordings/{id}/snapshots/{id}     — Snapshot emosi per 3 detik
 // ─────────────────────────────────────────────────────────────────────────────
@@ -42,8 +42,6 @@ class DatabaseService {
     final data = {
       'name': user.name,
       'email': email,
-      'mbti_type': user.mbtiType,
-      'mbti_scores': user.mbtiScores,
       'bigfive_scores': user.bigFiveScores.map((k, v) => MapEntry(k, v)),
       'psych_score': user.psychologicalScore,
       'created_at': FieldValue.serverTimestamp(),
@@ -69,12 +67,6 @@ class DatabaseService {
       return AppUser(
         id: currentUid.hashCode,
         name: data['name'] as String? ?? 'User',
-        mbtiType: data['mbti_type'] as String? ?? '',
-        mbtiScores: Map<String, int>.from(
-          (data['mbti_scores'] as Map?)?.map(
-            (k, v) => MapEntry(k.toString(), (v as num).toInt()),
-          ) ?? {},
-        ),
         bigFiveScores: Map<String, double>.from(
           (data['bigfive_scores'] as Map?)?.map(
             (k, v) => MapEntry(k.toString(), (v as num).toDouble()),
@@ -100,8 +92,6 @@ class DatabaseService {
 
     await docRef.update({
       'name': user.name,
-      'mbti_type': user.mbtiType,
-      'mbti_scores': user.mbtiScores,
       'bigfive_scores': user.bigFiveScores.map((k, v) => MapEntry(k, v)),
       'psych_score': user.psychologicalScore,
       'updated_at': FieldValue.serverTimestamp(),
@@ -258,12 +248,6 @@ class DatabaseService {
       return AppUser(
         id: uid.hashCode,
         name: data['name'] as String? ?? 'User',
-        mbtiType: data['mbti_type'] as String? ?? '',
-        mbtiScores: Map<String, int>.from(
-          (data['mbti_scores'] as Map?)?.map(
-            (k, v) => MapEntry(k.toString(), (v as num).toInt()),
-          ) ?? {},
-        ),
         bigFiveScores: Map<String, double>.from(
           (data['bigfive_scores'] as Map?)?.map(
             (k, v) => MapEntry(k.toString(), (v as num).toDouble()),

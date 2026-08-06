@@ -80,7 +80,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           'uid': uid,
           'name': userData['name'] as String? ?? 'User',
           'email': userData['email'] as String? ?? '',
-          'mbti_type': userData['mbti_type'] as String? ?? '',
           'psych_score': userData['psych_score'] as int?,
           'created_at': userData['created_at'],
           'recording_count': recordings.length,
@@ -569,7 +568,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget _buildUserItem(Map<String, dynamic> user) {
     final name = user['name'] as String;
     final email = user['email'] as String;
-    final mbtiType = user['mbti_type'] as String;
     final psychScore = user['psych_score'] as int?;
     final scoreColor = _psychScoreColor(psychScore);
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
@@ -635,24 +633,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (mbtiType.isNotEmpty) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                          ),
-                          child: Text(
-                            mbtiType,
-                            style: GoogleFonts.poppins(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primaryDark,
-                            ),
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                   const SizedBox(height: 1),

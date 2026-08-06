@@ -125,7 +125,6 @@ class PdfExportService {
       children: [
         pw.Text('Nama: ${user['name'] ?? '-'}', style: nameStyle),
         pw.Text('Email: ${user['email'] ?? '-'}', style: bodyStyle),
-        pw.Text('MBTI: ${user['mbti_type'] ?? '-'}', style: bodyStyle),
         pw.SizedBox(height: 8),
         if (user['created_at'] != null)
           pw.Text('Bergabung: ${_formatDate(user['created_at'])}', style: mutedStyle),

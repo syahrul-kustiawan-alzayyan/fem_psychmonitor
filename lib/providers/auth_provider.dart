@@ -165,8 +165,6 @@ class AuthProvider extends ChangeNotifier {
       if (appUser == null && !hasPending) {
         final minimalUser = AppUser(
           name: _username,
-          mbtiType: '',
-          mbtiScores: {},
           bigFiveScores: {},
           createdAt: DateTime.now(),
         );
@@ -343,8 +341,6 @@ class AuthProvider extends ChangeNotifier {
           // User baru tanpa data pending — buat record minimal
           final minimalUser = AppUser(
             name: _username,
-            mbtiType: '',
-            mbtiScores: {},
             bigFiveScores: {},
             createdAt: DateTime.now(),
           );

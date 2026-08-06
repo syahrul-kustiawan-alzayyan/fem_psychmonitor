@@ -3,7 +3,7 @@
 **Aplikasi:** Fem-Psych Monitor (fem_physicsmonitor) v2.1.0+7
 **Platform:** Flutter (Android / iOS / Web / Desktop)
 **Metode:** Blackbox Testing (pengujian fungsional berdasarkan spesifikasi & perilaku tampilan, tanpa melihat implementasi internal)
-**Status:** **PASS** — 105/105 kasus uji otomatis lulus
+**Status:** **PASS** — 101/101 kasus uji otomatis lulus (lingkup Big Five OCEAN)
 
 ---
 
@@ -21,18 +21,18 @@ Modul yang diuji:
 |---|---|---|
 | Splash & Routing Awal | `test/widget_test.dart` | 2 |
 | Onboarding — Welcome & Bahasa | `test/widgets/welcome_section_test.dart` | 3 |
-| Onboarding — State & Perhitungan Skor | `test/onboarding/onboarding_state_test.dart` | 10 |
+| Onboarding — State & Perhitungan Skor | `test/onboarding/onboarding_state_test.dart` | 9 |
 | Autentikasi | `test/widgets/auth_screen_test.dart` | 6 |
 | Pengaturan (Settings) | `test/widgets/settings_screen_test.dart` | 5 |
 | Lokalisasi (ID/EN) | `test/l10n/app_localizations_test.dart` | 7 |
 | Model Emosi | `test/models/emotion_model_test.dart` | 21 |
-| Model User (MBTI, Big Five, Psy) | `test/models/user_model_test.dart` | 14 |
+| Model User (Big Five OCEAN, Psy) | `test/models/user_model_test.dart` | 11 |
 | Deteksi Emosi dari Teks | `test/services/text_emotion_service_test.dart` | 8 |
 | Saran & Rujukan Keselamatan | `test/services/suggestion_service_test.dart` | 9 |
 | Penyimpanan Lokal & Limit Harian | `test/services/storage_service_test.dart` | 8 |
 | Ekspor Laporan PDF | `test/services/pdf_export_service_test.dart` | 2 |
 | State Management (Provider) | `test/providers/providers_test.dart` | 10 |
-| **Total** | | **105** |
+| **Total** | | **101** |
 
 ## 3. Lingkungan & Cara Menjalankan
 
@@ -57,9 +57,11 @@ flutter test --plain-name "password terlalu pendek -> error minimal 6 karakter"
 
 ### 3.3 Hasil Terakhir
 ```
-00:30 +105: All tests passed!
+00:39 +101: All tests passed!
 ```
-Seluruh **105 kasus uji lulus** (0 gagal, 0 error).
+> *Catatan: hasil eksekusi `flutter test` penuh (lingkup Big Five OCEAN).*
+
+Seluruh **101 kasus uji lulus** (0 gagal, 0 error).
 
 ---
 
@@ -92,8 +94,7 @@ Seluruh **105 kasus uji lulus** (0 gagal, 0 error).
 | O-06 | Semua jawaban psy memilih skor maksimum | Soal dimuat | 1. Pilih opsi skor 3 untuk semua 20 soal<br>2. Hitung hasil | `psyScore = 60`; skor tampilan **0** (kondisi terburuk) | **PASS** |
 | O-07 | Semua jawaban psy memilih skor 0 | Soal dimuat | 1. Pilih opsi skor 0 untuk semua soal<br>2. Hitung hasil | `psyScore = 0`; skor tampilan **100** (kondisi terbaik) | **PASS** |
 | O-08 | Konversi skor psy → kategori kesehatan mental | Skor psy tersedia | 1. Bandingkan skor tampilan dengan ambang batas | `100`→Sehat Optimal; `85`→Sehat Optimal; `67`→Cukup; `42`→Rentan; `20`→Butuh Perhatian Klinis; `0`→Butuh Perhatian | **PASS** |
-| O-09 | Menentukan tipe MBTI secara manual | Flow MBTI diskip | 1. Skip MBTI otomatis<br>2. Pilih tipe manual "INTJ"<br>3. Hitung hasil | Tipe tersimpan **INTJ**; status MBTI lengkap | **PASS** |
-| O-10 | Flag menyimpan (saving) dapat dikontrol | — | 1. Aktifkan `saving = true`<br>2. Matikan `saving = false` | Status `isSaving` berubah mengikuti nilai | **PASS** |
+| O-09 | Flag menyimpan (saving) dapat dikontrol | — | 1. Aktifkan `saving = true`<br>2. Matikan `saving = false` | Status `isSaving` berubah mengikuti nilai | **PASS** |
 
 ### 4.4 Autentikasi (`test/widgets/auth_screen_test.dart`)
 
@@ -154,7 +155,7 @@ Seluruh **105 kasus uji lulus** (0 gagal, 0 error).
 | E-20 | Frekuensi emosi menjumlah 6 emosi | — | 1. Periksa `emotionFrequency` | Total = **12**, 6 jenis | **PASS** |
 | E-21 | Skor deteksi ternormalisasi | — | 1. Jumlahkan `detectionScores` | Total ≈ **1.0** | **PASS** |
 
-### 4.8 Model User — MBTI, Big Five, Psy (`test/models/user_model_test.dart`)
+### 4.8 Model User — Big Five OCEAN, Psy (`test/models/user_model_test.dart`)
 
 | ID | Skenario | Prekondisi | Langkah | Hasil yang Diharapkan | Status |
 |---|---|---|---|---|---|
@@ -167,11 +168,8 @@ Seluruh **105 kasus uji lulus** (0 gagal, 0 error).
 | U-07 | Perhitungan rata-rata per dimensi Big Five | 4 soal per dimensi (2 keyed +, 2 keyed −) | 1. Jawab soal O: 4,4,5,1 | Skor **O = 3.5** (reverse scoring diterapkan) | **PASS** |
 | U-08 | Reverse scoring soal ber-keyed − benar | Soal keyed − | 1. Jawab 1 pada soal keyed + dan keyed − | Skor O = **3.0** (jawaban 1 pada keyed − diubah menjadi 5) | **PASS** |
 | U-09 | Hasil memuat 5 dimensi | — | 1. Jawab semua netral (3) | Skor memuat **O, C, E, A, N** | **PASS** |
-| U-10 | MBTI: pilihan pertama = tipe pertama | 20 soal (4 pasang × 5) | 1. Semua jawaban pilih opsi 0 | Tipe **ESTJ**; skor E=5, I=0 | **PASS** |
-| U-11 | MBTI: pilihan kedua semua = tipe kedua | — | 1. Semua jawaban pilih opsi 1 | Tipe **INFP** | **PASS** |
-| U-12 | MBTI imbang condong ke tipe pertama | Jawaban E/I = 3:2 | 1. Jawab 2 soal I dari 5 soal E/I | Skor E=3, I=2 → tipe **ESTJ** (aturan `>=` memihak tipe pertama) | **PASS** |
-| U-13 | Parsing soal Big Five dari JSON | Data JSON soal | 1. Parse `{id, dimension, dimension_name, keyed, statement}` | `question`, `dimension`, `keyed` terbaca benar | **PASS** |
-| U-14 | Parsing soal psy dari JSON beserta opsi | Data JSON soal | 1. Parse `{id, category, question, options}` | 2 opsi terbaca; skor opsi 0 & 3 sesuai | **PASS** |
+| U-10 | Parsing soal Big Five dari JSON | Data JSON soal | 1. Parse `{id, dimension, dimension_name, keyed, statement}` | `question`, `dimension`, `keyed` terbaca benar | **PASS** |
+| U-11 | Parsing soal psy dari JSON beserta opsi | Data JSON soal | 1. Parse `{id, category, question, options}` | 2 opsi terbaca; skor opsi 0 & 3 sesuai | **PASS** |
 
 ### 4.9 Deteksi Emosi dari Teks (`test/services/text_emotion_service_test.dart`)
 
@@ -242,18 +240,18 @@ Seluruh **105 kasus uji lulus** (0 gagal, 0 error).
 | Area Fungsional | Jumlah Kasus | Hasil |
 |---|---|---|
 | Splash & Routing | 2 | 2 PASS |
-| Onboarding | 13 | 13 PASS |
+| Onboarding | 12 | 12 PASS |
 | Autentikasi | 6 | 6 PASS |
 | Pengaturan | 5 | 5 PASS |
 | Lokalisasi | 7 | 7 PASS |
 | Emosi (model) | 21 | 21 PASS |
-| Profil Psikologi (MBTI/Big Five/Psy) | 14 | 14 PASS |
+| Profil Psikologi (Big Five OCEAN/Psy) | 11 | 11 PASS |
 | Deteksi Emosi Teks | 8 | 8 PASS |
 | Saran & Keselamatan | 9 | 9 PASS |
 | Penyimpanan & Limit Harian | 8 | 8 PASS |
 | Ekspor PDF | 2 | 2 PASS |
 | Provider/State | 10 | 10 PASS |
-| **Total** | **105** | **105 PASS (100%)** |
+| **Total** | **101** | **101 PASS (100%)** |
 
 ## 6. Catatan Teknis Pengujian
 
@@ -277,8 +275,8 @@ Kasus berikut disarankan diuji secara manual karena memerlukan backend asli, per
 
 ## 8. Kesimpulan
 
-Berdasarkan pelaksanaan blackbox testing otomatis terhadap **105 kasus uji** yang mencakup seluruh modul fungsional utama aplikasi Fem-Psych Monitor:
+Berdasarkan pelaksanaan blackbox testing otomatis terhadap **101 kasus uji** yang mencakup seluruh modul fungsional utama aplikasi Fem-Psych Monitor:
 
-> **Hasil: 105/105 PASS (tingkat keberhasilan 100%). Tidak ditemukan cacat fungsional (defect) pada lingkup yang diuji.**
+> **Hasil: 101/101 PASS (tingkat keberhasilan 100%). Tidak ditemukan cacat fungsional (defect) pada lingkup yang diuji.**
 
 Aplikasi dinyatakan **siap melanjutkan ke pengujian integrasi dan pengujian manual** untuk skenario yang membutuhkan backend/device nyata.

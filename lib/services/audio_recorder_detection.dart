@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'dart:io' show Platform, Directory, File;
+import 'dart:io' show Directory, File;
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:flutter_litert/flutter_litert.dart';
-import 'package:flutter_litert_flex/flutter_litert_flex.dart';
 import '../models/emotion_model.dart';
 
 /// AudioRecorderWithDetection - Layanan rekaman audio dengan deteksi emosi real-time
@@ -29,7 +28,7 @@ class AudioRecorderWithDetection extends ChangeNotifier {
   bool _useMockDetection = false; // Flag untuk development mode
 
   // Detection state
-  bool _isDetecting = false;
+  final bool _isDetecting = false;
   Map<EmotionType, double>? _currentScores;
   EmotionType? _currentDominantEmotion;
   double? _currentConfidence;
@@ -260,12 +259,6 @@ class AudioRecorderWithDetection extends ChangeNotifier {
       final inputTensor = _interpreter!.getInputTensor(0);
       final outputTensor = _interpreter!.getOutputTensor(0);
       
-      if (inputTensor == null || outputTensor == null) {
-        debugPrint('⚠️ Tensors are null, reloading model');
-        _isModelLoaded = false;
-        return false;
-      }
-      
       // Validasi shape tensors
       if (inputTensor.shape.isEmpty || outputTensor.shape.isEmpty) {
         debugPrint('⚠️ Invalid tensor shapes, reloading model');
@@ -343,12 +336,6 @@ class AudioRecorderWithDetection extends ChangeNotifier {
 
       final inputTensor = _interpreter!.getInputTensor(0);
       final outputTensor = _interpreter!.getOutputTensor(0);
-      
-      if (inputTensor == null || outputTensor == null) {
-        debugPrint('⚠️ Tensors null, using mock detection');
-        _runMockDetection();
-        return;
-      }
       
       final inputShape = inputTensor.shape;
       final outputShape = outputTensor.shape;
@@ -480,149 +467,6 @@ class AudioRecorderWithDetection extends ChangeNotifier {
         _runMockDetection();
       }
     });
-  }
-
-  /// Baca audio samples dari recorder
-  /// Note: record package tidak expose raw samples secara langsung
-  /// Jadi kita gunakan approach alternatif dengan membaca file setelah stop
-  Future<List<double>> _getAudioSamples() async {
-    // Dalam implementasi nyata, Anda perlu:
-    // 1. Merekam ke file
-    // 2. Baca file dan convert ke samples
-    // 3. Proses samples ke model
-
-    // Untuk sekarang, return buffer yang ada
-    return List.from(_audioBuffer);
-  }
-
-  /// Proses audio dan deteksi emosi
-  Future<void> _processAudio() async {
-    if (!_isModelLoaded || _audioBuffer.isEmpty) return;
-
-    _isDetecting = true;
-
-    try {
-      if (_useMockDetection) {
-        _runMockDetection();
-        return;
-      }
-
-      if (_audioBuffer.length < _targetAudioLength) {
-        return;
-      }
-
-      if (!_validateInterpreter()) {
-        await _ensureModelLoaded();
-        if (_interpreter == null || _useMockDetection) {
-          _runMockDetection();
-          return;
-        }
-      }
-
-      final segment = _audioBuffer.sublist(
-        _audioBuffer.length - _targetAudioLength,
-        _audioBuffer.length,
-      );
-
-      final features = extractAudioFeatures(segment);
-      
-      if (features.length != 128 * 121) {
-        debugPrint('⚠️ Invalid feature length: ${features.length}');
-        return;
-      }
-
-      final inputTensor = _interpreter!.getInputTensor(0);
-      final outputTensor = _interpreter!.getOutputTensor(0);
-      
-      final inputShape = inputTensor.shape;
-      final outputShape = outputTensor.shape;
-      
-      debugPrint('   Input shape from model: $inputShape');
-      debugPrint('   Output shape from model: $outputShape');
-
-      final modelBatch = inputShape[0];
-      final modelTime = inputShape[1];
-      final modelFeat = inputShape[2];
-
-      final reshapedInput = List.generate(
-        modelBatch,
-        (_) => List.generate(
-          modelTime,
-          (t) {
-            final start = t * modelFeat;
-            final end = start + modelFeat;
-            if (end > features.length) {
-              return List.filled(modelFeat, 0.0);
-            }
-            return features.sublist(start, end);
-          },
-        ),
-      );
-
-      final outputBatchSize = outputShape.isNotEmpty ? outputShape[0] : 1;
-      final outputFeaturesSize = outputShape.length > 1 
-          ? outputShape.sublist(1).reduce((a, b) => a * b)
-          : 1;
-      final output = List.generate(
-        outputBatchSize,
-        (_) => List.filled(outputFeaturesSize, 0.0),
-      );
-
-      _interpreter!.run(reshapedInput, output);
-
-      final scores = <EmotionType, double>{};
-      final modelLabels = [
-        EmotionType.happy,
-        EmotionType.sad,
-        EmotionType.angry,
-        EmotionType.disgust,
-        EmotionType.neutral,
-        EmotionType.fear,
-      ];
-
-      for (int i = 0; i < modelLabels.length && i < output[0].length; i++) {
-        final val = output[0][i];
-        scores[modelLabels[i]] = (val as num).toDouble();
-      }
-
-      // Normalisasi
-      final total = scores.values.fold<double>(0, (sum, val) => sum + val);
-      if (total > 0) {
-        scores.updateAll((key, value) => value / total);
-      }
-
-      // Cari dominan
-      EmotionType dominant = EmotionType.neutral;
-      double maxScore = 0;
-
-      for (final entry in scores.entries) {
-        if (entry.value > maxScore) {
-          maxScore = entry.value;
-          dominant = entry.key;
-        }
-      }
-
-      // Update state
-      _currentScores = scores;
-      _currentDominantEmotion = dominant;
-      _currentConfidence = maxScore;
-
-      // Stream result
-      _detectionStream.add(
-        DetectionResult(
-          scores: scores,
-          dominantEmotion: dominant,
-          confidence: maxScore,
-          timestamp: DateTime.now(),
-        ),
-      );
-
-      notifyListeners();
-    } catch (e) {
-      debugPrint('❌ Error processing audio: $e');
-    } finally {
-      _isDetecting = false;
-    }
   }
 
   void addAudioSamples(List<double> samples) {
@@ -938,11 +782,6 @@ class AudioRecorderWithDetection extends ChangeNotifier {
     if (_audioBuffer.isEmpty) return;
 
     try {
-      // Generate simulated emotion based on audio energy
-      final energy =
-          _audioBuffer.fold<double>(0, (sum, sample) => sum + sample.abs()) /
-          _audioBuffer.length;
-
       final rand = Random();
       final scores = <EmotionType, double>{};
 

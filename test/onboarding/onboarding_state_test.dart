@@ -103,26 +103,6 @@ void main() {
       expect(displayScore(60), 0);
     });
 
-    test('MBTI legacy: jawab A/B menghasilkan tipe 4 huruf', () async {
-      final state = OnboardingState();
-      await state.loadQuestions();
-      // isi manual agar tidak null
-      // Big Five & psy diisi penuh dulu agar tidak ganggu
-      for (var i = 0; i < state.bigFiveAnswers.length; i++) {
-        state.setBigFiveAnswer(i, 3);
-      }
-      for (var i = 0; i < state.psyAnswers.length; i++) {
-        state.setPsyAnswer(i, 1);
-      }
-
-      // Skip MBTI manual (flow legacy)
-      state.skipMbti();
-      state.setManualMbtiType('INTJ');
-      state.calculateMbtiResult();
-      expect(state.mbtiType, 'INTJ');
-      expect(state.isMbtiComplete(), isTrue);
-    });
-
     test('setSaving mengontrol flag isSaving', () {
       final state = OnboardingState();
       state.setSaving(true);

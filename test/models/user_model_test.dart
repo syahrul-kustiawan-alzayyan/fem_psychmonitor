@@ -10,8 +10,6 @@ void main() {
     AppUser makeUser({int? psychScore, Map<String, double>? bigFive}) {
       return AppUser(
         name: 'Test User',
-        mbtiType: 'INFJ',
-        mbtiScores: const {'E': 2, 'I': 3, 'S': 1, 'N': 4, 'T': 2, 'F': 3, 'J': 4, 'P': 1},
         bigFiveScores: bigFive ??
             const {'O': 4.0, 'C': 3.5, 'E': 2.0, 'A': 3.8, 'N': 2.4},
         psychologicalScore: psychScore,
@@ -117,55 +115,6 @@ void main() {
     test('mengembalikan 5 dimensi', () {
       final scores = calculateBigFive(List.filled(20, 3), buildQuestions());
       expect(scores.keys, containsAll(['O', 'C', 'E', 'A', 'N']));
-    });
-  });
-
-  group('calculateMBTI', () {
-    List<MBTIQuestion> buildMbti() {
-      const types = [['E', 'I'], ['S', 'N'], ['T', 'F'], ['J', 'P']];
-      final qs = <MBTIQuestion>[];
-      var id = 1;
-      for (final pair in types) {
-        for (var i = 0; i < 5; i++) {
-          qs.add(MBTIQuestion(
-            questionId: id++,
-            question: 'Q$id',
-            optionA: 'A',
-            optionB: 'B',
-            dimension: 'dim',
-            firstType: pair[0],
-            secondType: pair[1],
-          ));
-        }
-      }
-      return qs;
-    }
-
-    test('jawaban 0 -> firstType, 1 -> secondType', () {
-      final qs = buildMbti();
-      // Semua pilih opsi pertama (0) => E, S, T, J
-      final result = calculateMBTI(List.filled(20, 0), qs);
-      expect(result.type, 'ESTJ');
-      expect(result.scores['E'], 5);
-      expect(result.scores['I'], 0);
-    });
-
-    test('semua pilih opsi kedua => INFP', () {
-      final result = calculateMBTI(List.filled(20, 1), buildMbti());
-      expect(result.type, 'INFP');
-    });
-
-    test('imbang condong ke tipe pertama (>=)', () {
-      final qs = buildMbti();
-      final answers = List<int>.filled(20, 0);
-      // E/I blok index 0-4: dua jawaban I -> E:3 I:2 -> E
-      answers[3] = 1;
-      answers[4] = 1;
-      final result = calculateMBTI(answers, qs);
-      expect(result.scores['E'], 3);
-      expect(result.scores['I'], 2);
-      // S/N, T/F, J/P masih mayoritas firstType
-      expect(result.type, 'ESTJ');
     });
   });
 

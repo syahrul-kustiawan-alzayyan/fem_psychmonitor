@@ -14,7 +14,6 @@ void main() {
       final user = {
         'name': 'Budi',
         'email': 'budi@example.com',
-        'mbti_type': 'INFJ',
         'psych_score': 80,
       };
       final recordings = <RecordingData>[
