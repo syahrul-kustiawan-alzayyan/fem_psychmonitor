@@ -17,7 +17,6 @@ import '../services/subscription_service.dart';
 import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../theme/app_theme.dart';
-import '../widgets/gradient_background.dart';
 
 enum _AuthMode { login, register }
 
