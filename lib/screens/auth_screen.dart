@@ -19,6 +19,8 @@ import '../screens/onboarding_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gradient_background.dart';
 
+enum _AuthMode { login, register }
+
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
 
@@ -31,14 +33,20 @@ class _AuthScreenState extends State<AuthScreen>
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _name = TextEditingController();
+  final _confirm = TextEditingController();
 
   late final AnimationController _animCtrl;
   late final Animation<double> _fadeAnim;
   late final Animation<Offset> _slideAnim;
 
+  _AuthMode _mode = _AuthMode.login;
   bool _obscure = true;
+  bool _obscureConfirm = true;
   bool _isLoading = false;
   bool _acceptedPrivacy = false;
+
+  bool get _isRegister => _mode == _AuthMode.register;
 
   @override
   void initState() {
@@ -60,6 +68,8 @@ class _AuthScreenState extends State<AuthScreen>
     _animCtrl.dispose();
     _email.dispose();
     _password.dispose();
+    _name.dispose();
+    _confirm.dispose();
     super.dispose();
   }
 
@@ -77,6 +87,28 @@ class _AuthScreenState extends State<AuthScreen>
     if (!mounted) return;
     setState(() => _isLoading = false);
 
+    await _handleAuthResult(result);
+  }
+
+  Future<void> _handleRegister() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+
+    if (!mounted) return;
+
+    final result = await context.read<AuthProvider>().loginOrRegister(
+          email: _email.text.trim(),
+          password: _password.text,
+          name: _name.text,
+        );
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    await _handleAuthResult(result);
+  }
+
+  Future<void> _handleAuthResult(String result) async {
     switch (result) {
       case 'success':
         final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -159,6 +191,60 @@ class _AuthScreenState extends State<AuthScreen>
       default:
         _showErrorDialog(result);
     }
+  }
+
+  String? _validateEmail(String? v) {
+    if (v == null || v.isEmpty) return 'Email wajib diisi';
+    if (!v.contains('@') || !v.contains('.')) {
+      return 'Format email tidak valid';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? v) {
+    if (v == null || v.isEmpty) return 'Password wajib diisi';
+    if (v.length < 6) return 'Minimal 6 karakter';
+    return null;
+  }
+
+  String? _validateConfirm(String? v) {
+    if (v == null || v.isEmpty) return 'Konfirmasi password wajib diisi';
+    if (v != _password.text) return 'Password tidak cocok';
+    return null;
+  }
+
+  Future<void> _handleForgotPassword() async {
+    final email = _email.text.trim();
+    if (!email.contains('@') || !email.contains('.')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Masukkan email yang valid terlebih dahulu'),
+          backgroundColor: Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+        ),
+      );
+      return;
+    }
+    final sent = await context.read<AuthProvider>().resetPassword(email);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          sent
+              ? 'Email reset password terkirim!'
+              : 'Gagal mengirim email reset password',
+        ),
+        backgroundColor:
+            sent ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
   }
 
   Future<void> _handleGoogleSignIn() async {
@@ -941,7 +1027,10 @@ class _AuthScreenState extends State<AuthScreen>
                             color: AppTheme.textS(context),
                           ),
                         ),
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 32),
+
+                        _buildModeToggle(),
+                        const SizedBox(height: 28),
 
                         Align(
                           alignment: Alignment.centerLeft,
@@ -949,7 +1038,9 @@ class _AuthScreenState extends State<AuthScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Masuk',
+                                _isRegister
+                                    ? AppLocalizations.tr('register_title')
+                                    : AppLocalizations.tr('login_title'),
                                 style: GoogleFonts.poppins(
                                   fontSize: 28,
                                   fontWeight: FontWeight.w700,
@@ -958,7 +1049,9 @@ class _AuthScreenState extends State<AuthScreen>
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                'Masukkan email dan password untuk melanjutkan',
+                                _isRegister
+                                    ? AppLocalizations.tr('register_subtitle')
+                                    : AppLocalizations.tr('login_subtitle'),
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   color: AppTheme.textS(context),
@@ -969,18 +1062,22 @@ class _AuthScreenState extends State<AuthScreen>
                         ),
                         const SizedBox(height: 28),
 
+                        if (_isRegister) ...[
+                          _buildField(
+                            controller: _name,
+                            label: 'Nama Lengkap',
+                            icon: Icons.person_outline_rounded,
+                            textCapitalization: TextCapitalization.words,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
                         _buildField(
                           controller: _email,
                           label: 'Email',
                           icon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
-                          validator: (v) {
-                            if (v == null || v.isEmpty) return 'Email wajib diisi';
-                            if (!v.contains('@') || !v.contains('.')) {
-                              return 'Format email tidak valid';
-                            }
-                            return null;
-                          },
+                          validator: _validateEmail,
                         ),
                         const SizedBox(height: 16),
 
@@ -1000,16 +1097,56 @@ class _AuthScreenState extends State<AuthScreen>
                             onPressed: () =>
                                 setState(() => _obscure = !_obscure),
                           ),
-                          validator: (v) {
-                            if (v == null || v.isEmpty) return 'Password wajib diisi';
-                            if (v.length < 6) return 'Minimal 6 karakter';
-                            return null;
-                          },
+                          validator: _validatePassword,
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
+
+                        if (_isRegister) ...[
+                          _buildField(
+                            controller: _confirm,
+                            label: 'Konfirmasi Password',
+                            icon: Icons.lock_outlined,
+                            obscure: _obscureConfirm,
+                            suffix: IconButton(
+                              icon: Icon(
+                                _obscureConfirm
+                                    ? Icons.visibility_off_rounded
+                                    : Icons.visibility_rounded,
+                                color: AppTheme.textH(context),
+                                size: 20,
+                              ),
+                              onPressed: () => setState(
+                                  () => _obscureConfirm = !_obscureConfirm),
+                            ),
+                            validator: _validateConfirm,
+                          ),
+                          const SizedBox(height: 24),
+                        ] else ...[
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: _handleForgotPassword,
+                              child: Text(
+                                AppLocalizations.tr('forgot_password'),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
 
                         _buildPrimaryButton(
-                          label: 'Masuk',
+                          key: _isRegister
+                              ? const ValueKey('registerButton')
+                              : const ValueKey('loginButton'),
+                          label: _isRegister
+                              ? AppLocalizations.tr('register')
+                              : AppLocalizations.tr('login'),
                           onTap: () {
                             if (!_acceptedPrivacy) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -1036,7 +1173,11 @@ class _AuthScreenState extends State<AuthScreen>
                               );
                               return;
                             }
-                            _handleLogin();
+                            if (_isRegister) {
+                              _handleRegister();
+                            } else {
+                              _handleLogin();
+                            }
                           },
                         ),
                         const SizedBox(height: 24),
@@ -1077,20 +1218,89 @@ class _AuthScreenState extends State<AuthScreen>
                         const SizedBox(height: 20),
 
                         _buildPrivacyCheckbox(),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 24),
 
-                        Text(
-                          'Email baru akan otomatis terdaftar. Cek email untuk verifikasi.',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: AppTheme.textS(context),
-                            height: 1.4,
+                        if (_isRegister)
+                          Text(
+                            'Verifikasi email akan diperlukan sebelum akun bisa digunakan.',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: AppTheme.textS(context),
+                              height: 1.4,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
                         const SizedBox(height: 16),
                       ],
                     ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModeToggle() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppTheme.surfVar(context),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          _buildModeTab(_AuthMode.login),
+          const SizedBox(width: 4),
+          _buildModeTab(_AuthMode.register),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeTab(_AuthMode mode) {
+    final selected = _mode == mode;
+    final label = mode == _AuthMode.login
+        ? AppLocalizations.tr('login')
+        : AppLocalizations.tr('register');
+    return Expanded(
+      child: SizedBox(
+        height: 46,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            gradient: selected ? AppTheme.primaryGradient : null,
+            color: selected ? null : Colors.transparent,
+            borderRadius: BorderRadius.circular(13),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : [],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              key: mode == _AuthMode.login
+                  ? const ValueKey('authModeTabLogin')
+                  : const ValueKey('authModeTabRegister'),
+              onTap: () => setState(() => _mode = mode),
+              borderRadius: BorderRadius.circular(13),
+              child: Center(
+                child: Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: selected
+                        ? Colors.white
+                        : AppTheme.textS(context),
                   ),
                 ),
               ),
@@ -1108,6 +1318,7 @@ class _AuthScreenState extends State<AuthScreen>
     bool obscure = false,
     Widget? suffix,
     TextInputType? keyboardType,
+    TextCapitalization textCapitalization = TextCapitalization.none,
     String? Function(String?)? validator,
   }) {
     return Container(
@@ -1125,6 +1336,7 @@ class _AuthScreenState extends State<AuthScreen>
         controller: controller,
         obscureText: obscure,
         keyboardType: keyboardType,
+        textCapitalization: textCapitalization,
         validator: validator,
         style: GoogleFonts.poppins(
           fontSize: 15,
@@ -1195,11 +1407,13 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Widget _buildPrimaryButton({
+    Key? key,
     required String label,
     required VoidCallback onTap,
   }) {
     final isDisabled = _isLoading;
     return SizedBox(
+      key: key,
       width: double.infinity,
       height: 56,
       child: AnimatedContainer(

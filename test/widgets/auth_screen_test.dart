@@ -19,14 +19,21 @@ void main() {
     await tester.pumpAndSettle(const Duration(milliseconds: 100));
   }
 
-  Finder masukButton() => find.widgetWithText(InkWell, 'Masuk');
+  Finder masukButton() => find.byKey(const ValueKey('loginButton'));
+
+  Finder registerButton() => find.byKey(const ValueKey('registerButton'));
+
+  Finder registerTab() => find.byKey(const ValueKey('authModeTabRegister'));
+
+  Finder loginTab() => find.byKey(const ValueKey('authModeTabLogin'));
 
   Finder privacyCheckbox() =>
       find.textContaining('Saya menyetujui', findRichText: true);
 
   Future<void> scrollIntoView(WidgetTester tester, Finder finder) async {
-    await tester.ensureVisible(finder);
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    final context = tester.element(finder);
+    await Scrollable.ensureVisible(context, alignment: 0.5);
+    await tester.pump();
   }
 
   Future<void> checkPrivacy(WidgetTester tester) async {
@@ -66,8 +73,7 @@ void main() {
       (WidgetTester tester) async {
     await pumpAuth(tester);
 
-    await tester.tap(masukButton());
-    await tester.pump();
+    await tapMasuk(tester);
 
     expect(find.text('Centang kebijakan privasi terlebih dahulu'), findsOneWidget);
   });
@@ -123,6 +129,80 @@ void main() {
       tester.widget<TextField>(passwordTextField(tester)).obscureText,
       isFalse,
     );
+  });
+
+  testWidgets('AuthScreen menampilkan form daftar saat tab Daftar dipilih',
+      (WidgetTester tester) async {
+    await pumpAuth(tester);
+
+    await scrollIntoView(tester, registerTab());
+    await tester.tap(registerTab());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Buat Akun Baru'), findsOneWidget);
+    expect(find.text('Nama Lengkap'), findsOneWidget);
+    expect(find.text('Konfirmasi Password'), findsOneWidget);
+    expect(find.text('Daftar'), findsNWidgets(2)); // tab + tombol
+    expect(registerButton(), findsOneWidget);
+  });
+
+  testWidgets('daftar formulir kosong -> error validasi',
+      (WidgetTester tester) async {
+    await pumpAuth(tester);
+
+    await scrollIntoView(tester, registerTab());
+    await tester.tap(registerTab());
+    await tester.pumpAndSettle();
+
+    await checkPrivacy(tester);
+    await scrollIntoView(tester, registerButton());
+    await tester.tap(registerButton());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Email wajib diisi'), findsOneWidget);
+    expect(find.text('Password wajib diisi'), findsOneWidget);
+    expect(find.text('Konfirmasi password wajib diisi'), findsOneWidget);
+  });
+
+  testWidgets('konfirmasi password tidak cocok -> error validasi',
+      (WidgetTester tester) async {
+    await pumpAuth(tester);
+
+    await scrollIntoView(tester, registerTab());
+    await tester.tap(registerTab());
+    await tester.pumpAndSettle();
+
+    await checkPrivacy(tester);
+
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Email'), 'user@example.com');
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), 'rahasia123');
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Konfirmasi Password'), 'beda456');
+
+    await scrollIntoView(tester, registerButton());
+    await tester.tap(registerButton());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Password tidak cocok'), findsOneWidget);
+  });
+
+  testWidgets('kembali ke tab Masuk menghapus field daftar',
+      (WidgetTester tester) async {
+    await pumpAuth(tester);
+
+    await scrollIntoView(tester, registerTab());
+    await tester.tap(registerTab());
+    await tester.pumpAndSettle();
+    expect(find.text('Konfirmasi Password'), findsOneWidget);
+
+    await scrollIntoView(tester, loginTab());
+    await tester.tap(loginTab());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Selamat Datang Kembali'), findsOneWidget);
+    expect(find.text('Konfirmasi Password'), findsNothing);
   });
 }
 

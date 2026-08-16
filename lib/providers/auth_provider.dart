@@ -69,6 +69,7 @@ class AuthProvider extends ChangeNotifier {
   Future<String> loginOrRegister({
     required String email,
     required String password,
+    String? name,
   }) async {
     try {
       UserCredential credential;
@@ -103,7 +104,9 @@ class AuthProvider extends ChangeNotifier {
 
       // Kirim email verifikasi untuk user baru
       if (isNewUser) {
-        final username = email.split('@').first;
+        final fallback = email.split('@').first;
+        final username =
+            (name != null && name.trim().isNotEmpty) ? name.trim() : fallback;
         await credential.user!.updateDisplayName(username);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_keyUsername, username);
