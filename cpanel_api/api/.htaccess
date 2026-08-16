@@ -1,0 +1,8 @@
+# Proteksi file internal & listing direktori
+<IfModule mod_authz_core.c>
+    <FilesMatch "^(config|db)\.php$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
+Options -Indexes

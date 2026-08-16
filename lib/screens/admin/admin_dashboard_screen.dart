@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:printing/printing.dart';
@@ -7,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../main.dart';
 import '../../models/emotion_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/database_service.dart';
 import '../../services/pdf_export_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/gradient_background.dart';
@@ -48,51 +48,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     });
 
     try {
-      final firestore = FirebaseFirestore.instance;
-      final usersSnapshot = await firestore.collection('users').get();
-
-      final users = <Map<String, dynamic>>[];
-      final emotionDist = <EmotionType, int>{};
-
-      for (final userDoc in usersSnapshot.docs) {
-        final userData = userDoc.data();
-
-        // Skip akun admin — dashboard menampilkan data pengguna
-        if (userData['isAdmin'] == true) continue;
-
-        final uid = userDoc.id;
-        final recordingsSnapshot = await firestore
-            .collection('users')
-            .doc(uid)
-            .collection('recordings')
-            .get();
-
-        final recordings = recordingsSnapshot.docs;
-
-        for (final recDoc in recordings) {
-          final recData = recDoc.data();
-          final emotionName = recData['dominant_emotion'] as String? ?? '';
-          final emotion = EmotionType.values.firstWhere(
-            (e) => e.name == emotionName,
-            orElse: () => EmotionType.neutral,
-          );
-          emotionDist[emotion] = (emotionDist[emotion] ?? 0) + 1;
-        }
-
-        users.add({
-          'uid': uid,
-          'name': userData['name'] as String? ?? 'User',
-          'email': userData['email'] as String? ?? '',
-          'psych_score': userData['psych_score'] as int?,
-          'created_at': userData['created_at'],
-          'recording_count': recordings.length,
-        });
-      }
+      final result = await DatabaseService.getAdminDashboard();
 
       if (mounted) {
         setState(() {
-          _users = users;
-          _emotionDistribution = emotionDist;
+          _users = result.users;
+          _emotionDistribution = result.emotionDistribution;
           _isLoading = false;
         });
       }

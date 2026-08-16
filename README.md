@@ -46,9 +46,10 @@ Sistem saran cerdas yang mengambil data dari `saran.json`:
 ## 🛠️ Stack Teknologi
 - **Framework**: [Flutter](https://flutter.dev)
 - **State Management**: [Provider](https://pub.dev/packages/provider)
-- **Local Database**: [SQLite (sqflite)](https://pub.dev/packages/sqflite)
-- **AI/ML Engine**: [TensorFlow Lite Flutter](https://pub.dev/packages/tflite_flutter)
-- **Data Persistence**: [Shared Preferences](https://pub.dev/packages/shared_preferences)
+- **Autentikasi**: Firebase Auth (Google Sign-In) — *tetap dipakai*
+- **Backend Database & Storage**: PHP + MySQL (cPanel) via `http` (REST API)
+- **AI/ML Engine**: [TensorFlow Lite Flutter](https://pub.dev/packages/tflite_flutter) + Whisper (transkripsi)
+- **Data Persistence**: [Shared Preferences](https://pub.dev/packages/shared_preferences) + server API
 - **Charts**: [fl_chart](https://pub.dev/packages/fl_chart)
 - **Audio Management**: [record](https://pub.dev/packages/record)
 
@@ -68,22 +69,30 @@ lib/
 ### Prasyarat
 - Flutter SDK v3.11 atau lebih baru.
 - Android Studio / VS Code dengan plugin Flutter.
+- Server cPanel dengan PHP 8+ & MySQL (untuk backend).
 
 ### Langkah-langkah
-1. **Clone Repositori**:
+1. **Deploy Backend (cPanel)**:
+   Salin isi folder `cpanel_api/api/` ke `public_html/api/`, buat database MySQL, import `cpanel_api/schema.sql`, lalu isi kredensial di `api/config.php` (lihat [cpanel_api/README.md](cpanel_api/README.md)).
+2. **Konfigurasi `.env`**:
+   Salin `.env.example` menjadi `.env` dan isi `API_BASE_URL` (alamat `https://domain.com/api`) serta `API_KEY` — **wajib sama** dengan `API_KEY` di `config.php`.
+3. **Clone Repositori**:
    ```bash
    git clone https://github.com/username/fem_physicsmonitor.git
    ```
-2. **Instal Dependensi**:
+4. **Instal Dependensi**:
    ```bash
    flutter pub get
    ```
-3. **Persiapkan Model AI**:
+5. **Persiapkan Model AI**:
    Pastikan file `assets/model_female.tflite` ada di folder assets.
-4. **Jalankan Aplikasi**:
+6. **Jalankan Aplikasi**:
    ```bash
    flutter run
    ```
+
+> **Catatan migrasi**: Firestore & Firebase Storage sudah diganti dengan backend PHP+MySQL.
+> Firebase Auth (login Google) tetap dipakai; UID Firebase menjadi kunci identitas user di database.
 
 ## 📂 Data & Aset Utama
 - `assets/model_female.tflite`: Model machine learning untuk klasifikasi emosi suara.

@@ -9,12 +9,12 @@ import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:record/record.dart';
 import 'package:whisper_kit/whisper_kit.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
 import '../services/ad_service.dart';
+import '../services/api_service.dart';
 import '../services/database_service.dart';
 import '../services/storage_service.dart';
 import '../services/gemini_service.dart';
@@ -390,7 +390,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
 
       final recId = await DatabaseService.insertRecording(record);
 
-      // Upload audio ke Firebase Storage
+      // Upload audio ke backend cPanel
       if (_wavPath != null) {
         try {
           final file = File(_wavPath!);
@@ -398,12 +398,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
             debugPrint('⚠️ File audio tidak ditemukan: $_wavPath');
           } else {
             debugPrint('📤 Upload audio: $_wavPath (${await file.length()} bytes)');
-            final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
-            final ref = FirebaseStorage.instanceFor(bucket: 'fem-psychmonitor.firebasestorage.app').ref(
-              'recordings/$uid/$recId.wav',
-            );
-            await ref.putFile(file);
-            final audioUrl = await ref.getDownloadURL();
+            final audioUrl = await ApiService().uploadAudio(_wavPath!);
             debugPrint('✅ Audio uploaded: $audioUrl');
             await DatabaseService.updateRecordingAudioUrl(recId, audioUrl);
           }

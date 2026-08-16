@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:printing/printing.dart';
@@ -23,7 +22,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   bool _isLoading = true;
   String? _error;
   Map<String, dynamic>? _userData;
-  List<Map<String, dynamic>> _recordings = [];
+  List<RecordingData> _recordings = [];
 
   @override
   void initState() {
@@ -39,10 +38,10 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     });
 
     try {
-      final firestore = FirebaseFirestore.instance;
-      final userDoc = await firestore.collection('users').doc(widget.userUid).get();
+      final userData = await DatabaseService.getUserDataByUid(widget.userUid);
+      final recordings = await DatabaseService.getUserRecordings(widget.userUid);
 
-      if (!userDoc.exists) {
+      if (userData == null) {
         if (mounted) {
           setState(() {
             _error = 'Data pengguna tidak ditemukan';
@@ -51,22 +50,6 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         }
         return;
       }
-
-      final userData = userDoc.data()!;
-
-      final recordingsSnapshot = await firestore
-          .collection('users')
-          .doc(widget.userUid)
-          .collection('recordings')
-          .orderBy('date', descending: true)
-          .get();
-
-      final recordings = recordingsSnapshot.docs.map((doc) {
-        return {
-          'id': doc.id,
-          ...doc.data(),
-        };
-      }).toList();
 
       if (mounted) {
         setState(() {
@@ -109,14 +92,13 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   }
 
   String _formatDate(dynamic dateValue) {
-    DateTime date;
-    if (dateValue is Timestamp) {
-      date = dateValue.toDate();
+    DateTime? date;
+    if (dateValue is DateTime) {
+      date = dateValue;
     } else if (dateValue is String) {
-      date = DateTime.tryParse(dateValue) ?? DateTime.now();
-    } else {
-      return '--';
+      date = DateTime.tryParse(dateValue);
     }
+    if (date == null) return '--';
     final months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
       'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
@@ -135,10 +117,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       return;
     }
     try {
-      final recordings = _recordings
-          .map((r) => RecordingData.fromFirestore(r['id']?.toString() ?? '', r))
-          .toList();
-      final pdf = await PdfExportService.generateUserReport(_userData!, recordings);
+      final pdf = await PdfExportService.generateUserReport(_userData!, _recordings);
       final name = _userData!['name'] as String? ?? 'pengguna';
       await Printing.sharePdf(bytes: pdf, filename: 'laporan_$name.pdf');
     } catch (e) {
@@ -277,14 +256,20 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     final name = _userData?['name'] as String? ?? 'User';
     final email = _userData?['email'] as String? ?? '';
     final uid = widget.userUid;
-    final createdAt = _userData?['created_at'];
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
     final psychScore = _userData?['psych_score'] as int?;
     final scoreColor = _psychScoreColor(psychScore);
 
     String dateStr = '--';
-    if (createdAt is Timestamp) {
-      final d = createdAt.toDate();
+    final createdAtRaw = _userData?['created_at'];
+    DateTime? createdAt;
+    if (createdAtRaw is DateTime) {
+      createdAt = createdAtRaw;
+    } else if (createdAtRaw is String) {
+      createdAt = DateTime.tryParse(createdAtRaw);
+    }
+    if (createdAt != null) {
+      final d = createdAt;
       final months = [
         'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
         'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
@@ -746,15 +731,11 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     );
   }
 
-  Widget _buildRecordingItem(Map<String, dynamic> rec) {
-    final emotionName = rec['dominant_emotion'] as String? ?? 'neutral';
-    final emotion = EmotionType.values.firstWhere(
-      (e) => e.name == emotionName,
-      orElse: () => EmotionType.neutral,
-    );
-    final confidence = (rec['confidence'] as num?)?.toDouble() ?? 0.0;
-    final date = rec['date'];
-    final duration = (rec['duration_seconds'] as num?)?.toInt() ?? 0;
+  Widget _buildRecordingItem(RecordingData rec) {
+    final emotion = rec.dominantEmotion;
+    final confidence = rec.confidence;
+    final date = rec.date;
+    final duration = rec.durationSeconds;
 
     return GestureDetector(
       onTap: () => _showRecordingDetail(rec),
@@ -852,42 +833,17 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     );
   }
 
-  void _showRecordingDetail(Map<String, dynamic> rec) {
-    final emotionName = rec['dominant_emotion'] as String? ?? 'neutral';
-    final emotion = EmotionType.values.firstWhere(
-      (e) => e.name == emotionName,
-      orElse: () => EmotionType.neutral,
-    );
-    final confidence = (rec['confidence'] as num?)?.toDouble() ?? 0.0;
-    final date = rec['date'];
-    final duration = (rec['duration_seconds'] as num?)?.toInt() ?? 0;
-    final transcript = rec['transcript_text'] as String? ?? '';
-    final audioUrl = rec['audio_url'] as String? ?? '';
+  void _showRecordingDetail(RecordingData rec) {
+    final emotion = rec.dominantEmotion;
+    final confidence = rec.confidence;
+    final date = rec.date;
+    final duration = rec.durationSeconds;
+    final transcript = rec.transcriptText;
+    final audioUrl = rec.audioUrl;
 
     // Parse emotion maps
-    Map<EmotionType, double> audioEmotions = {};
-    final rawAudio = rec['audio_emotions'] as Map<String, dynamic>?;
-    if (rawAudio != null) {
-      audioEmotions = rawAudio.map((k, v) {
-        final e = EmotionType.values.firstWhere(
-          (x) => x.name == k,
-          orElse: () => EmotionType.neutral,
-        );
-        return MapEntry(e, (v as num).toDouble());
-      });
-    }
-
-    Map<EmotionType, double> transcriptEmotions = {};
-    final rawTranscript = rec['transcript_emotions'] as Map<String, dynamic>?;
-    if (rawTranscript != null) {
-      transcriptEmotions = rawTranscript.map((k, v) {
-        final e = EmotionType.values.firstWhere(
-          (x) => x.name == k,
-          orElse: () => EmotionType.neutral,
-        );
-        return MapEntry(e, (v as num).toDouble());
-      });
-    }
+    Map<EmotionType, double> audioEmotions = rec.audioEmotions;
+    Map<EmotionType, double> transcriptEmotions = rec.transcriptEmotions;
 
     showModalBottomSheet(
       context: context,

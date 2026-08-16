@@ -23,7 +23,7 @@ class OnboardingScreen extends StatelessWidget {
 
   const OnboardingScreen({super.key, required this.onCompleted});
 
-  static Future<void> savePendingOnboardingToFirestore() async {
+  static Future<void> savePendingOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     final hasPending = prefs.getBool('pending_onboarding_data') ?? false;
     if (!hasPending) return;
@@ -115,7 +115,7 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
 
       final authProvider = context.read<AuthProvider>();
       if (authProvider.isLoggedIn) {
-        await OnboardingScreen.savePendingOnboardingToFirestore();
+        await OnboardingScreen.savePendingOnboarding();
       }
 
       if (!context.mounted) return;

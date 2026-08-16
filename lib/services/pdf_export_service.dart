@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'database_service.dart';
@@ -197,11 +196,11 @@ class PdfExportService {
 
   static String _formatDate(dynamic ts) {
     if (ts == null) return '-';
-    DateTime dt;
-    if (ts is Timestamp) {
-      dt = ts.toDate();
-    } else {
-      dt = DateTime.now();
+    DateTime dt = DateTime.now();
+    if (ts is DateTime) {
+      dt = ts;
+    } else if (ts is String) {
+      dt = DateTime.tryParse(ts) ?? DateTime.now();
     }
     return '${dt.day}/${dt.month}/${dt.year}';
   }

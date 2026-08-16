@@ -21,12 +21,9 @@ class ConfigService {
   // Google Sign-In
   static String get googleServerClientId => _get('GOOGLE_SERVER_CLIENT_ID');
 
-  // Gemini AI
-  static String get geminiApiKey => _get('GEMINI_API_KEY');
-
-  // Firebase
-  static String get firebaseApiKey => _get('FIREBASE_API_KEY');
-  static String get firebaseProjectId => _get('FIREBASE_PROJECT_ID');
+  // Backend cPanel (API PHP + MySQL)
+  static String get apiBaseUrl => _get('API_BASE_URL');
+  static String get apiKey => _get('API_KEY');
 
   // Admin
   static String get adminEmail => _get('ADMIN_EMAIL');

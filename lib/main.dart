@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 
 import 'l10n/app_localizations.dart';
@@ -84,14 +83,12 @@ void main() async {
           email: adminEmail,
           password: adminPassword,
         );
-        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
-          'name': 'Admin',
-          'email': adminEmail,
-          'isAdmin': true,
-          'bigfive_scores': {},
-          'psych_score': null,
-          'created_at': FieldValue.serverTimestamp(),
-        });
+        await DatabaseService.upsertUser(
+          uid: userCredential.user!.uid,
+          name: 'Admin',
+          email: adminEmail,
+          isAdmin: true,
+        );
         await userCredential.user!.updateDisplayName('Admin');
         debugPrint('Admin account created: $adminEmail');
       } on FirebaseAuthException catch (e) {

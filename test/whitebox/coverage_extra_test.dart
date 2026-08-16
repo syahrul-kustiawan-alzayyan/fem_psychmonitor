@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -185,7 +184,7 @@ void main() {
           'name': 'X',
           'email': 'x@x.com',
           'psych_score': score,
-          'created_at': Timestamp.fromDate(DateTime(2023, 4, 15)),
+          'created_at': '2023-04-15T08:00:00',
         };
         final bytes = await PdfExportService.generateUserReport(user, []);
         expect(bytes, isNotEmpty);

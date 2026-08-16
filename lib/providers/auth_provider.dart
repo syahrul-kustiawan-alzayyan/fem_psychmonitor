@@ -167,7 +167,7 @@ class AuthProvider extends ChangeNotifier {
 
       if (hasPending) {
         try {
-          await OnboardingScreen.savePendingOnboardingToFirestore();
+          await OnboardingScreen.savePendingOnboarding();
         } catch (_) {}
         notifyListeners();
         return 'success';
@@ -176,7 +176,7 @@ class AuthProvider extends ChangeNotifier {
       if (appUser!.bigFiveScores.isEmpty) {
         if (hasPending) {
           try {
-            await OnboardingScreen.savePendingOnboardingToFirestore();
+            await OnboardingScreen.savePendingOnboarding();
           } catch (_) {}
           notifyListeners();
           return 'success';
@@ -326,7 +326,7 @@ class AuthProvider extends ChangeNotifier {
         if (isNewUser) {
           if (hasPending) {
             // User sudah mengisi onboarding sebelum login — sync ke Firestore
-            await OnboardingScreen.savePendingOnboardingToFirestore();
+            await OnboardingScreen.savePendingOnboarding();
             notifyListeners();
             return 'success';
           }
@@ -346,7 +346,7 @@ class AuthProvider extends ChangeNotifier {
         if (existingUser == null || existingUser.bigFiveScores.isEmpty) {
           if (hasPending) {
             // Ada data pending yang belum tersimpan — sync dulu
-            await OnboardingScreen.savePendingOnboardingToFirestore();
+            await OnboardingScreen.savePendingOnboarding();
             notifyListeners();
             return 'success';
           }
@@ -356,7 +356,7 @@ class AuthProvider extends ChangeNotifier {
         // User lama dengan data lengkap — sync pending jika ada
         if (hasPending) {
           try {
-            await OnboardingScreen.savePendingOnboardingToFirestore();
+            await OnboardingScreen.savePendingOnboarding();
           } catch (_) {}
         }
 
