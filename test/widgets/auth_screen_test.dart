@@ -55,18 +55,18 @@ void main() {
   }
 
   Finder passwordTextField(WidgetTester tester) => find.descendant(
-        of: find.widgetWithText(TextFormField, 'Password'),
+        of: find.widgetWithText(TextFormField, 'Kata sandi'),
         matching: find.byType(TextField),
       );
 
   testWidgets('AuthScreen menampilkan form login', (WidgetTester tester) async {
     await pumpAuth(tester);
 
-    expect(find.text('Fem-Psych Monitor'), findsOneWidget);
+    expect(find.text('Fem-PsychMonitor'), findsOneWidget);
     expect(find.text('Masuk'), findsNWidgets(2)); // heading + tombol
     expect(find.text('Lanjutkan dengan Google'), findsOneWidget);
     expect(find.text('Email'), findsOneWidget);
-    expect(find.text('Password'), findsOneWidget);
+    expect(find.text('Kata sandi'), findsOneWidget);
   });
 
   testWidgets('tanpa centang privasi -> muncul snackbar peringatan',
@@ -95,7 +95,7 @@ void main() {
     await checkPrivacy(tester);
 
     await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'bukanemail');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'rahasia123');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Kata sandi'), 'rahasia123');
     await tapMasuk(tester);
 
     expect(find.text('Format email tidak valid'), findsOneWidget);
@@ -109,7 +109,7 @@ void main() {
 
     await tester.enterText(
         find.widgetWithText(TextFormField, 'Email'), 'user@example.com');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Password'), '123');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Kata sandi'), '123');
     await tapMasuk(tester);
 
     expect(find.text('Minimal 6 karakter'), findsOneWidget);
@@ -123,6 +123,7 @@ void main() {
       isTrue,
     );
 
+    await scrollIntoView(tester, find.byIcon(Icons.visibility_off_rounded));
     await tester.tap(find.byIcon(Icons.visibility_off_rounded));
     await tester.pump();
     expect(
@@ -141,7 +142,7 @@ void main() {
 
     expect(find.text('Buat Akun Baru'), findsOneWidget);
     expect(find.text('Nama Lengkap'), findsOneWidget);
-    expect(find.text('Konfirmasi Password'), findsOneWidget);
+    expect(find.text('Konfirmasi kata sandi'), findsOneWidget);
     expect(find.text('Daftar'), findsNWidgets(2)); // tab + tombol
     expect(registerButton(), findsOneWidget);
   });
@@ -177,9 +178,9 @@ void main() {
     await tester.enterText(
         find.widgetWithText(TextFormField, 'Email'), 'user@example.com');
     await tester.enterText(
-        find.widgetWithText(TextFormField, 'Password'), 'rahasia123');
+        find.widgetWithText(TextFormField, 'Kata sandi'), 'rahasia123');
     await tester.enterText(
-        find.widgetWithText(TextFormField, 'Konfirmasi Password'), 'beda456');
+        find.widgetWithText(TextFormField, 'Konfirmasi kata sandi'), 'beda456');
 
     await scrollIntoView(tester, registerButton());
     await tester.tap(registerButton());
@@ -195,14 +196,14 @@ void main() {
     await scrollIntoView(tester, registerTab());
     await tester.tap(registerTab());
     await tester.pumpAndSettle();
-    expect(find.text('Konfirmasi Password'), findsOneWidget);
+    expect(find.text('Konfirmasi kata sandi'), findsOneWidget);
 
     await scrollIntoView(tester, loginTab());
     await tester.tap(loginTab());
     await tester.pumpAndSettle();
 
     expect(find.text('Selamat Datang Kembali'), findsOneWidget);
-    expect(find.text('Konfirmasi Password'), findsNothing);
+    expect(find.text('Konfirmasi kata sandi'), findsNothing);
   });
 }
 

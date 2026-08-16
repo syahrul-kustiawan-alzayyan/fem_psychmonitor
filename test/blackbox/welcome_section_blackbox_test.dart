@@ -39,9 +39,9 @@ void main() {
     await tester.tap(find.text('Masuk'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Fem-Psych Monitor'), findsOneWidget);
+    expect(find.text('Fem-PsychMonitor'), findsOneWidget);
     expect(find.text('Email'), findsOneWidget);
-    expect(find.text('Password'), findsOneWidget);
+    expect(find.text('Kata sandi'), findsOneWidget);
     expect(find.text('Lanjutkan dengan Google'), findsOneWidget);
   });
 }

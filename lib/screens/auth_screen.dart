@@ -38,6 +38,8 @@ class _AuthScreenState extends State<AuthScreen>
   late final AnimationController _animCtrl;
   late final Animation<double> _fadeAnim;
   late final Animation<Offset> _slideAnim;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoOpacity;
 
   _AuthMode _mode = _AuthMode.login;
   bool _obscure = true;
@@ -59,6 +61,16 @@ class _AuthScreenState extends State<AuthScreen>
       begin: const Offset(0, 0.06),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
+    _logoScale = Tween<double>(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animCtrl,
+        curve: const Interval(0.15, 0.6, curve: Curves.elasticOut),
+      ),
+    );
+    _logoOpacity = CurvedAnimation(
+      parent: _animCtrl,
+      curve: const Interval(0.1, 0.5, curve: Curves.easeOut),
+    );
     _animCtrl.forward();
   }
 
@@ -959,281 +971,41 @@ class _AuthScreenState extends State<AuthScreen>
 
   @override
   Widget build(BuildContext context) {
+    final c = _ResonanceColors.of(context);
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: GradientBackground(
-        useOverlay: true,
-        gradient: Theme.of(context).brightness == Brightness.dark
-            ? LinearGradient(
-                colors: [
-                  AppTheme.primaryColor.withValues(alpha: 0.15),
-                  Color(0xFF2D1B2E),
-                  Color(0xFF0F172A),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: [0.0, 0.4, 1.0],
-              )
-            : LinearGradient(
-                colors: [
-                  Color(0xFFFFF5F7),
-                  Color(0xFFFCE4EC),
-                  Color(0xFFFFF0F5),
-                  Color(0xFFF8FAFC),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: [0.0, 0.3, 0.65, 1.0],
-              ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: FadeTransition(
-                opacity: _fadeAnim,
-                child: SlideTransition(
-                  position: _slideAnim,
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 12),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image.asset(
-                            'assets/logo.png',
-                            width: 72,
-                            height: 72,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Text(
-                          'Fem-Psych Monitor',
-                          style: GoogleFonts.poppins(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: AppTheme.textP(context),
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          AppLocalizations.tr('app_subtitle'),
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            color: AppTheme.textS(context),
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-
-                        _buildModeToggle(),
-                        const SizedBox(height: 28),
-
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _isRegister
-                                    ? AppLocalizations.tr('register_title')
-                                    : AppLocalizations.tr('login_title'),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.textP(context),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                _isRegister
-                                    ? AppLocalizations.tr('register_subtitle')
-                                    : AppLocalizations.tr('login_subtitle'),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: AppTheme.textS(context),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 28),
-
-                        if (_isRegister) ...[
-                          _buildField(
-                            controller: _name,
-                            label: 'Nama Lengkap',
-                            icon: Icons.person_outline_rounded,
-                            textCapitalization: TextCapitalization.words,
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        _buildField(
-                          controller: _email,
-                          label: 'Email',
-                          icon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: _validateEmail,
-                        ),
-                        const SizedBox(height: 16),
-
-                        _buildField(
-                          controller: _password,
-                          label: 'Password',
-                          icon: Icons.lock_outlined,
-                          obscure: _obscure,
-                          suffix: IconButton(
-                            icon: Icon(
-                              _obscure
-                                  ? Icons.visibility_off_rounded
-                                  : Icons.visibility_rounded,
-                              color: AppTheme.textH(context),
-                              size: 20,
-                            ),
-                            onPressed: () =>
-                                setState(() => _obscure = !_obscure),
-                          ),
-                          validator: _validatePassword,
-                        ),
-                        const SizedBox(height: 16),
-
-                        if (_isRegister) ...[
-                          _buildField(
-                            controller: _confirm,
-                            label: 'Konfirmasi Password',
-                            icon: Icons.lock_outlined,
-                            obscure: _obscureConfirm,
-                            suffix: IconButton(
-                              icon: Icon(
-                                _obscureConfirm
-                                    ? Icons.visibility_off_rounded
-                                    : Icons.visibility_rounded,
-                                color: AppTheme.textH(context),
-                                size: 20,
-                              ),
-                              onPressed: () => setState(
-                                  () => _obscureConfirm = !_obscureConfirm),
-                            ),
-                            validator: _validateConfirm,
-                          ),
-                          const SizedBox(height: 24),
-                        ] else ...[
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: _handleForgotPassword,
-                              child: Text(
-                                AppLocalizations.tr('forgot_password'),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.primaryColor,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        _buildPrimaryButton(
-                          key: _isRegister
-                              ? const ValueKey('registerButton')
-                              : const ValueKey('loginButton'),
-                          label: _isRegister
-                              ? AppLocalizations.tr('register')
-                              : AppLocalizations.tr('login'),
-                          onTap: () {
-                            if (!_acceptedPrivacy) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Row(
-                                    children: [
-                                      const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          'Centang kebijakan privasi terlebih dahulu',
-                                          style: GoogleFonts.poppins(fontSize: 13),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  backgroundColor: AppTheme.primaryColor,
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                              return;
-                            }
-                            if (_isRegister) {
-                              _handleRegister();
-                            } else {
-                              _handleLogin();
-                            }
-                          },
-                        ),
-                        const SizedBox(height: 24),
-
-                        _buildDivider(),
-                        const SizedBox(height: 20),
-
-                        _buildGoogleButton(
-                          onTap: () {
-                            if (!_acceptedPrivacy) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Row(
-                                    children: [
-                                      const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          'Centang kebijakan privasi terlebih dahulu',
-                                          style: GoogleFonts.poppins(fontSize: 13),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  backgroundColor: const Color(0xFF4285F4),
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                              return;
-                            }
-                            _handleGoogleSignIn();
-                          },
-                        ),
-                        const SizedBox(height: 20),
-
-                        _buildPrivacyCheckbox(),
-                        const SizedBox(height: 24),
-
-                        if (_isRegister)
-                          Text(
-                            'Verifikasi email akan diperlukan sebelum akun bisa digunakan.',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              color: AppTheme.textS(context),
-                              height: 1.4,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        const SizedBox(height: 16),
-                      ],
+      backgroundColor: c.background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 32),
+          child: FadeTransition(
+            opacity: _fadeAnim,
+            child: SlideTransition(
+              position: _slideAnim,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildHero(c),
+                  const SizedBox(height: 6),
+                  _buildBrandName(c),
+                  const SizedBox(height: 16),
+                  _buildEyebrow(c),
+                  const SizedBox(height: 10),
+                  _buildTitle(c),
+                  const SizedBox(height: 6),
+                  _buildSubtitle(c),
+                  const SizedBox(height: 16),
+                  _buildWaveform(c),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Form(
+                      key: _formKey,
+                      child: _buildFormCard(c),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 28),
+                  _buildFooter(c),
+                ],
               ),
             ),
           ),
@@ -1242,43 +1014,341 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildModeToggle() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppTheme.surfVar(context),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
+  Widget _buildHero(_ResonanceColors c) {
+    return SizedBox(
+      height: 130,
+      child: Stack(
         children: [
-          _buildModeTab(_AuthMode.login),
-          const SizedBox(width: 4),
-          _buildModeTab(_AuthMode.register),
+          Positioned.fill(
+            child: Center(
+              child: ScaleTransition(
+                scale: _logoScale,
+                child: FadeTransition(
+                  opacity: _logoOpacity,
+                  child: Image.asset(
+                    'assets/logo.png',
+                    height: 132,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 24,
+            top: 10,
+            child: _FloatingChip(
+              label: _isRegister ? 'emotion: joy 91%' : 'emotion: calm 84%',
+              color: c,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildModeTab(_AuthMode mode) {
+  Widget _buildBrandName(_ResonanceColors c) {
+    return Center(
+      child: Text(
+        'Fem-PsychMonitor',
+        style: GoogleFonts.spaceGrotesk(
+          fontSize: 26,
+          fontWeight: FontWeight.w700,
+          color: c.primary,
+          letterSpacing: -0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEyebrow(_ResonanceColors c) {
+    final index = _isRegister ? '02' : '01';
+    final label = _isRegister ? 'DAFTAR' : 'MASUK';
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            index,
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: c.primary,
+              letterSpacing: 1.5,
+            ),
+          ),
+          Text(
+            ' / $label',
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: c.onSurfaceVariant,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTitle(_ResonanceColors c) {
+    return Text(
+      _isRegister
+          ? AppLocalizations.tr('register_title')
+          : AppLocalizations.tr('login_title'),
+      textAlign: TextAlign.center,
+      style: GoogleFonts.spaceGrotesk(
+        fontSize: 26,
+        fontWeight: FontWeight.w700,
+        color: c.onSurface,
+        letterSpacing: -0.3,
+      ),
+    );
+  }
+
+  Widget _buildSubtitle(_ResonanceColors c) {
+    return Text(
+      _isRegister
+          ? 'Mulai perjalanan kesehatan mentalmu'
+          : 'Pantau kesehatan mentalmu lewat suara',
+      textAlign: TextAlign.center,
+      style: GoogleFonts.inter(
+        fontSize: 15,
+        color: c.onSurfaceVariant,
+        height: 1.4,
+      ),
+    );
+  }
+
+  Widget _buildWaveform(_ResonanceColors c) {
+    const heights = [
+      12.0, 20.0, 28.0, 16.0, 24.0, 14.0, 26.0, 18.0, 22.0, 12.0,
+      20.0, 28.0, 16.0, 24.0, 14.0, 26.0, 18.0, 22.0,
+    ];
+    const active = [1, 3, 5, 7, 9, 11, 13, 15, 17];
+    return SizedBox(
+      height: 34,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: List.generate(heights.length, (i) {
+          final isActive = active.contains(i);
+          return Container(
+            width: isActive ? 3 : 2,
+            height: heights[i],
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            decoration: BoxDecoration(
+              color: isActive ? c.primary : c.outlineVariant,
+              borderRadius: BorderRadius.circular(999),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildFormCard(_ResonanceColors c) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          top: 4,
+          bottom: -4,
+          child: Container(
+            decoration: BoxDecoration(
+              color: c.primaryContainer,
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: c.surfaceLowest,
+            border: Border.all(color: c.outlineVariant),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildModeToggle(c),
+              const SizedBox(height: 20),
+              if (_isRegister) ...[
+                _buildField(
+                  controller: _name,
+                  label: 'Nama Lengkap',
+                  icon: Icons.person_outline_rounded,
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 14),
+              ],
+              _buildField(
+                controller: _email,
+                label: 'Email',
+                icon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                validator: _validateEmail,
+              ),
+              const SizedBox(height: 14),
+              _buildField(
+                controller: _password,
+                label: 'Kata sandi',
+                icon: Icons.lock_outlined,
+                obscure: _obscure,
+                suffix: IconButton(
+                  icon: Icon(
+                    _obscure
+                        ? Icons.visibility_off_rounded
+                        : Icons.visibility_rounded,
+                    color: c.onSurfaceVariant,
+                    size: 20,
+                  ),
+                  onPressed: () => setState(() => _obscure = !_obscure),
+                ),
+                validator: _validatePassword,
+              ),
+              const SizedBox(height: 14),
+              if (_isRegister) ...[
+                _buildField(
+                  controller: _confirm,
+                  label: 'Konfirmasi kata sandi',
+                  icon: Icons.lock_outlined,
+                  obscure: _obscureConfirm,
+                  suffix: IconButton(
+                    icon: Icon(
+                      _obscureConfirm
+                          ? Icons.visibility_off_rounded
+                          : Icons.visibility_rounded,
+                      color: c.onSurfaceVariant,
+                      size: 20,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscureConfirm = !_obscureConfirm),
+                  ),
+                  validator: _validateConfirm,
+                ),
+                const SizedBox(height: 20),
+              ] else ...[
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _handleForgotPassword,
+                    child: Text(
+                      AppLocalizations.tr('forgot_password'),
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: c.primary,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              _buildPrimaryButton(
+                c: c,
+                key: _isRegister
+                    ? const ValueKey('registerButton')
+                    : const ValueKey('loginButton'),
+                label: _isRegister
+                    ? AppLocalizations.tr('register')
+                    : AppLocalizations.tr('login'),
+                onTap: () {
+                  if (!_acceptedPrivacy) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Centang kebijakan privasi terlebih dahulu',
+                                style: GoogleFonts.inter(fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                        backgroundColor: c.primary,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                    return;
+                  }
+                  if (_isRegister) {
+                    _handleRegister();
+                  } else {
+                    _handleLogin();
+                  }
+                },
+              ),
+              if (_isRegister) ...[
+                const SizedBox(height: 14),
+                Text(
+                  'Verifikasi email akan diperlukan sebelum akun bisa digunakan.',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: c.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              const SizedBox(height: 22),
+              _buildDivider(c),
+              const SizedBox(height: 20),
+              _buildGoogleButton(c),
+              const SizedBox(height: 20),
+              _buildPrivacyCheckbox(c),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModeToggle(_ResonanceColors c) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: c.surfaceContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        children: [
+          _buildModeTab(c, _AuthMode.login),
+          const SizedBox(width: 4),
+          _buildModeTab(c, _AuthMode.register),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeTab(_ResonanceColors c, _AuthMode mode) {
     final selected = _mode == mode;
     final label = mode == _AuthMode.login
         ? AppLocalizations.tr('login')
         : AppLocalizations.tr('register');
     return Expanded(
       child: SizedBox(
-        height: 46,
+        height: 44,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            gradient: selected ? AppTheme.primaryGradient : null,
-            color: selected ? null : Colors.transparent,
-            borderRadius: BorderRadius.circular(13),
+            color: selected ? c.surfaceLowest : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            border: selected ? Border.all(color: c.outlineVariant) : null,
             boxShadow: selected
                 ? [
                     BoxShadow(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.25),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
+                      color: const Color(0xFF24161C).withValues(alpha: 0.12),
+                      offset: const Offset(2, 2),
                     ),
                   ]
                 : [],
@@ -1290,16 +1360,14 @@ class _AuthScreenState extends State<AuthScreen>
                   ? const ValueKey('authModeTabLogin')
                   : const ValueKey('authModeTabRegister'),
               onTap: () => setState(() => _mode = mode),
-              borderRadius: BorderRadius.circular(13),
+              borderRadius: BorderRadius.circular(999),
               child: Center(
                 child: Text(
                   label,
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.spaceGrotesk(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: selected
-                        ? Colors.white
-                        : AppTheme.textS(context),
+                    color: selected ? c.onSurface : c.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -1320,92 +1388,66 @@ class _AuthScreenState extends State<AuthScreen>
     TextCapitalization textCapitalization = TextCapitalization.none,
     String? Function(String?)? validator,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    final c = _ResonanceColors.of(context);
+    return TextFormField(
+      controller: controller,
+      obscureText: obscure,
+      keyboardType: keyboardType,
+      textCapitalization: textCapitalization,
+      validator: validator,
+      style: GoogleFonts.inter(
+        fontSize: 15,
+        color: c.onSurface,
       ),
-      child: TextFormField(
-        controller: controller,
-        obscureText: obscure,
-        keyboardType: keyboardType,
-        textCapitalization: textCapitalization,
-        validator: validator,
-        style: GoogleFonts.poppins(
-          fontSize: 15,
-          color: AppTheme.textP(context),
-          fontWeight: FontWeight.w500,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.spaceGrotesk(
+          fontSize: 13.5,
+          fontWeight: FontWeight.w600,
+          color: c.onSurfaceVariant,
         ),
-        decoration: InputDecoration(
-          hintText: label,
-          hintStyle: GoogleFonts.poppins(
-            fontSize: 15,
-            color: AppTheme.textH(context),
-            fontWeight: FontWeight.w400,
-          ),
-          prefixIcon: Padding(
-            padding: const EdgeInsets.only(left: 18, right: 12),
-            child: Icon(icon, color: AppTheme.textH(context), size: 22),
-          ),
-          suffixIcon: suffix != null
-              ? Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: suffix,
-                )
-              : null,
-          filled: true,
-          fillColor: AppTheme.surface(context),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 18,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: AppTheme.surfVar(context),
-              width: 1.5,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: AppTheme.surfVar(context),
-              width: 1.5,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: AppTheme.primaryColor,
-              width: 1.5,
-            ),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFFF87171),
-              width: 1.5,
-            ),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFFF87171),
-              width: 1.5,
-            ),
-          ),
+        floatingLabelStyle: GoogleFonts.spaceGrotesk(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: c.primary,
+        ),
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(left: 16, right: 8),
+          child: Icon(icon, color: c.outline, size: 20),
+        ),
+        suffixIcon: suffix,
+        filled: true,
+        fillColor: c.surfaceLowest,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 18,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: c.outlineVariant),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: c.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: c.primary, width: 1.6),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFBA1A1A), width: 1.4),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFBA1A1A), width: 1.4),
         ),
       ),
     );
   }
 
   Widget _buildPrimaryButton({
+    required _ResonanceColors c,
     Key? key,
     required String label,
     required VoidCallback onTap,
@@ -1418,16 +1460,14 @@ class _AuthScreenState extends State<AuthScreen>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          gradient: isDisabled ? null : AppTheme.primaryGradient,
-          color: isDisabled ? AppTheme.surfVar(context) : null,
-          borderRadius: BorderRadius.circular(16),
+          color: isDisabled ? c.surfaceVariant : c.primary,
+          borderRadius: BorderRadius.circular(999),
           boxShadow: isDisabled
               ? []
-              : [
+              : const [
                   BoxShadow(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+                    color: Color(0x4024161C),
+                    offset: Offset(4, 4),
                   ),
                 ],
         ),
@@ -1435,7 +1475,7 @@ class _AuthScreenState extends State<AuthScreen>
           color: Colors.transparent,
           child: InkWell(
             onTap: isDisabled ? null : onTap,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(999),
             splashColor: Colors.white.withValues(alpha: 0.15),
             child: Center(
               child: _isLoading
@@ -1449,10 +1489,10 @@ class _AuthScreenState extends State<AuthScreen>
                     )
                   : Text(
                       label,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.spaceGrotesk(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: isDisabled ? AppTheme.textH(context) : Colors.white,
+                        color: isDisabled ? c.onSurfaceVariant : Colors.white,
                       ),
                     ),
             ),
@@ -1462,31 +1502,30 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildDivider() {
+  Widget _buildDivider(_ResonanceColors c) {
     return Row(
       children: [
         Expanded(
-          child: Container(height: 1, color: AppTheme.surfVar(context)),
+          child: Container(height: 1, color: c.outlineVariant),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Text(
-            'atau',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: AppTheme.textH(context),
-              fontWeight: FontWeight.w500,
+            'atau lanjutkan dengan',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: c.onSurfaceVariant,
             ),
           ),
         ),
         Expanded(
-          child: Container(height: 1, color: AppTheme.surfVar(context)),
+          child: Container(height: 1, color: c.outlineVariant),
         ),
       ],
     );
   }
 
-  Widget _buildPrivacyCheckbox() {
+  Widget _buildPrivacyCheckbox(_ResonanceColors c) {
     return GestureDetector(
       onTap: () => setState(() => _acceptedPrivacy = !_acceptedPrivacy),
       behavior: HitTestBehavior.opaque,
@@ -1495,41 +1534,41 @@ class _AuthScreenState extends State<AuthScreen>
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 250),
-            width: 22,
-            height: 22,
+            width: 20,
+            height: 20,
             decoration: BoxDecoration(
               color: _acceptedPrivacy
-                  ? AppTheme.primaryColor
+                  ? c.primary
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: _acceptedPrivacy
-                    ? AppTheme.primaryColor
-                    : AppTheme.textH(context),
-                width: 1.8,
+                    ? c.primary
+                    : c.outline,
+                width: 1.4,
               ),
             ),
             child: _acceptedPrivacy
-                ? const Icon(Icons.check_rounded, color: Colors.white, size: 16)
+                ? const Icon(Icons.check_rounded, color: Colors.white, size: 15)
                 : null,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: GoogleFonts.poppins(
-                  fontSize: 11.5,
-                  color: AppTheme.textS(context),
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: c.onSurfaceVariant,
                   height: 1.3,
                 ),
                 children: [
                   TextSpan(text: 'Saya menyetujui '),
                   TextSpan(
                     text: 'Kebijakan Privasi',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.primaryColor,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: c.primary,
                       decoration: TextDecoration.underline,
                     ),
                     recognizer: TapGestureRecognizer()
@@ -1538,10 +1577,10 @@ class _AuthScreenState extends State<AuthScreen>
                   TextSpan(text: ' dan '),
                   TextSpan(
                     text: 'Ketentuan Layanan',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.primaryColor,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: c.primary,
                       decoration: TextDecoration.underline,
                     ),
                     recognizer: TapGestureRecognizer()
@@ -1556,7 +1595,99 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  void _openPrivacyPolicy() {
+  Widget _buildGoogleButton(_ResonanceColors c) {
+    final isDisabled = _isLoading;
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: OutlinedButton(
+        onPressed: isDisabled
+            ? null
+            : () {
+                if (!_acceptedPrivacy) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Centang kebijakan privasi terlebih dahulu',
+                              style: GoogleFonts.inter(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: const Color(0xFF4285F4),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                  return;
+                }
+                _handleGoogleSignIn();
+              },
+        style: OutlinedButton.styleFrom(
+          foregroundColor: isDisabled
+              ? c.onSurfaceVariant
+              : c.onSurface,
+          side: BorderSide(
+            color: isDisabled ? c.surfaceVariant : c.outlineVariant,
+            width: 1.2,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
+          ),
+          backgroundColor: isDisabled
+              ? c.surfaceVariant.withValues(alpha: 0.4)
+              : c.surfaceLowest,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/google.png',
+              width: 24,
+              height: 24,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 14),
+            Text(
+              'Lanjutkan dengan Google',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w500,
+                fontSize: 15,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter(_ResonanceColors c) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Center(
+        child: Text(
+          'FEM-PSYCHMONITOR · VOICE-EMOTION AI',
+          style: GoogleFonts.jetBrainsMono(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 1.5,
+            color: c.onSurfaceVariant.withValues(alpha: 0.6),
+          ),
+        ),
+      ),
+    );
+  }
+void _openPrivacyPolicy() {
     launchUrl(
       Uri.parse('https://psychmonitor.com/privacy-policy.html'),
       mode: LaunchMode.externalApplication,
@@ -1569,67 +1700,110 @@ class _AuthScreenState extends State<AuthScreen>
       mode: LaunchMode.externalApplication,
     );
   }
+}
 
-  Widget _buildGoogleButton({VoidCallback? onTap}) {
-    final isDisabled = _isLoading || onTap == null;
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: OutlinedButton(
-        onPressed: isDisabled ? null : onTap,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: isDisabled
-              ? AppTheme.textH(context)
-              : AppTheme.textP(context),
-          side: BorderSide(
-            color: isDisabled
-                ? AppTheme.surfVar(context)
-                : const Color(0xFF4285F4).withValues(alpha: 0.5),
-            width: 1.5,
+/// ─────────────────────────────────────────────────────────────
+/// Palet warna Resonance Auth (turunan brand logo — rose magenta)
+/// ─────────────────────────────────────────────────────────────
+class _ResonanceColors {
+  final Color background;
+  final Color surfaceLowest;
+  final Color surfaceVariant;
+  final Color surfaceContainer;
+  final Color outline;
+  final Color outlineVariant;
+  final Color onSurface;
+  final Color onSurfaceVariant;
+  final Color primary;
+  final Color primaryContainer;
+
+  const _ResonanceColors({
+    required this.background,
+    required this.surfaceLowest,
+    required this.surfaceVariant,
+    required this.surfaceContainer,
+    required this.outline,
+    required this.outlineVariant,
+    required this.onSurface,
+    required this.onSurfaceVariant,
+    required this.primary,
+    required this.primaryContainer,
+  });
+
+  static const _light = _ResonanceColors(
+    background: Color(0xFFFAF6F3),
+    surfaceLowest: Color(0xFFFFFFFF),
+    surfaceVariant: Color(0xFFF1EAE6),
+    surfaceContainer: Color(0xFFF1EAE6),
+    outline: Color(0xFFBBA8A1),
+    outlineVariant: Color(0xFFE2D7D1),
+    onSurface: Color(0xFF24161C),
+    onSurfaceVariant: Color(0xFF5E4B53),
+    primary: Color(0xFFD6336C),
+    primaryContainer: Color(0xFFFFDCE7),
+  );
+
+  static const _dark = _ResonanceColors(
+    background: Color(0xFF211B1E),
+    surfaceLowest: Color(0xFF2A2226),
+    surfaceVariant: Color(0xFF3A2E33),
+    surfaceContainer: Color(0xFF332A2E),
+    outline: Color(0xFF8C7075),
+    outlineVariant: Color(0xFF4A3B41),
+    onSurface: Color(0xFFF4EDF0),
+    onSurfaceVariant: Color(0xFFCBBBC1),
+    primary: Color(0xFFFFB1C2),
+    primaryContainer: Color(0xFF5C0E2F),
+  );
+
+  static _ResonanceColors of(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? _dark : _light;
+}
+
+/// Chip data mengambang (emotion readout) — elemen 3D dari desain
+class _FloatingChip extends StatelessWidget {
+  final String label;
+  final _ResonanceColors color;
+
+  const _FloatingChip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.surfaceLowest,
+        border: Border.all(color: color.outlineVariant),
+        borderRadius: BorderRadius.circular(999),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF24161C).withValues(alpha: 0.1),
+            offset: const Offset(2, 2),
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: Color(0xFF2E5F6E),
+              shape: BoxShape.circle,
+            ),
           ),
-          backgroundColor: isDisabled
-              ? AppTheme.surfVar(context).withValues(alpha: 0.3)
-              : AppTheme.surface(context),
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-              ),
-              child: Center(
-                child: Text(
-                  'G',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: isDisabled
-                        ? AppTheme.textH(context)
-                        : const Color(0xFF4285F4),
-                    height: 1.1,
-                  ),
-                ),
-              ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 1.4,
+              color: color.onSurface,
             ),
-            const SizedBox(width: 14),
-            Text(
-              'Lanjutkan dengan Google',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
