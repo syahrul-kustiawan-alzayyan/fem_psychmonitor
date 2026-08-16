@@ -1,0 +1,13 @@
+{
+  "name": "migrate-firebase-to-cpanel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Migrasi data Firestore (lama) ke API cPanel/MySQL (baru) untuk Fem-Psych Monitor",
+  "main": "migrate.js",
+  "scripts": {
+    "migrate": "node migrate.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}

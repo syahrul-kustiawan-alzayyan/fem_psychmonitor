@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/emotion_model.dart';
 import '../../services/database_service.dart';
 import '../../services/pdf_export_service.dart';
-import '../../theme/app_theme.dart';
+import '../../theme/resonance_colors.dart';
 import '../../widgets/gradient_background.dart';
+import 'widgets/admin_charts.dart' show resonanceAccent;
 
 class UserDetailScreen extends StatefulWidget {
   final String userUid;
@@ -131,6 +133,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -142,20 +145,28 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           scrolledUnderElevation: 0,
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+            icon: Icon(
+              PhosphorIconsRegular.arrowLeft,
+              size: 22,
+              color: c.onSurface,
+            ),
           ),
           title: Text(
             'Detail Pengguna',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: AppTheme.textP(context),
+              color: c.onSurface,
             ),
           ),
           actions: [
             IconButton(
               onPressed: _handleExportPDF,
-              icon: const Icon(Icons.picture_as_pdf_rounded, size: 22),
+              icon: Icon(
+                PhosphorIconsRegular.filePdf,
+                size: 22,
+                color: c.onSurface,
+              ),
               tooltip: 'Export PDF',
             ),
           ],
@@ -166,40 +177,47 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         child: SafeArea(
           bottom: false,
           child: _isLoading
-              ? Center(
-                  child: CircularProgressIndicator(color: AppTheme.primaryColor),
-                )
+              ? _buildLoadingState()
               : _error != null
                   ? _buildErrorState()
                   : RefreshIndicator(
                       onRefresh: _loadData,
-                      color: AppTheme.primaryColor,
+                      color: resonanceAccent(c),
                       child: SingleChildScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppTheme.spaceLg,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: AppTheme.spaceMd),
+                            const SizedBox(height: kToolbarHeight),
 
                             // ── Profile Header ────────────────────────
                             _buildProfileHeader(),
 
-                            const SizedBox(height: AppTheme.spaceXl),
+                            const SizedBox(height: 20),
 
                             // ── Mental Health Score ──────────────────
                             _buildMentalHealthCard(),
 
-                            const SizedBox(height: AppTheme.spaceLg),
+                            const SizedBox(height: 22),
 
                             // ── Big Five Section ────────────────────
+                            _buildSectionHeader(
+                              'PERSONALITY',
+                              'Profil Big Five',
+                            ),
+                            const SizedBox(height: 10),
                             _buildBigFiveSection(),
 
-                            const SizedBox(height: AppTheme.spaceXl),
+                            const SizedBox(height: 22),
 
                             // ── Recordings Section ──────────────────
+                            _buildSectionHeader(
+                              'HISTORY',
+                              'Riwayat Rekaman',
+                              trailing: '${_recordings.length}',
+                            ),
+                            const SizedBox(height: 12),
                             _buildRecordingsSection(),
 
                             const SizedBox(height: 100),
@@ -212,37 +230,160 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     );
   }
 
+  Widget _buildSectionHeader(String eyebrow, String title, {String? trailing}) {
+    final c = ResonanceColors.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          eyebrow,
+          style: GoogleFonts.jetBrainsMono(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.6,
+            color: resonanceAccent(c),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: c.onSurface,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ),
+            if (trailing != null)
+              ResonanceChip(c: c, label: trailing),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingState() {
+    final c = ResonanceColors.of(context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: c.surfaceLowest,
+              shape: BoxShape.circle,
+              border: Border.all(color: c.outlineVariant),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1424161C),
+                  offset: Offset(2, 2),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(16),
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: resonanceAccent(c),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Memuat data…',
+            style: GoogleFonts.inter(
+              fontSize: 12.5,
+              color: c.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildErrorState() {
+    final c = ResonanceColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline_rounded,
-              size: 48,
-              color: Color(0xFFF87171),
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF87171).withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                PhosphorIconsRegular.warning,
+                size: 28,
+                color: Color(0xFFF87171),
+              ),
             ),
             const SizedBox(height: 16),
             Text(
+              'Gagal Memuat Data',
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: c.onSurface,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
               _error!,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: AppTheme.textS(context),
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: c.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _loadData,
-              icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: Text('Muat Ulang', style: GoogleFonts.poppins()),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(22),
+            const SizedBox(height: 18),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _loadData,
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 11,
+                  ),
+                  decoration: BoxDecoration(
+                    color: resonanceAccent(c),
+                    borderRadius: BorderRadius.circular(999),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x2424161C),
+                        offset: Offset(3, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        PhosphorIconsRegular.arrowsClockwise,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Muat Ulang',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -253,6 +394,8 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   }
 
   Widget _buildProfileHeader() {
+    final c = ResonanceColors.of(context);
+    final accent = resonanceAccent(c);
     final name = _userData?['name'] as String? ?? 'User';
     final email = _userData?['email'] as String? ?? '';
     final uid = widget.userUid;
@@ -277,28 +420,27 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       dateStr = '${d.day} ${months[d.month - 1]} ${d.year}';
     }
 
-    return Container(
-      width: double.infinity,
+    return ResonanceCard(
+      c: c,
+      accent: accent,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: AppTheme.cardShadow,
-      ),
       child: Column(
         children: [
           // Avatar
           Container(
-            width: 72,
-            height: 72,
+            width: 76,
+            height: 76,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [scoreColor.withValues(alpha: 0.7), scoreColor],
+                colors: [
+                  scoreColor.withValues(alpha: 0.85),
+                  scoreColor,
+                ],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: scoreColor.withValues(alpha: 0.3),
+                  color: scoreColor.withValues(alpha: 0.35),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),
@@ -307,7 +449,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             child: Center(
               child: Text(
                 initial,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.spaceGrotesk(
                   color: Colors.white,
                   fontSize: 30,
                   fontWeight: FontWeight.w700,
@@ -320,10 +462,10 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           // Name
           Text(
             name,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.spaceGrotesk(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: AppTheme.textP(context),
+              color: c.onSurface,
             ),
           ),
           const SizedBox(height: 4),
@@ -332,9 +474,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           if (email.isNotEmpty)
             Text(
               email,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 13,
-                color: AppTheme.textS(context),
+                color: c.onSurfaceVariant,
               ),
             ),
 
@@ -347,11 +489,11 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             alignment: WrapAlignment.center,
             children: [
               _buildInfoChip(
-                Icons.fingerprint_rounded,
+                PhosphorIconsRegular.fingerprint,
                 'UID: ${uid.substring(0, uid.length.clamp(0, 12))}...',
               ),
               _buildInfoChip(
-                Icons.calendar_today_rounded,
+                PhosphorIconsRegular.calendarBlank,
                 'Bergabung: $dateStr',
               ),
             ],
@@ -362,22 +504,26 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   }
 
   Widget _buildInfoChip(IconData icon, String label) {
+    final c = ResonanceColors.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.surfVar(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+        color: c.surfaceVariant,
+        border: Border.all(color: c.outlineVariant),
+        borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: AppTheme.textS(context)),
-          const SizedBox(width: 4),
+          Icon(icon, size: 12, color: c.onSurfaceVariant),
+          const SizedBox(width: 5),
           Text(
             label,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              color: AppTheme.textS(context),
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 9.5,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.3,
+              color: c.onSurfaceVariant,
             ),
           ),
         ],
@@ -399,7 +545,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           end: Alignment.bottomRight,
           colors: [color, color.withValues(alpha: 0.8)],
         ),
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.35),
@@ -414,23 +560,24 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
-                  Icons.favorite_rounded,
+                  PhosphorIconsRegular.heartbeat,
                   color: Colors.white,
                   size: 16,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 9),
               Text(
-                'Skor Kesehatan Mental',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                'SKOR KESEHATAN MENTAL',
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.4,
                   color: Colors.white,
                 ),
               ),
@@ -442,9 +589,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             children: [
               Text(
                 psychScore != null ? '$psychScore / 100' : '-- / 100',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.spaceGrotesk(
                   fontSize: 36,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                   color: Colors.white,
                   letterSpacing: -1,
                   height: 1,
@@ -452,16 +599,17 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                  borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   category,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 11,
                     fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
                     color: Colors.white,
                   ),
                 ),
@@ -472,7 +620,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           if (psychScore != null) ...[
             const SizedBox(height: 14),
             ClipRRect(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(999),
               child: LinearProgressIndicator(
                 value: psychScore / 100,
                 minHeight: 8,
@@ -487,41 +635,37 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   }
 
   Widget _buildBigFiveSection() {
+    final c = ResonanceColors.of(context);
     final bigFiveScores = _userData?['bigfive_scores'] as Map<String, dynamic>? ?? {};
 
     if (bigFiveScores.isEmpty) {
-      return Container(
-        width: double.infinity,
+      return ResonanceCard(
+        c: c,
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppTheme.surface(context),
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: AppTheme.cardShadow,
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(7),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    gradient: AppTheme.primaryGradient,
-                    borderRadius: BorderRadius.circular(9),
+                    color: c.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
-                    Icons.person_search_rounded,
-                    color: Colors.white,
+                  child: Icon(
+                    PhosphorIconsRegular.userFocus,
                     size: 16,
+                    color: resonanceAccent(c),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Text(
                   'Profil Big Five',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.spaceGrotesk(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.textP(context),
+                    color: c.onSurface,
                   ),
                 ),
               ],
@@ -530,9 +674,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             Center(
               child: Text(
                 'Belum mengisi asesmen Big Five',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.inter(
                   fontSize: 13,
-                  color: AppTheme.textH(context),
+                  color: c.onSurfaceVariant,
                 ),
               ),
             ),
@@ -549,32 +693,38 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       'N': 'Neuroticism',
     };
 
-    return Container(
-      width: double.infinity,
+    return ResonanceCard(
+      c: c,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: AppTheme.cardShadow,
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.person_search_rounded, size: 18, color: AppTheme.iconColor(context)),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: c.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  PhosphorIconsRegular.userFocus,
+                  size: 16,
+                  color: resonanceAccent(c),
+                ),
+              ),
+              const SizedBox(width: 10),
               Text(
                 'Profil Big Five',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.spaceGrotesk(
                   fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textP(context),
+                  fontWeight: FontWeight.w700,
+                  color: c.onSurface,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
           ...dimensions.entries.map((entry) {
             final score = (bigFiveScores[entry.key] as num?)?.toDouble() ?? 0.0;
@@ -582,10 +732,10 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             final level = score >= 3.5 ? 'Tinggi' : (score <= 2.5 ? 'Rendah' : 'Sedang');
             final levelColor = score >= 3.5
                 ? const Color(0xFF10B981)
-                : (score <= 2.5 ? const Color(0xFFF59E0B) : AppTheme.textS(context));
+                : (score <= 2.5 ? const Color(0xFFF59E0B) : c.onSurfaceVariant);
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -593,56 +743,55 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${entry.key} - ${entry.value}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
+                        '${entry.key} · ${entry.value}',
+                        style: GoogleFonts.inter(
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.textP(context),
+                          color: c.onSurface,
                         ),
                       ),
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: levelColor.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                              borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
                               level,
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.jetBrainsMono(
                                 fontSize: 9,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.4,
                                 color: levelColor,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Text(
                             score.toStringAsFixed(1),
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textS(context),
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: c.onSurfaceVariant,
                             ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: fraction,
-                      minHeight: 6,
-                      backgroundColor: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white.withValues(alpha: 0.1)
-                          : AppTheme.surfVar(context),
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppTheme.primaryColor,
-                      ),
-                    ),
+                  const SizedBox(height: 6),
+                  ResonanceProgressBar(
+                    c: c,
+                    progress: fraction,
+                    color: levelColor == c.onSurfaceVariant
+                        ? resonanceAccent(c)
+                        : levelColor,
+                    height: 6,
                   ),
                 ],
               ),
@@ -654,84 +803,50 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   }
 
   Widget _buildRecordingsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                gradient: AppTheme.primaryGradient,
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: const Icon(
-                Icons.mic_rounded,
-                color: Colors.white,
-                size: 16,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'Riwayat Rekaman',
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textP(context),
-              ),
-            ),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-              ),
-              child: Text(
-                '${_recordings.length}',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryDark,
+    final c = ResonanceColors.of(context);
+
+    if (_recordings.isEmpty) {
+      return ResonanceCard(
+        c: c,
+        padding: const EdgeInsets.all(28),
+        child: Center(
+          child: Column(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: c.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  PhosphorIconsRegular.waveSquare,
+                  size: 24,
+                  color: resonanceAccent(c),
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppTheme.spaceMd),
-
-        if (_recordings.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppTheme.surface(context),
-              borderRadius: BorderRadius.circular(22),
-              boxShadow: AppTheme.cardShadow,
-            ),
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(Icons.mic_off_rounded, size: 36, color: AppTheme.textH(context)),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Belum ada rekaman',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: AppTheme.textS(context),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 12),
+              Text(
+                'Belum ada rekaman',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: c.onSurfaceVariant,
+                ),
               ),
-            ),
-          )
-        else
-          ..._recordings.map((rec) => _buildRecordingItem(rec)),
-      ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: _recordings.map((rec) => _buildRecordingItem(rec)).toList(),
     );
   }
 
   Widget _buildRecordingItem(RecordingData rec) {
+    final c = ResonanceColors.of(context);
     final emotion = rec.dominantEmotion;
     final confidence = rec.confidence;
     final date = rec.date;
@@ -739,101 +854,107 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
     return GestureDetector(
       onTap: () => _showRecordingDetail(rec),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppTheme.surface(context),
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: AppTheme.cardShadow,
-        ),
-        child: Row(
-          children: [
-            // Emotion indicator
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: emotion.color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  emotion.emoji,
-                  style: const TextStyle(fontSize: 22),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: ResonanceCard(
+          c: c,
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              // Emotion indicator
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: emotion.color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Text(
+                    emotion.emoji,
+                    style: const TextStyle(fontSize: 22),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
+              const SizedBox(width: 12),
 
-            // Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        emotion.displayName,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textP(context),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: emotion.color.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                        ),
-                        child: Text(
-                          '${(confidence * 100).toStringAsFixed(0)}%',
-                          style: GoogleFonts.poppins(
-                            fontSize: 9,
+              // Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          emotion.displayName,
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: emotion.color,
+                            color: c.onSurface,
                           ),
                         ),
+                        const SizedBox(width: 7),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: emotion.color.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '${(confidence * 100).toStringAsFixed(0)}%',
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: emotion.color,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      _formatDate(date),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: c.onSurfaceVariant,
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Duration
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Icon(
+                    PhosphorIconsRegular.timer,
+                    size: 14,
+                    color: c.onSurfaceVariant,
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    _formatDate(date),
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: AppTheme.textS(context),
+                    _formatDuration(duration),
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: c.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
-            ),
-
-            // Duration
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Icon(Icons.timer_rounded, size: 14, color: AppTheme.textH(context)),
-                const SizedBox(height: 2),
-                Text(
-                  _formatDuration(duration),
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.textS(context),
-                  ),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   void _showRecordingDetail(RecordingData rec) {
+    final c = ResonanceColors.of(context);
     final emotion = rec.dominantEmotion;
     final confidence = rec.confidence;
     final date = rec.date;
@@ -852,8 +973,11 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       builder: (ctx) => Container(
         height: MediaQuery.of(ctx).size.height * 0.75,
         decoration: BoxDecoration(
-          color: AppTheme.surface(context),
+          color: c.surfaceLowest,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border(
+            top: BorderSide(color: c.outlineVariant),
+          ),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
@@ -866,7 +990,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppTheme.textH(context),
+                    color: c.onSurfaceVariant.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -876,25 +1000,38 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
               // Header
               Row(
                 children: [
-                  Text(emotion.emoji, style: const TextStyle(fontSize: 32)),
-                  const SizedBox(width: 10),
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: emotion.color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Center(
+                      child: Text(
+                        emotion.emoji,
+                        style: const TextStyle(fontSize: 28),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           emotion.displayName,
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.spaceGrotesk(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: AppTheme.textP(context),
+                            color: c.onSurface,
                           ),
                         ),
                         Text(
                           _formatDate(date),
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.inter(
                             fontSize: 12,
-                            color: AppTheme.textS(context),
+                            color: c.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -905,7 +1042,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                     children: [
                       Text(
                         '${(confidence * 100).toStringAsFixed(0)}%',
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.spaceGrotesk(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: emotion.color,
@@ -913,9 +1050,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                       ),
                       Text(
                         _formatDuration(duration),
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          color: AppTheme.textS(context),
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 10,
+                          color: c.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -927,57 +1064,61 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
               // Audio emotions breakdown
               if (audioEmotions.isNotEmpty) ...[
                 Text(
-                  'Emosi Audio',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textP(context),
+                  'EMOSI AUDIO',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                    color: resonanceAccent(c),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 ...audioEmotions.entries.map((e) => _buildEmotionBar(e.key, e.value)),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
               ],
 
               // Transcript emotions breakdown
               if (transcriptEmotions.isNotEmpty) ...[
                 Text(
-                  'Emosi Teks',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textP(context),
+                  'EMOSI TEKS',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                    color: resonanceAccent(c),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 ...transcriptEmotions.entries.map((e) => _buildEmotionBar(e.key, e.value)),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
               ],
 
               // Transcript text
               if (transcript.isNotEmpty) ...[
                 Text(
-                  'Transkrip',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textP(context),
+                  'TRANSCRIPT',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                    color: resonanceAccent(c),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppTheme.surfVar(context),
-                    borderRadius: BorderRadius.circular(12),
+                    color: c.surfaceVariant,
+                    border: Border.all(color: c.outlineVariant),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: Text(
                     transcript,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: AppTheme.textP(context),
-                      height: 1.5,
+                    style: GoogleFonts.inter(
+                      fontSize: 12.5,
+                      color: c.onSurface,
+                      height: 1.6,
                     ),
                   ),
                 ),
@@ -986,18 +1127,42 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
               // Audio download button
               if (audioUrl.isNotEmpty)
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _downloadAudio(audioUrl),
-                    icon: const Icon(Icons.download_rounded, size: 18),
-                    label: Text('Unduh Audio', style: GoogleFonts.poppins()),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _downloadAudio(audioUrl),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Container(
+                      width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      decoration: BoxDecoration(
+                        color: resonanceAccent(c),
+                        borderRadius: BorderRadius.circular(999),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x2424161C),
+                            offset: Offset(3, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            PhosphorIconsRegular.downloadSimple,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Unduh Audio',
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -1010,37 +1175,35 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   }
 
   Widget _buildEmotionBar(EmotionType emotion, double score) {
+    final c = ResonanceColors.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
           SizedBox(
-            width: 28,
+            width: 30,
             child: Text(emotion.emoji, style: const TextStyle(fontSize: 14)),
           ),
           const SizedBox(width: 8),
           SizedBox(
-            width: 75,
+            width: 82,
             child: Text(
               emotion.displayName,
-              style: GoogleFonts.poppins(
-                fontSize: 11,
+              style: GoogleFonts.inter(
+                fontSize: 11.5,
                 fontWeight: FontWeight.w500,
-                color: AppTheme.textP(context),
+                color: c.onSurface,
               ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: score.clamp(0.0, 1.0),
-                minHeight: 6,
-                backgroundColor: emotion.color.withValues(alpha: 0.12),
-                valueColor: AlwaysStoppedAnimation<Color>(emotion.color),
-              ),
+            child: ResonanceProgressBar(
+              c: c,
+              progress: score.clamp(0.0, 1.0),
+              color: emotion.color,
+              height: 6,
             ),
           ),
           const SizedBox(width: 8),
@@ -1048,10 +1211,10 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             width: 36,
             child: Text(
               '${(score * 100).toStringAsFixed(0)}%',
-              style: GoogleFonts.poppins(
-                fontSize: 10,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 9.5,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textS(context),
+                color: c.onSurfaceVariant,
               ),
               textAlign: TextAlign.right,
             ),

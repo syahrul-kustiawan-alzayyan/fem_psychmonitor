@@ -42,6 +42,11 @@ app.*.map.json
 # Environment variables
 .env
 
+# Firebase service account (secret)
+*firebase-adminsdk*.json
+tools/migrate_firebase_to_cpanel/migration_state.json
+tools/migrate_firebase_to_cpanel/migration_report.json
+
 # Android signing
 /android/key.properties
 *.keystore
