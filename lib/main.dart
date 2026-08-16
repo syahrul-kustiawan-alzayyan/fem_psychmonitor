@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
@@ -14,6 +15,7 @@ import 'providers/auth_provider.dart';
 import 'providers/premium_provider.dart';
 import 'providers/admin_provider.dart';
 import 'theme/app_theme.dart';
+import 'theme/resonance_colors.dart';
 import 'services/ad_service.dart';
 import 'services/subscription_service.dart';
 import 'services/database_service.dart';
@@ -295,77 +297,139 @@ class _SplashScreenState extends State<_SplashScreen>
   @override
   Widget build(BuildContext context) {
     final isReady = _modelProgress >= 1.0;
-    final status = _modelStatus.isNotEmpty ? _modelStatus : 'Memuat aplikasi...';
+    final status =
+        _modelStatus.isNotEmpty ? _modelStatus : 'Memuat aplikasi...';
+    final c = ResonanceColors.of(context);
 
     return Scaffold(
       backgroundColor: AppTheme.bg(context),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo
-              Container(
-                width: 100,
-                height: 100,
-                child: Image.asset('assets/logo.png', fit: BoxFit.contain),
+      body: Stack(
+        children: [
+          // Dekorasi lembut
+          Positioned(
+            top: -80,
+            right: -80,
+            child: Container(
+              width: 260,
+              height: 260,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: c.primaryContainer.withValues(alpha: 0.55),
               ),
-              const SizedBox(height: 20),
-
-              // App name
-              Text(
-                'Fem-Psych Monitor',
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textP(context),
-                ),
+            ),
+          ),
+          Positioned(
+            bottom: -110,
+            left: -70,
+            child: Container(
+              width: 280,
+              height: 280,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFE2B6BF).withValues(alpha: 0.3),
               ),
-              const SizedBox(height: 8),
-
-              // Short description
-              Text(
-                AppLocalizations.tr('splash_subtitle'),
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: AppTheme.textS(context),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 48),
-
-              // Progress bar
-              if (isReady)
-                Icon(Icons.check_circle, color: Colors.green, size: 28)
-              else ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: SizedBox(
-                    width: 200,
-                    height: 4,
-                    child: LinearProgressIndicator(
-                      value: _modelProgress > 0 ? _modelProgress : null,
-                      minHeight: 4,
-                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.15),
-                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+            ),
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo tile
+                  Container(
+                    width: 112,
+                    height: 112,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: c.surfaceLowest,
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x4024161C),
+                          offset: Offset(4, 4),
+                        ),
+                      ],
+                    ),
+                    child: Image.asset(
+                      'assets/logo.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  _modelProgress > 0
-                      ? '${(_modelProgress * 100).toStringAsFixed(0)}%'
-                      : status,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: AppTheme.textS(context),
+                  const SizedBox(height: 22),
+
+                  // App name
+                  Text(
+                    'Fem-Psych Monitor',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: c.onSurface,
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                ),
-              ],
-            ],
+                  const SizedBox(height: 8),
+
+                  // Short description
+                  Text(
+                    AppLocalizations.tr('splash_subtitle'),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: c.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 44),
+
+                  // Progress
+                  if (isReady)
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: c.primaryContainer,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        PhosphorIconsRegular.checkCircle,
+                        color: c.primary,
+                        size: 22,
+                      ),
+                    )
+                  else ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: SizedBox(
+                        width: 220,
+                        height: 6,
+                        child: LinearProgressIndicator(
+                          value: _modelProgress > 0 ? _modelProgress : null,
+                          minHeight: 6,
+                          backgroundColor:
+                              c.primary.withValues(alpha: 0.15),
+                          valueColor: AlwaysStoppedAnimation<Color>(c.primary),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      _modelProgress > 0
+                          ? '${(_modelProgress * 100).toStringAsFixed(0)}%'
+                          : status,
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _modelProgress > 0
+                            ? c.primary
+                            : c.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -608,30 +672,31 @@ class _PremiumBottomNavBar extends StatelessWidget {
         MediaQuery.of(context).padding.bottom + 12,
       ),
       decoration: const BoxDecoration(color: Colors.transparent),
-      child: Container(
-        height: 64,
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkCard : Colors.white,
-          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(
-                0xFF1E293B,
-              ).withValues(alpha: isDark ? 0.3 : 0.12),
-              blurRadius: 24,
-              spreadRadius: 0,
-              offset: const Offset(0, 8),
+        child: Container(
+          height: 64,
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.darkCard : Colors.white,
+            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+            border: Border.all(
+              color: isDark
+                  ? const Color(0xFF4A3B41)
+                  : const Color(0xFFE2D7D1),
             ),
-            BoxShadow(
-              color: AppTheme.primaryColor.withValues(
-                alpha: isDark ? 0.15 : 0.08,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0x1424161C),
+                blurRadius: 0,
+                spreadRadius: 0,
+                offset: const Offset(2, 2),
               ),
-              blurRadius: 12,
-              spreadRadius: 0,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+              BoxShadow(
+                color: const Color(0x4024161C),
+                blurRadius: 0,
+                spreadRadius: 0,
+                offset: const Offset(4, 4),
+              ),
+            ],
+          ),
         child: Row(
           children: List.generate(items.length, (i) {
             final item = items[i];
@@ -678,7 +743,7 @@ class _PremiumBottomNavBar extends StatelessWidget {
                       const SizedBox(height: 3),
                       AnimatedDefaultTextStyle(
                         duration: const Duration(milliseconds: 200),
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.spaceGrotesk(
                           fontSize: 10.5,
                           fontWeight: isActive
                               ? FontWeight.w600

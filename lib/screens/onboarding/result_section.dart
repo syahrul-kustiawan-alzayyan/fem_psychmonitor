@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../../providers/theme_provider.dart';
-import '../../theme/app_theme.dart';
 import '../../models/user_model.dart';
+import '../../providers/locale_provider.dart';
+import '../../theme/resonance_colors.dart';
 import 'onboarding_state.dart';
 
 class ResultSection extends StatelessWidget {
@@ -17,8 +18,9 @@ class ResultSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<OnboardingState>();
-    final isDark = context.watch<ThemeProvider>().isDark;
+    final c = ResonanceColors.of(context);
     final loc = AppLocalizations.tr;
+    final isEn = context.watch<LocaleProvider>().locale == 'en';
 
     final user = AppUser(
       name: userName,
@@ -28,105 +30,99 @@ class ResultSection extends StatelessWidget {
     );
 
     return Container(
-      decoration: BoxDecoration(
-        gradient: isDark ? AppTheme.darkGradientBackground : AppTheme.lightGradientBackground,
-      ),
+      color: c.background,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              // HEADER
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: isDark ? AppTheme.darkCard : null,
-                  gradient: isDark ? null : AppTheme.lightGradientBackground,
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: AppTheme.cardShadow,
-                ),
-                child: Column(
-                  children: [
-                    const Text('🎉', style: TextStyle(fontSize: 56)),
-                    const SizedBox(height: 12),
-                    Text(
-                      loc('result_title'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Halo ${user.name.isEmpty ? loc('user') : user.name}${loc('result_subtitle')}',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: 13.5,
-                        color: isDark ? AppTheme.darkTextSecondary : AppTheme.textS(context),
-                        height: 1.6,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // BIG FIVE RESULT CARD
-              if (state.bigFiveScores.isNotEmpty) ...[
-                _buildBigFiveResultCard(context, state),
-                const SizedBox(height: 24),
-              ],
-
-              // PSYCHOLOGICAL RESULT
-              _buildEnhancedPsyResultCard(context, state.psyScore),
-
-              const SizedBox(height: 48),
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: state.isSaving ? null : onComplete,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-                    elevation: 4,
-                    shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
-                  ),
-                  child: state.isSaving
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              loc('completed'),
-                              style: GoogleFonts.poppins(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 8),
+            ResonanceEyebrow(c: c, label: isEn ? '04 / RESULT' : '04 / HASIL'),
+            const SizedBox(height: 16),
+            // HEADER
+            ResonanceCard(
+              c: c,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: c.primaryContainer,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: c.outlineVariant),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x1424161C),
+                          offset: Offset(1.5, 1.5),
                         ),
-                ),
+                      ],
+                    ),
+                    child: Icon(
+                      PhosphorIconsRegular.sparkle,
+                      color: c.primary,
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    loc('result_title'),
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 25,
+                      fontWeight: FontWeight.w700,
+                      color: c.onSurface,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Halo ${user.name.isEmpty ? loc('user') : user.name}${loc('result_subtitle')}',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 13.5,
+                      color: c.onSurfaceVariant,
+                      height: 1.6,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 40),
+            ),
+            const SizedBox(height: 24),
+
+            // BIG FIVE RESULT CARD
+            if (state.bigFiveScores.isNotEmpty) ...[
+              _buildBigFiveResultCard(context, state),
+              const SizedBox(height: 24),
             ],
-          ),
+
+            // PSYCHOLOGICAL RESULT
+            _buildPsyResultCard(context, state.psyScore),
+
+            const SizedBox(height: 30),
+            ResonancePillButton(
+              c: c,
+              label: loc('completed'),
+              trailingIcon: PhosphorIconsRegular.check,
+              loading: state.isSaving,
+              onTap: state.isSaving ? null : onComplete,
+            ),
+            const SizedBox(height: 40),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildBigFiveResultCard(BuildContext context, OnboardingState state) {
+    final c = ResonanceColors.of(context);
     final dimLabels = {
-      'O': ('🎨', AppLocalizations.tr('bigfive_dim_o'), const Color(0xFF8B5CF6)),
-      'C': ('📋', AppLocalizations.tr('bigfive_dim_c'), const Color(0xFF3B82F6)),
-      'E': ('⚡', AppLocalizations.tr('bigfive_dim_e'), const Color(0xFFF59E0B)),
-      'A': ('🤝', AppLocalizations.tr('bigfive_dim_a'), const Color(0xFF10B981)),
-      'N': ('🌊', AppLocalizations.tr('bigfive_dim_n'), const Color(0xFFEF4444)),
+      'O': (AppLocalizations.tr('bigfive_dim_o'), const Color(0xFF8B5CF6)),
+      'C': (AppLocalizations.tr('bigfive_dim_c'), const Color(0xFF3B82F6)),
+      'E': (AppLocalizations.tr('bigfive_dim_e'), const Color(0xFFF59E0B)),
+      'A': (AppLocalizations.tr('bigfive_dim_a'), const Color(0xFF10B981)),
+      'N': (AppLocalizations.tr('bigfive_dim_n'), const Color(0xFFEF4444)),
     };
 
     final dimensions = ['O', 'C', 'E', 'A', 'N'];
@@ -134,62 +130,68 @@ class ResultSection extends StatelessWidget {
       (a, b) => (state.bigFiveScores[a] ?? 0) >= (state.bigFiveScores[b] ?? 0) ? a : b,
     );
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.3),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-          ),
-        ],
-      ),
+    return ResonanceCard(
+      c: c,
+      padding: const EdgeInsets.all(24),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
+                  color: c.primaryContainer,
                   shape: BoxShape.circle,
+                  border: Border.all(color: c.outlineVariant),
                 ),
-                child: const Icon(Icons.psychology_rounded, size: 32, color: Colors.white),
+                child: Icon(
+                  PhosphorIconsRegular.fingerprint,
+                  size: 20,
+                  color: c.primary,
+                ),
               ),
               const SizedBox(width: 12),
               Text(
                 AppLocalizations.tr('result_bigfive'),
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.spaceGrotesk(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: c.onSurface,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          Text(
-            '${dimLabels[highestDim]!.$1} ${dimLabels[highestDim]!.$2}',
-            style: GoogleFonts.poppins(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-            ),
-          ),
           const SizedBox(height: 20),
-          Container(
-            height: 1,
-            color: Colors.white.withValues(alpha: 0.3),
-            margin: const EdgeInsets.symmetric(horizontal: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: dimLabels[highestDim]!.$2,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                dimLabels[highestDim]!.$1,
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: c.onSurface,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
+          Container(height: 1, color: c.outlineVariant),
+          const SizedBox(height: 18),
           ...dimensions.map((d) {
             final info = dimLabels[d]!;
+            final color = info.$2;
             final score = state.bigFiveScores[d] ?? 0;
             final level = score >= 3.5
                 ? AppLocalizations.tr('bigfive_high')
@@ -205,20 +207,33 @@ class ResultSection extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '${info.$1} ${info.$2}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            info.$1,
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: c.onSurface,
+                            ),
+                          ),
+                        ],
                       ),
                       Text(
-                        '$score • $level',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                        '$score $level',
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: color,
                         ),
                       ),
                     ],
@@ -228,9 +243,9 @@ class ResultSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                     child: LinearProgressIndicator(
                       value: ratio.clamp(0.0, 1.0),
-                      minHeight: 8,
-                      backgroundColor: Colors.white.withValues(alpha: 0.2),
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      minHeight: 7,
+                      backgroundColor: color.withValues(alpha: 0.12),
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
                     ),
                   ),
                 ],
@@ -242,8 +257,8 @@ class ResultSection extends StatelessWidget {
     );
   }
 
-  Widget _buildEnhancedPsyResultCard(BuildContext context, int psyScore) {
-    final isDark = context.watch<ThemeProvider>().isDark;
+  Widget _buildPsyResultCard(BuildContext context, int psyScore) {
+    final c = ResonanceColors.of(context);
     final loc = AppLocalizations.tr;
     String category;
     String advice;
@@ -257,7 +272,7 @@ class ResultSection extends StatelessWidget {
       category = AppLocalizations.tr('psych_excellent');
       advice = AppLocalizations.tr('overall_exc_1');
       cardColor = const Color(0xFF22C55E);
-      categoryIcon = Icons.check_circle_rounded;
+      categoryIcon = PhosphorIconsRegular.checkCircle;
       recommendations = [
         AppLocalizations.tr('result_rec_1'),
         AppLocalizations.tr('result_rec_2'),
@@ -267,7 +282,7 @@ class ResultSection extends StatelessWidget {
       category = AppLocalizations.tr('psych_good');
       advice = AppLocalizations.tr('overall_good_2');
       cardColor = const Color(0xFF84CC16);
-      categoryIcon = Icons.info_outline_rounded;
+      categoryIcon = PhosphorIconsRegular.info;
       recommendations = [
         AppLocalizations.tr('result_rec_4'),
         AppLocalizations.tr('result_rec_5'),
@@ -277,7 +292,7 @@ class ResultSection extends StatelessWidget {
       category = AppLocalizations.tr('psych_fair');
       advice = AppLocalizations.tr('overall_fair_2');
       cardColor = const Color(0xFFF59E0B);
-      categoryIcon = Icons.warning_amber_rounded;
+      categoryIcon = PhosphorIconsRegular.warning;
       recommendations = [
         AppLocalizations.tr('result_rec_7'),
         AppLocalizations.tr('result_rec_8'),
@@ -287,7 +302,7 @@ class ResultSection extends StatelessWidget {
       category = AppLocalizations.tr('psych_needs_attention');
       advice = AppLocalizations.tr('overall_attn_2');
       cardColor = const Color(0xFFEF4444);
-      categoryIcon = Icons.error_rounded;
+      categoryIcon = PhosphorIconsRegular.warningCircle;
       recommendations = [
         AppLocalizations.tr('result_rec_10'),
         AppLocalizations.tr('result_rec_11'),
@@ -295,43 +310,37 @@ class ResultSection extends StatelessWidget {
       ];
     }
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: AppTheme.cardShadow,
-        border: Border.all(
-          color: cardColor.withValues(alpha: 0.3),
-          width: 2,
-        ),
-      ),
+    return ResonanceCard(
+      c: c,
+      padding: const EdgeInsets.all(24),
+      accent: cardColor,
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: cardColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
+                  border: Border.all(color: cardColor.withValues(alpha: 0.25)),
                 ),
-                child: Icon(categoryIcon, size: 32, color: cardColor),
+                child: Icon(categoryIcon, size: 20, color: cardColor),
               ),
               const SizedBox(width: 12),
               Text(
                 loc('result_mental_health'),
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.spaceGrotesk(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.textP(context),
+                  color: c.onSurface,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
           Stack(
             alignment: Alignment.center,
             children: [
@@ -341,7 +350,7 @@ class ResultSection extends StatelessWidget {
                 child: CircularProgressIndicator(
                   value: displayScore100 / 100,
                   strokeWidth: 12,
-                  backgroundColor: cardColor.withValues(alpha: 0.15),
+                  backgroundColor: cardColor.withValues(alpha: 0.12),
                   valueColor: AlwaysStoppedAnimation<Color>(cardColor),
                 ),
               ),
@@ -349,7 +358,7 @@ class ResultSection extends StatelessWidget {
                 children: [
                   Text(
                     '$displayScore100',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.spaceGrotesk(
                       fontSize: 42,
                       fontWeight: FontWeight.w900,
                       color: cardColor,
@@ -357,54 +366,54 @@ class ResultSection extends StatelessWidget {
                   ),
                   Text(
                     '/ 100',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
+                    style: GoogleFonts.inter(
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textS(context),
+                      color: c.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
             decoration: BoxDecoration(
-              color: cardColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: cardColor.withValues(alpha: 0.35)),
+              borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
               category,
-              style: GoogleFonts.poppins(
-                fontSize: 16,
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: cardColor,
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           Text(
             advice,
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 13.5,
-              color: AppTheme.textP(context),
+              color: c.onSurface,
               height: 1.6,
             ),
           ),
-          const SizedBox(height: 24),
-          Container(
-            height: 1.5,
-            color: AppTheme.surfVar(context).withValues(alpha: 0.5),
-          ),
           const SizedBox(height: 20),
-          Text(
-            loc('result_recommendations'),
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textP(context),
+          Container(height: 1, color: c.outlineVariant),
+          const SizedBox(height: 18),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              loc('result_recommendations'),
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: c.onSurface,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -429,9 +438,9 @@ class ResultSection extends StatelessWidget {
                   Expanded(
                     child: Text(
                       rec,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: AppTheme.textP(context),
+                        color: c.onSurface,
                         height: 1.5,
                       ),
                     ),

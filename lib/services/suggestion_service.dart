@@ -278,8 +278,8 @@ class SuggestionService {
 
     if (bigFiveScores.isEmpty) {
       return locale.startsWith('en')
-          ? 'Suggestions for $emotionName'
-          : 'Saran untuk $emotionName';
+          ? 'A few suggestions for you who are currently feeling $emotionName'
+          : 'Sedikit saran untukmu yang sedang memiliki emosi $emotionName';
     }
 
     final result = getStructuredSuggestions(bigFiveScores, emotion);
@@ -289,16 +289,9 @@ class SuggestionService {
           : 'Rujukan Keselamatan';
     }
 
-    final traitNames = result.traitSuggestions.map((t) => t.traitName).join(' & ');
-    if (traitNames.isEmpty) {
-      return locale.startsWith('en')
-          ? 'Suggestions for $emotionName'
-          : 'Saran untuk $emotionName';
-    }
-
     return locale.startsWith('en')
-        ? 'Suggestions $emotionName — $traitNames'
-        : 'Saran $emotionName — $traitNames';
+        ? 'A few suggestions for you who are currently feeling $emotionName'
+        : 'Sedikit saran untukmu yang sedang memiliki emosi $emotionName';
   }
 
   String _getTraitName(String trait) {

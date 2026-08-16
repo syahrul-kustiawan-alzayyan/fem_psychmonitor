@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/audio_recorder_detection.dart' show AudioRecorderWithDetection, DetectionResult;
-import '../theme/app_theme.dart';
-import '../widgets/gradient_background.dart';
+import '../theme/resonance_colors.dart';
 import 'emotion_detection_screen.dart';
 
 class LiveDetectionScreen extends StatefulWidget {
@@ -118,7 +118,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.tr('login_required')),
-          backgroundColor: AppTheme.primaryColor,
+          backgroundColor: ResonanceColors.of(context).primary,
         ),
       );
       return;
@@ -136,8 +136,10 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
 
   @override
   Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: c.background,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -145,130 +147,105 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
         scrolledUnderElevation: 0,
         title: Row(
           children: [
-            ShaderMask(
-              shaderCallback: (bounds) =>
-                  AppTheme.primaryGradient.createShader(bounds),
-              child: const Icon(
-                Icons.mic_rounded,
-                color: Colors.white,
-                size: 22,
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: c.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                PhosphorIconsRegular.microphone,
+                color: c.primary,
+                size: 18,
               ),
             ),
-            const SizedBox(width: 10),
-            ShaderMask(
-              shaderCallback: (bounds) =>
-                  AppTheme.primaryGradient.createShader(
-                    Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                  ),
-              child: Text(
-                AppLocalizations.tr('live_detection_title'),
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: -0.3,
-                ),
+            const SizedBox(width: 12),
+            Text(
+              AppLocalizations.tr('live_detection_title'),
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: c.onSurface,
+                letterSpacing: -0.3,
               ),
             ),
           ],
         ),
       ),
-      body: GradientBackground(
-        useOverlay: true,
-        child: SafeArea(
-          bottom: false,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
-            child: Column(
-              children: [
-                const SizedBox(height: AppTheme.spaceMd),
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
 
-                if (_isModelLoading)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfVar(context),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppTheme.iconColor(context),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          AppLocalizations.tr('loading_model'),
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: AppTheme.textS(context),
-                          ),
-                        ),
-                      ],
-                    ),
+              if (_isModelLoading)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: c.surfaceVariant,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: c.outlineVariant),
                   ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            c.primary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        AppLocalizations.tr('loading_model'),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: c.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-                _buildWaveVisualizer(),
+              _buildWaveVisualizer(context),
 
-                const SizedBox(height: AppTheme.space2xl),
+              const SizedBox(height: 28),
 
-                _buildRecordingSection(context),
+              _buildRecordingSection(context),
 
-                const SizedBox(height: AppTheme.spaceXl),
+              const SizedBox(height: 24),
 
-                if (_isRecording) ...[
-                  const SizedBox(height: AppTheme.spaceMd),
-                ],
-
-                if (!_isRecording) _buildStoryPrompts(),
-
-                if (!_isRecording && !_isModelLoading) ...[
-                  const SizedBox(height: 24),
-                  _buildIdleGuide(),
-                ],
-
-                const SizedBox(height: 100),
+              if (_isRecording) ...[
+                const SizedBox(height: 16),
               ],
-            ),
+
+              if (!_isRecording) _buildStoryPrompts(context),
+
+              if (!_isRecording && !_isModelLoading) ...[
+                const SizedBox(height: 24),
+                _buildIdleGuide(context),
+              ],
+
+              const SizedBox(height: 100),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildWaveVisualizer() {
-    return Container(
-      height: 220,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.surface(context),
-            AppTheme.surface(context).withValues(alpha: 0.9),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          )
-        ],
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.1),
-          width: 1.5,
-        ),
-      ),
+  Widget _buildWaveVisualizer(BuildContext context) {
+    final c = ResonanceColors.of(context);
+    return ResonanceCard(
+      c: c,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -284,30 +261,38 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
                     ? 30 + (_waveHeights[index] * 80)
                     : 15 + (_waveHeights[index] * 15),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                     colors: _isRecording
-                         ? [AppTheme.primaryColor, AppTheme.secondaryColor]
-                         : [
-                             AppTheme.primaryColor.withValues(alpha: 0.3),
-                             AppTheme.secondaryColor.withValues(alpha: 0.3),
-                           ],
-                     begin: Alignment.bottomCenter,
-                     end: Alignment.topCenter,
-                  ),
+                  color: _isRecording
+                      ? c.primary
+                      : c.outlineVariant,
                   borderRadius: BorderRadius.circular(10),
                 ),
               );
             }),
           ),
-          const SizedBox(height: 24),
-          Text(
-            _isRecording ? AppLocalizations.tr('analyzing_voice') : AppLocalizations.tr('ready_to_listen'),
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: _isRecording ? AppTheme.primaryColor : AppTheme.textS(context),
-              letterSpacing: 0.5,
-            ),
+          const SizedBox(height: 22),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: _isRecording ? c.primary : c.outline,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _isRecording
+                    ? AppLocalizations.tr('analyzing_voice')
+                    : AppLocalizations.tr('ready_to_listen'),
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: _isRecording ? c.primary : c.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -315,6 +300,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
   }
 
   Widget _buildRecordingSection(BuildContext context) {
+    final c = ResonanceColors.of(context);
     return Column(
       children: [
         AnimatedBuilder(
@@ -335,11 +321,11 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.redAccent.withValues(alpha: 0.15),
+                            color: c.primary.withValues(alpha: 0.12),
                           ),
                         ),
                       ),
-                    
+
                     // Inner Pulse Ring
                     if (_isRecording)
                       Transform.scale(
@@ -347,31 +333,29 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.redAccent.withValues(alpha: 0.25),
+                            color: c.primary.withValues(alpha: 0.2),
                           ),
                         ),
                       ),
-                      
+
                     // Main Button
                     Container(
                       width: 90,
                       height: 90,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: AppTheme.primaryGradient,
-                        boxShadow: [
+                        color: c.primary,
+                        boxShadow: const [
                           BoxShadow(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.4),
-                            blurRadius: 20,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 8),
+                            color: Color(0x4024161C),
+                            offset: Offset(4, 4),
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.mic_rounded,
+                      child: Icon(
+                        PhosphorIconsRegular.microphone,
                         color: Colors.white,
-                        size: 44,
+                        size: 42,
                       ),
                     ),
                   ],
@@ -380,36 +364,24 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
             );
           },
         ),
-        const SizedBox(height: 24),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppTheme.surface(context),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: AppTheme.surfVar(context),
-              width: 1,
-            )
-          ),
-          child: Text(
-            _isModelLoading
-                ? AppLocalizations.tr('loading_model_short')
-                : AppLocalizations.tr('tap_to_start'),
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: AppTheme.textP(context),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+        const SizedBox(height: 20),
+        ResonanceChip(
+          c: c,
+          label: _isModelLoading
+              ? AppLocalizations.tr('loading_model_short')
+              : AppLocalizations.tr('tap_to_start'),
+          icon: _isModelLoading
+              ? null
+              : PhosphorIconsRegular.caretRight,
         ),
         if (_detectedEmotion != null) ...[
           const SizedBox(height: 12),
           Text(
             '${AppLocalizations.tr("emotion_detected")} ${_detectedEmotion!.displayName}',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: AppTheme.primaryColor,
+              color: c.primary,
             ),
           ),
         ],
@@ -417,69 +389,137 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
     );
   }
 
-
-Widget _buildStoryPrompts() {
+  Widget _buildStoryPrompts(BuildContext context) {
+    final c = ResonanceColors.of(context);
     final locale = AppLocalizations.locale;
     final isEn = locale.startsWith('en');
-    
+
     final prompts = isEn
         ? [
-            {'emoji': '💭', 'text': "What's been worrying you the most lately?"},
-            {'emoji': '🌟', 'text': 'Tell me about something you\'re proud of recently'},
-            {'emoji': '💪', 'text': 'How have you been dealing with challenges?'},
-            {'emoji': '🤗', 'text': 'Who always supports you? Tell me about them'},
-            {'emoji': '😔', 'text': 'What made you saddest this week?'},
-            {'emoji': '🎯', 'text': 'What goal do you want to achieve this month?'},
-            {'emoji': '❤️', 'text': 'What\'s the best thing that happened to you recently?'},
-            {'emoji': '🧘', 'text': 'How do you feel about your life balance?'},
+            {
+              'icon': PhosphorIconsRegular.question,
+              'color': const Color(0xFF8C7075),
+              'text': "What's been worrying you the most lately?",
+            },
+            {
+              'icon': PhosphorIconsRegular.star,
+              'color': const Color(0xFFF59E0B),
+              'text': 'Tell me about something you\'re proud of recently',
+            },
+            {
+              'icon': PhosphorIconsRegular.flame,
+              'color': const Color(0xFFF97316),
+              'text': 'How have you been dealing with challenges?',
+            },
+            {
+              'icon': PhosphorIconsRegular.usersThree,
+              'color': const Color(0xFF10B981),
+              'text': 'Who always supports you? Tell me about them',
+            },
+            {
+              'icon': PhosphorIconsRegular.smileySad,
+              'color': const Color(0xFF8B5CF6),
+              'text': 'What made you saddest this week?',
+            },
+            {
+              'icon': PhosphorIconsRegular.target,
+              'color': const Color(0xFF3B82F6),
+              'text': 'What goal do you want to achieve this month?',
+            },
+            {
+              'icon': PhosphorIconsRegular.heart,
+              'color': const Color(0xFFEF4444),
+              'text': 'What\'s the best thing that happened to you recently?',
+            },
+            {
+              'icon': PhosphorIconsRegular.plant,
+              'color': const Color(0xFF84CC16),
+              'text': 'How do you feel about your life balance?',
+            },
           ]
         : [
-            {'emoji': '💭', 'text': 'Apa yang paling membuatmu khawatir hari ini?'},
-            {'emoji': '🌟', 'text': 'Ceritakan hal yang membuatmu bangga akhir-akhir ini'},
-            {'emoji': '💪', 'text': 'Bagaimana cara kamu menghadapi tantangan recently?'},
-            {'emoji': '🤗', 'text': 'Siapa yang selalu mendukungmu? Ceritakan tentang mereka'},
-            {'emoji': '😔', 'text': 'Apa yang paling membuatmu sedih minggu ini?'},
-            {'emoji': '🎯', 'text': 'Apa target yang ingin kamu capai bulan ini?'},
-            {'emoji': '❤️', 'text': 'Apa hal terbaik yang terjadi padamu baru-barui ini?'},
-            {'emoji': '🧘', 'text': 'Bagaimana perasaanmu tentang keseimbangan hidupmu?'},
+            {
+              'icon': PhosphorIconsRegular.question,
+              'color': const Color(0xFF8C7075),
+              'text': 'Apa yang paling membuatmu khawatir hari ini?',
+            },
+            {
+              'icon': PhosphorIconsRegular.star,
+              'color': const Color(0xFFF59E0B),
+              'text': 'Ceritakan hal yang membuatmu bangga akhir-akhir ini',
+            },
+            {
+              'icon': PhosphorIconsRegular.flame,
+              'color': const Color(0xFFF97316),
+              'text': 'Bagaimana cara kamu menghadapi tantangan recently?',
+            },
+            {
+              'icon': PhosphorIconsRegular.usersThree,
+              'color': const Color(0xFF10B981),
+              'text': 'Siapa yang selalu mendukungmu? Ceritakan tentang mereka',
+            },
+            {
+              'icon': PhosphorIconsRegular.smileySad,
+              'color': const Color(0xFF8B5CF6),
+              'text': 'Apa yang paling membuatmu sedih minggu ini?',
+            },
+            {
+              'icon': PhosphorIconsRegular.target,
+              'color': const Color(0xFF3B82F6),
+              'text': 'Apa target yang ingin kamu capai bulan ini?',
+            },
+            {
+              'icon': PhosphorIconsRegular.heart,
+              'color': const Color(0xFFEF4444),
+              'text': 'Apa hal terbaik yang terjadi padamu baru-baru ini?',
+            },
+            {
+              'icon': PhosphorIconsRegular.plant,
+              'color': const Color(0xFF84CC16),
+              'text': 'Bagaimana perasaanmu tentang keseimbangan hidupmu?',
+            },
           ];
 
-    return Container(
+    return ResonanceCard(
+      c: c,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.cardShadow,
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.chat_bubble_outline_rounded,
-                color: AppTheme.iconColor(context),
-                size: 20,
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: c.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  PhosphorIconsRegular.chatCircleText,
+                  color: c.primary,
+                  size: 17,
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Text(
                 isEn ? 'Share Your Thoughts' : 'Ceritakan Keluh Kesahmu',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.spaceGrotesk(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textP(context),
+                  color: c.onSurface,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
-            isEn 
+            isEn
                 ? 'Choose one of the questions below and share your feelings:'
                 : 'Pilih salah satu pertanyaan di bawah ini dan ceritakan perasaanmu:',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 13,
-              color: AppTheme.textS(context),
+              color: c.onSurfaceVariant,
               height: 1.5,
             ),
           ),
@@ -490,28 +530,39 @@ Widget _buildStoryPrompts() {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfVar(context),
+                  color: c.surfaceVariant,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: AppTheme.surfVar(context),
-                    width: 1,
-                  ),
+                  border: Border.all(color: c.outlineVariant),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      prompt['emoji']!,
-                      style: const TextStyle(fontSize: 20),
+                    Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: (prompt['color']! as Color).withValues(
+                          alpha: 0.12,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        prompt['icon'] as IconData,
+                        color: prompt['color'] as Color,
+                        size: 15,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        prompt['text']!,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13.5,
-                          color: AppTheme.textP(context),
-                          height: 1.4,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 5),
+                        child: Text(
+                          prompt['text']! as String,
+                          style: GoogleFonts.inter(
+                            fontSize: 13.5,
+                            color: c.onSurface,
+                            height: 1.4,
+                          ),
                         ),
                       ),
                     ),
@@ -524,26 +575,26 @@ Widget _buildStoryPrompts() {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.iconColor(context).withValues(alpha: 0.08),
+              color: c.primaryContainer.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppTheme.iconColor(context).withValues(alpha: 0.2),
+                color: c.primary.withValues(alpha: 0.2),
               ),
             ),
             child: Row(
               children: [
                 Icon(
-                  Icons.lightbulb_outline_rounded,
-                  color: AppTheme.iconColor(context),
+                  PhosphorIconsRegular.lightbulb,
+                  color: c.primary,
                   size: 18,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '💡 ${AppLocalizations.tr('press_mic_tip')}',
-                    style: GoogleFonts.poppins(
+                    AppLocalizations.tr('press_mic_tip'),
+                    style: GoogleFonts.inter(
                       fontSize: 12.5,
-                      color: AppTheme.iconColor(context),
+                      color: c.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -556,54 +607,80 @@ Widget _buildStoryPrompts() {
     );
   }
 
-  Widget _buildIdleGuide() {
+  Widget _buildIdleGuide(BuildContext context) {
+    final c = ResonanceColors.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surfVar(context),
-        borderRadius: BorderRadius.circular(16),
+        color: c.surfaceLowest,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: c.outlineVariant),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1424161C),
+            offset: Offset(2, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.info_outline_rounded,
-            color: AppTheme.iconColor(context),
-            size: 32,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            AppLocalizations.tr('how_to_use_title'),
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textP(context),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: c.primaryContainer,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              PhosphorIconsRegular.info,
+              color: c.primary,
+              size: 20,
             ),
           ),
-          const SizedBox(height: 12),
-_buildGuideStep('1', AppLocalizations.tr('guide_step_1_record')),
-          _buildGuideStep('2', AppLocalizations.tr('guide_step_2_speak')),
-          _buildGuideStep('3', AppLocalizations.tr('guide_step_3_stop')),
-          _buildGuideStep('4', AppLocalizations.tr('guide_step_4_view')),
+          const SizedBox(height: 10),
+          Text(
+            AppLocalizations.tr('how_to_use_title'),
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: c.onSurface,
+            ),
+          ),
+          const SizedBox(height: 14),
+          _buildGuideStep(context, '1', AppLocalizations.tr('guide_step_1_record')),
+          const SizedBox(height: 10),
+          _buildGuideStep(context, '2', AppLocalizations.tr('guide_step_2_speak')),
+          const SizedBox(height: 10),
+          _buildGuideStep(context, '3', AppLocalizations.tr('guide_step_3_stop')),
+          const SizedBox(height: 10),
+          _buildGuideStep(context, '4', AppLocalizations.tr('guide_step_4_view')),
         ],
       ),
     );
   }
 
-  Widget _buildGuideStep(String number, String text) {
+  Widget _buildGuideStep(BuildContext context, String number, String text) {
+    final c = ResonanceColors.of(context);
     return Row(
       children: [
         Container(
-          width: 24,
-          height: 24,
+          width: 26,
+          height: 26,
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor,
+            color: c.primary,
             shape: BoxShape.circle,
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1424161C),
+                offset: Offset(1.5, 1.5),
+              ),
+            ],
           ),
           child: Center(
             child: Text(
               number,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
               ),
@@ -614,9 +691,9 @@ _buildGuideStep('1', AppLocalizations.tr('guide_step_1_record')),
         Expanded(
           child: Text(
             text,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 13,
-              color: AppTheme.textS(context),
+              color: c.onSurface,
             ),
           ),
         ),

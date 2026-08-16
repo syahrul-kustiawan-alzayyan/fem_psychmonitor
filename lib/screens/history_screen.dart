@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/gradient_background.dart';
+import '../theme/resonance_colors.dart';
 import 'record_detail_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -227,8 +228,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppTheme.primaryColor,
-              secondary: AppTheme.secondaryColor,
+              primary: ResonanceColors.of(context).primary,
             ),
           ),
           child: child!,
@@ -251,34 +251,31 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   @override
   Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: Colors.transparent,
+        backgroundColor: c.background,
         extendBodyBehindAppBar: true,
         appBar: _buildAppBar(context),
-        body: GradientBackground(
-          child: Center(
-            child: CircularProgressIndicator(color: AppTheme.primaryColor),
-          ),
+        body: Center(
+          child: CircularProgressIndicator(color: c.primary),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: c.background,
       extendBodyBehindAppBar: true,
       appBar: _buildAppBar(context),
-      body: GradientBackground(
-        useOverlay: true,
-        child: SafeArea(
-          bottom: false,
-          child: RefreshIndicator(
-            onRefresh: _loadData,
-            color: AppTheme.primaryColor,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceLg),
-              child: Column(
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          onRefresh: _loadData,
+          color: c.primary,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: AppTheme.spaceMd),
@@ -295,7 +292,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   // ── Section Header: Mental Score Chart ──────────
                   _buildSectionHeader(
                     context,
-                    icon: Icons.monitor_heart_outlined,
+                    icon: PhosphorIconsRegular.pulse,
                     title: AppLocalizations.tr('mental_score_trend'),
                   ),
                   const SizedBox(height: 4),
@@ -313,7 +310,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   // ── Section Header: Emotion Value Chart ──────────
                   _buildSectionHeader(
                     context,
-                    icon: Icons.show_chart_rounded,
+                    icon: PhosphorIconsRegular.chartLineUp,
                     title: AppLocalizations.tr('emotion_value_trend'),
                   ),
                   const SizedBox(height: 4),
@@ -333,7 +330,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   // ── Section Header: Emotional Breakdown ──────────
                   _buildSectionHeader(
                     context,
-                    icon: Icons.donut_small_rounded,
+                    icon: PhosphorIconsRegular.chartDonut,
                     title: AppLocalizations.tr('emotion_breakdown'),
                   ),
                   const SizedBox(height: 12),
@@ -344,7 +341,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   // ── Trigger Chart ────────────────────────────────
                   _buildSectionHeader(
                     context,
-                    icon: Icons.push_pin_rounded,
+                    icon: PhosphorIconsRegular.pushPin,
                     title: AppLocalizations.tr('trigger_chart_title'),
                   ),
                   const SizedBox(height: 12),
@@ -358,7 +355,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                       Expanded(
                         child: _buildSectionHeader(
                           context,
-                          icon: Icons.filter_list_rounded,
+                          icon: PhosphorIconsRegular.funnel,
                           title: AppLocalizations.tr('detection_log'),
                           trailingLabel: AppLocalizations.tr('entries_count').replaceAll('{count}', _filteredHistory.length.toString()),
                           trailingColor: AppTheme.primaryColor,
@@ -413,7 +410,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                             ),
                           );
                         },
-                        icon: const Icon(Icons.expand_more_rounded, size: 18),
+                        icon: const Icon(PhosphorIconsRegular.caretDown, size: 18),
                         label: Text(
                           AppLocalizations.tr('see_more_count').replaceAll('{count}', (_filteredHistory.length - 5).toString()),
                           style: GoogleFonts.poppins(
@@ -433,7 +430,6 @@ class _HistoryScreenState extends State<HistoryScreen>
             ),
           ),
         ),
-      ), // End GradientBackground
     );
   }
 
@@ -441,6 +437,7 @@ class _HistoryScreenState extends State<HistoryScreen>
   // Widget: AppBar Custom - Sama dengan Record Screen
   // ─────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final c = ResonanceColors.of(context);
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight),
       child: AppBar(
@@ -450,35 +447,33 @@ class _HistoryScreenState extends State<HistoryScreen>
         automaticallyImplyLeading: false,
         title: Row(
           children: [
-            ShaderMask(
-              shaderCallback: (bounds) =>
-                  AppTheme.primaryGradient.createShader(bounds),
-              child: const Icon(
-                Icons.bar_chart_rounded,
-                color: Colors.white,
-                size: 22,
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: c.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                PhosphorIconsRegular.chartBar,
+                color: c.primary,
+                size: 18,
               ),
             ),
-            const SizedBox(width: 10),
-            ShaderMask(
-              shaderCallback: (bounds) =>
-                  AppTheme.primaryGradient.createShader(
-                    Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                  ),
-              child: Text(
-                AppLocalizations.tr('nav_history'),
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: -0.3,
-                ),
+            const SizedBox(width: 12),
+            Text(
+              AppLocalizations.tr('nav_history'),
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: c.onSurface,
+                letterSpacing: -0.3,
               ),
             ),
           ],
         ),
         iconTheme: IconThemeData(
-          color: AppTheme.textP(context),
+          color: c.onSurface,
         ),
       ),
     );
@@ -488,31 +483,32 @@ class _HistoryScreenState extends State<HistoryScreen>
   // Widget: Filter Waktu — Horizontal Chips
   // ─────────────────────────────────────────────────────────────
   Widget _buildTimeFilterBar() {
+    final c = ResonanceColors.of(context);
     final filters = [
       (
         filter: TimeFilter.all,
         label: AppLocalizations.tr('filter_all_time'),
-        icon: Icons.all_inclusive_rounded,
+        icon: PhosphorIconsRegular.infinity,
       ),
       (
         filter: TimeFilter.today,
         label: AppLocalizations.tr('filter_today'),
-        icon: Icons.today_rounded,
+        icon: PhosphorIconsRegular.calendarDots,
       ),
       (
         filter: TimeFilter.week7,
         label: AppLocalizations.tr('filter_7_days'),
-        icon: Icons.date_range_rounded,
+        icon: PhosphorIconsRegular.calendarBlank,
       ),
       (
         filter: TimeFilter.month30,
         label: AppLocalizations.tr('filter_30_days'),
-        icon: Icons.calendar_month_rounded,
+        icon: PhosphorIconsRegular.calendarDots,
       ),
       (
         filter: TimeFilter.custom,
         label: AppLocalizations.tr('filter_custom'),
-        icon: Icons.edit_calendar_rounded,
+        icon: PhosphorIconsRegular.calendar,
       ),
     ];
 
@@ -538,22 +534,18 @@ class _HistoryScreenState extends State<HistoryScreen>
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  gradient: isActive ? AppTheme.primaryGradient : null,
-                  color: isActive ? null : AppTheme.surface(context),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  color: isActive ? c.primary : c.surfaceLowest,
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isActive
                         ? Colors.transparent
-                        : AppTheme.primaryColor.withValues(alpha: 0.15),
+                        : c.primary.withValues(alpha: 0.15),
                   ),
                   boxShadow: isActive
-                      ? [
+                      ? const [
                           BoxShadow(
-                            color: AppTheme.primaryColor.withValues(
-                              alpha: 0.25,
-                            ),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
+                            color: Color(0x4024161C),
+                            offset: Offset(3, 3),
                           ),
                         ]
                       : null,
@@ -564,7 +556,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                     Icon(
                       f.icon,
                       size: 14,
-                      color: isActive ? Colors.white : AppTheme.textS(context),
+                      color: isActive ? Colors.white : c.onSurfaceVariant,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -573,14 +565,14 @@ class _HistoryScreenState extends State<HistoryScreen>
                               _customRange != null
                           ? '${_customRange!.start.day}/${_customRange!.start.month} - ${_customRange!.end.day}/${_customRange!.end.month}'
                           : f.label,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: isActive
                             ? FontWeight.w600
                             : FontWeight.w500,
                         color: isActive
                             ? Colors.white
-                            : AppTheme.textS(context),
+                            : c.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -614,19 +606,19 @@ class _HistoryScreenState extends State<HistoryScreen>
       (
         value: '${history.length}',
         label: AppLocalizations.tr('total'),
-        icon: Icons.bar_chart_rounded,
+        icon: PhosphorIconsRegular.chartBar,
         color: AppTheme.iconColor(context),
       ),
       (
         value: '$positiveCount',
         label: AppLocalizations.tr('positive'),
-        icon: Icons.sentiment_satisfied_alt_rounded,
+        icon: PhosphorIconsRegular.smiley,
         color: const Color(0xFFF59E0B),
       ),
       (
         value: '$negativeCount',
         label: AppLocalizations.tr('attention'),
-        icon: Icons.sentiment_dissatisfied_rounded,
+        icon: PhosphorIconsRegular.smileySad,
         color: const Color(0xFFF87171),
       ),
     ];
@@ -714,7 +706,7 @@ class _HistoryScreenState extends State<HistoryScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.show_chart_rounded, size: 40, color: AppTheme.textH(context)),
+              Icon(PhosphorIconsRegular.chartLineUp, size: 40, color: AppTheme.textH(context)),
               const SizedBox(height: 8),
               Text(
                 AppLocalizations.tr('no_emotion_data'),
@@ -758,7 +750,7 @@ class _HistoryScreenState extends State<HistoryScreen>
           child: Row(
             children: [
               Icon(
-                avgScore >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                avgScore >= 0 ? PhosphorIconsRegular.trendUp : PhosphorIconsRegular.trendDown,
                 color: avgScore >= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444),
                 size: 18,
               ),
@@ -882,7 +874,7 @@ class _HistoryScreenState extends State<HistoryScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.monitor_heart_outlined, size: 40, color: AppTheme.textH(context)),
+              Icon(PhosphorIconsRegular.pulse, size: 40, color: AppTheme.textH(context)),
               const SizedBox(height: 8),
               Text(
                 AppLocalizations.tr('no_emotion_data'),
@@ -931,7 +923,7 @@ class _HistoryScreenState extends State<HistoryScreen>
           child: Row(
             children: [
               Icon(
-                avgScore >= 51 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                avgScore >= 51 ? PhosphorIconsRegular.trendUp : PhosphorIconsRegular.trendDown,
                 color: scoreColor(avgScore),
                 size: 18,
               ),
@@ -1217,7 +1209,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                       ? '${history[i].timestamp.day}/${history[i].timestamp.month}'
                       : '';
                   return LineTooltipItem(
-                    '${spot.y.toStringAsFixed(0)}\n$date • $label',
+                    '${spot.y.toStringAsFixed(0)}\n$date - $label',
                     GoogleFonts.poppins(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -1546,7 +1538,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         ),
         child: Column(
           children: [
-            Icon(Icons.push_pin_rounded, size: 32, color: AppTheme.textH(context)),
+            Icon(PhosphorIconsRegular.pushPin, size: 32, color: AppTheme.textH(context)),
             const SizedBox(height: 8),
             Text(
               AppLocalizations.tr('no_emotion_data'),
@@ -1741,7 +1733,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                               Row(
                                 children: [
                                   Icon(
-                                    Icons.access_time_rounded,
+                                    PhosphorIconsRegular.clock,
                                     size: 11,
                                     color: AppTheme.textH(context),
                                   ),
@@ -1814,7 +1806,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                         ),
                         const SizedBox(width: 6),
                         Icon(
-                          Icons.chevron_right_rounded,
+                          PhosphorIconsRegular.caretRight,
                           color: AppTheme.textH(context),
                           size: 18,
                         ),
@@ -1852,22 +1844,26 @@ class _HistoryScreenState extends State<HistoryScreen>
     String? trailingLabel,
     Color? trailingColor,
   }) {
+    final c = ResonanceColors.of(context);
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(6),
+          width: 30,
+          height: 30,
           decoration: BoxDecoration(
-            color: AppTheme.iconColor(context).withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(8),
+            color: c.primaryContainer,
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: AppTheme.iconColor(context), size: 16),
+          child: Icon(icon, color: c.primary, size: 15),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         Text(
           title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(color: AppTheme.textP(context)),
+          style: GoogleFonts.spaceGrotesk(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: c.onSurface,
+          ),
         ),
         if (trailingLabel != null && trailingColor != null) ...[
           const SizedBox(width: 8),
@@ -1875,11 +1871,11 @@ class _HistoryScreenState extends State<HistoryScreen>
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
               color: trailingColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
               trailingLabel,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: trailingColor,
@@ -1945,7 +1941,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                 color: AppTheme.iconColor(context).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(Icons.list_alt_rounded, color: AppTheme.iconColor(context), size: 16),
+              child: Icon(PhosphorIconsRegular.list, color: AppTheme.iconColor(context), size: 16),
             ),
             const SizedBox(width: 8),
             Text(AppLocalizations.tr('detection_log'),
@@ -1975,7 +1971,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                         decoration: InputDecoration(
                           hintText: AppLocalizations.tr('search_emotion_hint'),
                           hintStyle: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textH(context)),
-                          prefixIcon: Icon(Icons.search_rounded, size: 18, color: AppTheme.textH(context)),
+                          prefixIcon: Icon(PhosphorIconsRegular.magnifyingGlass, size: 18, color: AppTheme.textH(context)),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(vertical: 10),
                         ),
@@ -1998,7 +1994,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                       child: Row(
                         children: [
                           Icon(
-                            _sortOrder == 'newest' ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                            _sortOrder == 'newest' ? PhosphorIconsRegular.sortDescending : PhosphorIconsRegular.sortAscending,
                             size: 16, color: AppTheme.iconColor(context),
                           ),
                           const SizedBox(width: 4),
@@ -2049,7 +2045,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.search_off_rounded, size: 48, color: AppTheme.textH(context)),
+                          Icon(PhosphorIconsRegular.magnifyingGlass, size: 48, color: AppTheme.textH(context)),
                           const SizedBox(height: 12),
                           Text(AppLocalizations.tr('no_data_found'),
                               style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, color: AppTheme.textS(context))),
@@ -2155,7 +2151,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                             const SizedBox(height: 3),
                             Row(
                               children: [
-                                Icon(Icons.access_time_rounded, size: 11, color: AppTheme.textH(context)),
+                                Icon(PhosphorIconsRegular.clock, size: 11, color: AppTheme.textH(context)),
                                 const SizedBox(width: 4),
                                 Text(record.formattedTime,
                                     style: GoogleFonts.poppins(fontSize: 11.5, color: AppTheme.textS(context))),

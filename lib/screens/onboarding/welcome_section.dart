@@ -1,413 +1,468 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../providers/locale_provider.dart';
-import '../../providers/theme_provider.dart';
-import '../../theme/app_theme.dart';
+import '../../theme/resonance_colors.dart';
 import '../auth_screen.dart';
 
-class WelcomeSection extends StatelessWidget {
+class WelcomeSection extends StatefulWidget {
   final VoidCallback onNext;
 
   const WelcomeSection({super.key, required this.onNext});
 
   @override
-  Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeProvider>().isDark;
-    final loc = AppLocalizations.tr;
+  State<WelcomeSection> createState() => _WelcomeSectionState();
+}
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: isDark
-            ? AppTheme.darkGradientBackground
-            : AppTheme.lightGradientBackground,
+class _WelcomeSectionState extends State<WelcomeSection>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animCtrl;
+  late final Animation<double> _fadeAnim;
+  late final Animation<Offset> _slideAnim;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoOpacity;
+  bool _pressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _animCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _fadeAnim = CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut);
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
+    _logoScale = Tween<double>(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animCtrl,
+        curve: const Interval(0.15, 0.6, curve: Curves.elasticOut),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Consumer<LocaleProvider>(
-                    builder: (context, locale, _) {
-                      final isEn = locale.locale == 'en';
-                      return GestureDetector(
-                        onTap: () => locale.toggleLocale(),
-                        child: Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            color: AppTheme.surface(context),
-                            borderRadius: BorderRadius.circular(22),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.15),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _langOption(context, 'ID', !isEn, () => locale.setLocale('id')),
-                              const SizedBox(width: 2),
-                              _langOption(context, 'EN', isEn, () => locale.setLocale('en')),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // Hero Illustration / Logo Section
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Animated decorative rings
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.8, end: 1.0),
-                    duration: const Duration(seconds: 2),
-                    builder: (context, value, child) {
-                      return Transform.scale(
-                        scale: value,
-                        child: Container(
-                          width: 200,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: RadialGradient(
-                              colors: [
-                                AppTheme.primaryColor.withValues(alpha: 0.08),
-                                AppTheme.secondaryColor.withValues(alpha: 0.04),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  // Main logo container
-                  Container(
-                    width: 130,
-                    height: 130,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                          blurRadius: 40,
-                          offset: const Offset(0, 20),
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: Image.asset('assets/logo.png', fit: BoxFit.cover),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // Modern Welcome Typography
-              ShaderMask(
-                shaderCallback: (bounds) =>
-                    AppTheme.primaryGradient.createShader(bounds),
-                child: Text(
-                  'Fem-Psych',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    height: 1.1,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Monitor',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w800,
-                  color: isDark
-                      ? AppTheme.darkTextSecondary
-                      : AppTheme.textP(context),
-                  height: 1.1,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Text(
-                  loc('welcome_desc'),
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
-                    color: isDark
-                        ? AppTheme.darkTextSecondary
-                        : AppTheme.textS(context),
-                    height: 1.6,
-                  ),
-                ),
-              ),
+    );
+    _logoOpacity = CurvedAnimation(
+      parent: _animCtrl,
+      curve: const Interval(0.1, 0.5, curve: Curves.easeOut),
+    );
+    _animCtrl.forward();
+  }
 
-              const SizedBox(height: 32),
-              // Value Proposition Cards - Enhanced Glassmorphism style
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface(context).withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    width: 1.5,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    _buildWelcomeFeatureItem(
-                      context: context,
-                      icon: Icons.graphic_eq_rounded,
-                      color: AppTheme.primaryColor,
-                      title: loc('feature_voice_title'),
-                      description: loc('feature_voice_desc'),
-                      iconBg: AppTheme.primaryColor.withValues(alpha: 0.12),
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      height: 1,
-                      color: AppTheme.surfVar(context).withValues(alpha: 0.5),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildWelcomeFeatureItem(
-                      context: context,
-                      icon: Icons.psychology_rounded,
-                      color: AppTheme.secondaryColor,
-                      title: loc('feature_self_title'),
-                      description: loc('feature_self_desc'),
-                      iconBg: AppTheme.secondaryColor.withValues(alpha: 0.12),
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      height: 1,
-                      color: AppTheme.surfVar(context).withValues(alpha: 0.5),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildWelcomeFeatureItem(
-                      context: context,
-                      icon: Icons.self_improvement_rounded,
-                      color: Colors.green.shade600,
-                      title: loc('feature_growth_title'),
-                      description: loc('feature_growth_desc'),
-                      iconBg: Colors.green.shade600.withValues(alpha: 0.12),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 40),
-              // Modern Action Button with enhanced design
-              Container(
-                width: double.infinity,
-                height: 64,
-                decoration: BoxDecoration(
-                  gradient: AppTheme.primaryGradient,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.4),
-                      blurRadius: 24,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: onNext,
-                    borderRadius: BorderRadius.circular(24),
-                    splashColor: Colors.white.withValues(alpha: 0.2),
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            AppLocalizations.tr('start_now'),
-                            style: GoogleFonts.poppins(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.25),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.arrow_forward_rounded,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+  @override
+  void dispose() {
+    _animCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
+    final loc = AppLocalizations.tr;
+    final isEn = context.watch<LocaleProvider>().locale == 'en';
+
+    return Scaffold(
+      backgroundColor: c.background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 32),
+          child: FadeTransition(
+            opacity: _fadeAnim,
+            child: SlideTransition(
+              position: _slideAnim,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    loc('has_account'),
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: isDark
-                          ? AppTheme.darkTextSecondary
-                          : AppTheme.textS(context),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: _buildLangSwitcher(context, c),
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const AuthScreen(),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      loc('login'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
+                  const SizedBox(height: 4),
+                  _buildHero(c),
+                  const SizedBox(height: 6),
+                  _buildBrandName(c),
+                  const SizedBox(height: 16),
+                  _buildEyebrow(c, isEn),
+                  const SizedBox(height: 10),
+                  _buildSubtitle(c, loc),
+                  const SizedBox(height: 16),
+                  WaveformBars(c: c),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _buildFeatureCard(context, c, loc),
                   ),
+                  const SizedBox(height: 28),
+                  _buildPrimaryCta(context, c),
+                  const SizedBox(height: 20),
+                  _buildLoginRow(c, loc),
+                  const SizedBox(height: 24),
+                  _buildFooter(c),
                 ],
               ),
-              const SizedBox(height: 40),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHero(ResonanceColors c) {
+    return SizedBox(
+      height: 150,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Center(
+              child: ScaleTransition(
+                scale: _logoScale,
+                child: FadeTransition(
+                  opacity: _logoOpacity,
+                  child: Image.asset(
+                    'assets/logo.png',
+                    height: 120,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 24,
+            top: 10,
+            child: FloatingChip(label: 'emotion: calm 84%', color: c),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBrandName(ResonanceColors c) {
+    return Center(
+      child: Text(
+        'Fem-PsychMonitor',
+        style: GoogleFonts.spaceGrotesk(
+          fontSize: 26,
+          fontWeight: FontWeight.w700,
+          color: c.primary,
+          letterSpacing: -0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEyebrow(ResonanceColors c, bool isEn) {
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '01',
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: c.primary,
+              letterSpacing: 1.5,
+            ),
+          ),
+          Text(
+            isEn ? ' / START' : ' / MULAI',
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: c.onSurfaceVariant,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubtitle(ResonanceColors c, String Function(String) loc) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Text(
+        loc('welcome_desc'),
+        textAlign: TextAlign.center,
+        style: GoogleFonts.inter(
+          fontSize: 15,
+          color: c.onSurfaceVariant,
+          height: 1.4,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureCard(
+    BuildContext context,
+    ResonanceColors c,
+    String Function(String) loc,
+  ) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          top: 4,
+          bottom: -4,
+          child: Container(
+            decoration: BoxDecoration(
+              color: c.primaryContainer,
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: c.surfaceLowest,
+            border: Border.all(color: c.outlineVariant),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              _buildFeatureRow(
+                c: c,
+                icon: PhosphorIconsRegular.waveform,
+                iconColor: c.primary,
+                title: loc('feature_voice_title'),
+                description: loc('feature_voice_desc'),
+              ),
+              const SizedBox(height: 18),
+              Container(height: 1, color: c.outlineVariant),
+              const SizedBox(height: 18),
+              _buildFeatureRow(
+                c: c,
+                icon: PhosphorIconsRegular.compass,
+                iconColor: const Color(0xFF2E5F6E),
+                title: loc('feature_self_title'),
+                description: loc('feature_self_desc'),
+              ),
+              const SizedBox(height: 18),
+              Container(height: 1, color: c.outlineVariant),
+              const SizedBox(height: 18),
+              _buildFeatureRow(
+                c: c,
+                icon: PhosphorIconsRegular.plant,
+                iconColor: const Color(0xFF10B981),
+                title: loc('feature_growth_title'),
+                description: loc('feature_growth_desc'),
+              ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 
-  Widget _langOption(BuildContext context, String label, bool isActive, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: isActive ? AppTheme.primaryColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: isActive ? Colors.white : AppTheme.textS(context),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWelcomeFeatureItem({
-    required BuildContext context,
+  Widget _buildFeatureRow({
+    required ResonanceColors c,
     required IconData icon,
-    required Color color,
+    required Color iconColor,
     required String title,
     required String description,
-    required Color iconBg,
   }) {
-    final isDark = context.watch<ThemeProvider>().isDark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(14),
+          width: 52,
+          height: 52,
           decoration: BoxDecoration(
-            color: iconBg,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
+            color: c.primaryContainer,
+            shape: BoxShape.circle,
+            border: Border.all(color: c.outlineVariant),
+            boxShadow: const [
               BoxShadow(
-                color: color.withValues(alpha: 0.15),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: Color(0x1424161C),
+                offset: Offset(1.5, 1.5),
               ),
             ],
           ),
-          child: Icon(icon, color: color, size: 26),
+          child: Icon(icon, color: iconColor, size: 24),
         ),
-        const SizedBox(width: 18),
+        const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: isDark
-                      ? AppTheme.darkTextPrimary
-                      : AppTheme.textP(context),
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: c.onSurface,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
                 description,
-                style: GoogleFonts.poppins(
-                  fontSize: 13.5,
-                  color: isDark
-                      ? AppTheme.darkTextSecondary
-                      : AppTheme.textS(context),
-                  height: 1.5,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: c.onSurfaceVariant,
+                  height: 1.45,
                 ),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPrimaryCta(BuildContext context, ResonanceColors c) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: GestureDetector(
+        onTap: widget.onNext,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        child: AnimatedScale(
+          scale: _pressed ? 0.97 : 1.0,
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: double.infinity,
+            height: 56,
+            decoration: BoxDecoration(
+              color: _pressed
+                  ? c.primary.withValues(alpha: 0.85)
+                  : c.primary,
+              borderRadius: BorderRadius.circular(999),
+              boxShadow: _pressed
+                  ? []
+                  : const [
+                      BoxShadow(
+                        color: Color(0x4024161C),
+                        offset: Offset(4, 4),
+                      ),
+                    ],
+            ),
+            child: Center(
+              child: Text(
+                AppLocalizations.tr('start_now'),
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginRow(ResonanceColors c, String Function(String) loc) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          loc('has_account'),
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: c.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(width: 6),
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const AuthScreen()),
+            );
+          },
+          child: Text(
+            loc('login'),
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: c.primary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooter(ResonanceColors c) {
+    return Center(
+      child: Text(
+        'FEM-PSYCHMONITOR · VOICE-EMOTION AI',
+        style: GoogleFonts.jetBrainsMono(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 1.5,
+          color: c.onSurfaceVariant.withValues(alpha: 0.6),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLangSwitcher(BuildContext context, ResonanceColors c) {
+    return Consumer<LocaleProvider>(
+      builder: (context, locale, _) {
+        final isEn = locale.locale == 'en';
+        return Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: c.surfaceLowest,
+            border: Border.all(color: c.outlineVariant),
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF24161C).withValues(alpha: 0.1),
+                offset: const Offset(2, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _langOption(context, c, 'ID', !isEn, () => locale.setLocale('id')),
+              const SizedBox(width: 2),
+              _langOption(context, c, 'EN', isEn, () => locale.setLocale('en')),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _langOption(
+    BuildContext context,
+    ResonanceColors c,
+    String label,
+    bool isActive,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? c.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.jetBrainsMono(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isActive ? Colors.white : c.onSurfaceVariant,
+          ),
+        ),
+      ),
     );
   }
 }

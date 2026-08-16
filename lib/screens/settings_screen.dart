@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -16,7 +17,7 @@ import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
 import '../services/database_service.dart';
 import '../services/storage_service.dart';
-import '../theme/app_theme.dart';
+import '../theme/resonance_colors.dart';
 import 'premium_screen.dart';
 import 'profile_screen.dart';
 
@@ -36,12 +37,13 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
     final locale = context.watch<LocaleProvider>();
     final theme = context.watch<ThemeProvider>();
     final isDark = theme.isDark;
 
     return Scaffold(
-      backgroundColor: AppTheme.bg(context),
+      backgroundColor: c.background,
       extendBodyBehindAppBar: true,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -53,41 +55,39 @@ class SettingsScreen extends StatelessWidget {
           leadingWidth: 0,
           title: Row(
             children: [
-              ShaderMask(
-                shaderCallback: (bounds) =>
-                    AppTheme.primaryGradient.createShader(bounds),
-                child: const Icon(
-                  Icons.settings_rounded,
-                  color: Colors.white,
-                  size: 22,
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: c.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  PhosphorIconsRegular.gearSix,
+                  color: c.primary,
+                  size: 18,
                 ),
               ),
-              const SizedBox(width: 10),
-              ShaderMask(
-                shaderCallback: (bounds) =>
-                    AppTheme.primaryGradient.createShader(
-                      Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                    ),
-                child: Text(
-                  AppLocalizations.tr('settings_title'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: -0.3,
-                  ),
+              const SizedBox(width: 12),
+              Text(
+                AppLocalizations.tr('settings_title'),
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: c.onSurface,
+                  letterSpacing: -0.3,
                 ),
               ),
             ],
           ),
-          iconTheme: IconThemeData(color: AppTheme.textP(context)),
+          iconTheme: IconThemeData(color: c.onSurface),
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spaceLg,
-            vertical: AppTheme.spaceMd,
+            horizontal: 20,
+            vertical: 16,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,8 +102,8 @@ class SettingsScreen extends StatelessWidget {
                   // Profile
                   _buildSettingsTile(
                     context,
-                    icon: Icons.person_outline_rounded,
-                    iconColor: const Color.fromARGB(255, 251, 115, 142),
+                    icon: PhosphorIconsRegular.userCircle,
+                    iconColor: const Color(0xFFFB738E),
                     title: AppLocalizations.tr('profile_menu'),
                     onTap: () {
                       Navigator.push(
@@ -146,8 +146,8 @@ class SettingsScreen extends StatelessWidget {
                   // Bahasa
                   _buildSettingsTile(
                     context,
-                    icon: Icons.language_rounded,
-                    iconColor: AppTheme.primaryColor,
+                    icon: PhosphorIconsRegular.globe,
+                    iconColor: c.primary,
                     title: AppLocalizations.tr('language'),
                     trailing: _buildSegmentedControl(
                       context,
@@ -163,9 +163,9 @@ class SettingsScreen extends StatelessWidget {
                   _buildSettingsTile(
                     context,
                     icon: isDark
-                        ? Icons.dark_mode_rounded
-                        : Icons.light_mode_rounded,
-                    iconColor: AppTheme.primaryColor,
+                        ? PhosphorIconsRegular.moon
+                        : PhosphorIconsRegular.sun,
+                    iconColor: c.primary,
                     title: AppLocalizations.tr('theme_mode'),
                     trailing: _buildSegmentedControl(
                       context,
@@ -196,8 +196,8 @@ class SettingsScreen extends StatelessWidget {
                   // Panduan
                   _buildSettingsTile(
                     context,
-                    icon: Icons.menu_book_rounded,
-                    iconColor: AppTheme.primaryColor,
+                    icon: PhosphorIconsRegular.bookBookmark,
+                    iconColor: c.primary,
                     title: AppLocalizations.tr('app_guide'),
                     subtitle: AppLocalizations.tr('app_guide_desc'),
                     onTap: () => _showGuide(context),
@@ -206,8 +206,8 @@ class SettingsScreen extends StatelessWidget {
                   // Terms
                   _buildSettingsTile(
                     context,
-                    icon: Icons.description_outlined,
-                    iconColor: AppTheme.primaryColor,
+                    icon: PhosphorIconsRegular.fileText,
+                    iconColor: c.primary,
                     title: AppLocalizations.tr('terms_services'),
                     subtitle: AppLocalizations.tr('terms_desc'),
                     onTap: () => _showTerms(context),
@@ -227,8 +227,8 @@ class SettingsScreen extends StatelessWidget {
                   // Backup Data
                   _buildSettingsTile(
                     context,
-                    icon: Icons.cloud_upload_rounded,
-                    iconColor: AppTheme.primaryColor,
+                    icon: PhosphorIconsRegular.cloudArrowUp,
+                    iconColor: c.primary,
                     title: AppLocalizations.tr('backup_data'),
                     subtitle: AppLocalizations.tr('backup_data_desc'),
                     onTap: () => _handleBackupData(context),
@@ -237,8 +237,8 @@ class SettingsScreen extends StatelessWidget {
                   // Restore Data
                   _buildSettingsTile(
                     context,
-                    icon: Icons.cloud_download_rounded,
-                    iconColor: AppTheme.primaryColor,
+                    icon: PhosphorIconsRegular.cloudArrowDown,
+                    iconColor: c.primary,
                     title: AppLocalizations.tr('restore_data'),
                     subtitle: AppLocalizations.tr('restore_data_desc'),
                     onTap: () => _handleRestoreData(context),
@@ -247,7 +247,7 @@ class SettingsScreen extends StatelessWidget {
                   // Delete Account
                   _buildSettingsTile(
                     context,
-                    icon: Icons.delete_forever_rounded,
+                    icon: PhosphorIconsRegular.trash,
                     iconColor: const Color(0xFFEF4444),
                     title: AppLocalizations.tr('delete_account_data'),
                     subtitle: AppLocalizations.tr('delete_account_desc'),
@@ -263,9 +263,9 @@ class SettingsScreen extends StatelessWidget {
               Center(
                 child: Text(
                   'Fem-Psych Monitor v2.1.5',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.jetBrainsMono(
                     fontSize: 11,
-                    color: AppTheme.textH(context),
+                    color: c.outline,
                   ),
                 ),
               ),
@@ -280,18 +280,14 @@ class SettingsScreen extends StatelessWidget {
   // ─── Helper Widgets ────────────────────────────────────────────
 
   Widget _buildSectionLabel(BuildContext context, String label) {
-    return ShaderMask(
-      shaderCallback: (bounds) => AppTheme.primaryGradient.createShader(
-        Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-      ),
-      child: Text(
-        label.toUpperCase(),
-        style: GoogleFonts.poppins(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-          letterSpacing: 1.2,
-        ),
+    final c = ResonanceColors.of(context);
+    return Text(
+      label.toUpperCase(),
+      style: GoogleFonts.jetBrainsMono(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: c.primary,
+        letterSpacing: 1.2,
       ),
     );
   }
@@ -300,14 +296,18 @@ class SettingsScreen extends StatelessWidget {
     BuildContext context, {
     required List<Widget> children,
   }) {
+    final c = ResonanceColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.08),
-        ),
-        boxShadow: AppTheme.cardShadow,
+        color: c.surfaceLowest,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: c.outlineVariant),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1424161C),
+            offset: Offset(2, 2),
+          ),
+        ],
       ),
       child: Column(children: children),
     );
@@ -323,20 +323,22 @@ class SettingsScreen extends StatelessWidget {
     Widget? trailing,
     VoidCallback? onTap,
   }) {
+    final c = ResonanceColors.of(context);
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+      borderRadius: BorderRadius.circular(18),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: iconColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: iconColor, size: 20),
+              child: Icon(icon, color: iconColor, size: 18),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -345,18 +347,18 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: titleColor ?? AppTheme.textP(context),
+                      color: titleColor ?? c.onSurface,
                     ),
                   ),
                   if (subtitle != null)
                     Text(
                       subtitle,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.inter(
                         fontSize: 11.5,
-                        color: AppTheme.textS(context),
+                        color: c.onSurfaceVariant,
                       ),
                     ),
                 ],
@@ -365,9 +367,9 @@ class SettingsScreen extends StatelessWidget {
             ?trailing,
             if (onTap != null && trailing == null)
               Icon(
-                Icons.chevron_right_rounded,
-                color: AppTheme.textH(context),
-                size: 20,
+                PhosphorIconsRegular.caretRight,
+                color: c.outline,
+                size: 18,
               ),
           ],
         ),
@@ -376,9 +378,10 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildDivider(BuildContext context) {
+    final c = ResonanceColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Divider(height: 1, color: AppTheme.surfVar(context)),
+      child: Divider(height: 1, color: c.outlineVariant),
     );
   }
 
@@ -388,10 +391,11 @@ class SettingsScreen extends StatelessWidget {
     required int selected,
     required ValueChanged<int> onTap,
   }) {
+    final c = ResonanceColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+        color: c.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -403,15 +407,15 @@ class SettingsScreen extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: isSelected ? AppTheme.primaryColor : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                color: isSelected ? c.primary : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
                 options[i],
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isSelected ? Colors.white : AppTheme.primaryDark,
+                  color: isSelected ? Colors.white : c.onSurface,
                 ),
               ),
             ),
@@ -425,6 +429,7 @@ class SettingsScreen extends StatelessWidget {
     BuildContext context,
     PremiumProvider premium,
   ) {
+    final c = ResonanceColors.of(context);
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -437,15 +442,16 @@ class SettingsScreen extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                color: c.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
-                Icons.verified_rounded,
-                color: AppTheme.primaryColor,
-                size: 24,
+                PhosphorIconsRegular.sealCheck,
+                color: c.primary,
+                size: 22,
               ),
             ),
             const SizedBox(width: 14),
@@ -457,10 +463,10 @@ class SettingsScreen extends StatelessWidget {
                     AppLocalizations.locale.startsWith('en')
                         ? 'Premium Active'
                         : 'Premium Aktif',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.primaryColor,
+                      color: c.primary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -470,23 +476,23 @@ class SettingsScreen extends StatelessWidget {
                         : (AppLocalizations.locale.startsWith('en')
                             ? 'Lifetime'
                             : 'Seumur Hidup'),
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: AppTheme.textS(context),
+                      color: c.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor,
-                borderRadius: BorderRadius.circular(6),
+                color: c.primary,
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 'ACTIVE',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.jetBrainsMono(
                   fontSize: 9,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -503,8 +509,8 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildPremiumUpgradeTile(BuildContext context) {
     return _buildSettingsTile(
       context,
-      icon: Icons.star_border_rounded,
-      iconColor: AppTheme.primaryColor,
+      icon: PhosphorIconsRegular.star,
+      iconColor: ResonanceColors.of(context).primary,
       title: AppLocalizations.locale.startsWith('en')
           ? 'Upgrade to Premium'
           : 'Upgrade ke Premium',
@@ -523,37 +529,38 @@ class SettingsScreen extends StatelessWidget {
   // ─── Actions ───────────────────────────────────────────────────
 
   void _showGuide(BuildContext context) {
+    final c = ResonanceColors.of(context);
     final steps = [
       (
-        icon: Icons.mic_rounded,
+        icon: PhosphorIconsRegular.microphone,
         title: AppLocalizations.tr('guide_step1_title'),
         desc: AppLocalizations.tr('guide_step1_desc'),
-        color: AppTheme.primaryColor,
+        color: c.primary,
       ),
       (
-        icon: Icons.psychology_rounded,
+        icon: PhosphorIconsRegular.brain,
         title: AppLocalizations.tr('guide_step2_title'),
         desc: AppLocalizations.tr('guide_step2_desc'),
-        color: AppTheme.secondaryColor,
+        color: const Color(0xFFD9A3AE),
       ),
       (
-        icon: Icons.bar_chart_rounded,
+        icon: PhosphorIconsRegular.chartBar,
         title: AppLocalizations.tr('guide_step3_title'),
         desc: AppLocalizations.tr('guide_step3_desc'),
-        color: AppTheme.primaryDark,
+        color: const Color(0xFFA05A6B),
       ),
       (
-        icon: Icons.tips_and_updates_rounded,
+        icon: PhosphorIconsRegular.lightbulb,
         title: AppLocalizations.tr('guide_step4_title'),
         desc: AppLocalizations.tr('guide_step4_desc'),
-        color: AppTheme.primaryColor,
+        color: c.primary,
       ),
     ];
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.surface(context),
+      backgroundColor: c.surfaceLowest,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -571,17 +578,17 @@ class SettingsScreen extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppTheme.surfVar(context),
+                  color: c.outline.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               const SizedBox(height: 20),
               Text(
                 AppLocalizations.tr('guide_title'),
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.spaceGrotesk(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textP(context),
+                  color: c.onSurface,
                 ),
               ),
               const SizedBox(height: 20),
@@ -597,7 +604,7 @@ class SettingsScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: s.color.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: s.color.withValues(alpha: 0.2),
                         ),
@@ -606,12 +613,13 @@ class SettingsScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(10),
+                            width: 42,
+                            height: 42,
                             decoration: BoxDecoration(
                               color: s.color.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                            child: Icon(s.icon, color: s.color, size: 22),
+                            child: Icon(s.icon, color: s.color, size: 20),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -620,18 +628,18 @@ class SettingsScreen extends StatelessWidget {
                               children: [
                                 Text(
                                   s.title,
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.inter(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: AppTheme.textP(context),
+                                    color: c.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   s.desc,
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.inter(
                                     fontSize: 12.5,
-                                    color: AppTheme.textS(context),
+                                    color: c.onSurfaceVariant,
                                     height: 1.5,
                                   ),
                                 ),
@@ -652,10 +660,11 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showTerms(BuildContext context) {
+    final c = ResonanceColors.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.surface(context),
+      backgroundColor: c.surfaceLowest,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -672,17 +681,17 @@ class SettingsScreen extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppTheme.surfVar(context),
+                  color: c.outline.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               const SizedBox(height: 20),
               Text(
                 AppLocalizations.tr('terms_title'),
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.spaceGrotesk(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textP(context),
+                  color: c.onSurface,
                 ),
               ),
               const SizedBox(height: 20),
@@ -691,9 +700,9 @@ class SettingsScreen extends StatelessWidget {
                   controller: scrollCtrl,
                   child: Text(
                     AppLocalizations.tr('terms_content'),
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: AppTheme.textS(context),
+                      color: c.onSurfaceVariant,
                       height: 1.7,
                     ),
                   ),
@@ -707,6 +716,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _handleBackupData(BuildContext context) async {
+    final c = ResonanceColors.of(context);
     try {
       showDialog(
         context: context,
@@ -765,9 +775,9 @@ class SettingsScreen extends StatelessWidget {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: AppTheme.surface(context),
+          backgroundColor: c.surfaceLowest,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            borderRadius: BorderRadius.circular(18),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -775,31 +785,31 @@ class SettingsScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                  color: c.primary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  Icons.cloud_done_rounded,
-                  color: AppTheme.primaryColor,
+                  PhosphorIconsRegular.cloudCheck,
+                  color: c.primary,
                   size: 48,
                 ),
               ),
               const SizedBox(height: 16),
               Text(
                 AppLocalizations.tr('backup_success'),
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.spaceGrotesk(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textP(context),
+                  color: c.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 '${recordings.length} rekaman dibackup',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.inter(
                   fontSize: 13,
-                  color: AppTheme.textS(context),
+                  color: c.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 24),
@@ -809,13 +819,16 @@ class SettingsScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(ctx),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
+                    backgroundColor: c.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      borderRadius: BorderRadius.circular(999),
                     ),
                   ),
-                  child: Text(AppLocalizations.tr('close')),
+                  child: Text(
+                    AppLocalizations.tr('close'),
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             ],
@@ -832,6 +845,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _handleRestoreData(BuildContext context) async {
+    final c = ResonanceColors.of(context);
     try {
       final result = await FilePicker.platform.pickFiles(
         dialogTitle: AppLocalizations.tr('select_backup_file'),
@@ -852,23 +866,23 @@ class SettingsScreen extends StatelessWidget {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: AppTheme.surface(context),
+          backgroundColor: c.surfaceLowest,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            borderRadius: BorderRadius.circular(18),
           ),
           title: Text(
             AppLocalizations.tr('restore_confirm'),
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.spaceGrotesk(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: AppTheme.textP(context),
+              color: c.onSurface,
             ),
           ),
           content: Text(
             AppLocalizations.tr('restore_confirm_desc'),
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 13,
-              color: AppTheme.textS(context),
+              color: c.onSurfaceVariant,
               height: 1.5,
             ),
           ),
@@ -877,20 +891,20 @@ class SettingsScreen extends StatelessWidget {
               onPressed: () => Navigator.pop(ctx, false),
               child: Text(
                 AppLocalizations.tr('cancel'),
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.inter(
                   fontWeight: FontWeight.w500,
-                  color: AppTheme.textS(context),
+                  color: c.onSurfaceVariant,
                 ),
               ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
+                backgroundColor: c.primary,
               ),
               onPressed: () => Navigator.pop(ctx, true),
               child: Text(
                 AppLocalizations.tr('restore'),
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -977,7 +991,7 @@ class SettingsScreen extends StatelessWidget {
           content: Text(
             'Restore selesai: ${recordingsList.length} rekaman dipulihkan',
           ),
-          backgroundColor: AppTheme.primaryColor,
+          backgroundColor: c.primary,
         ),
       );
     } catch (e) {
@@ -990,26 +1004,27 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _handleDeleteAccount(BuildContext context) {
+    final c = ResonanceColors.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface(context),
+        backgroundColor: c.surfaceLowest,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          borderRadius: BorderRadius.circular(18),
         ),
         title: Text(
           AppLocalizations.tr('delete_account_title'),
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.spaceGrotesk(
             fontSize: 17,
             fontWeight: FontWeight.w600,
-            color: AppTheme.textP(context),
+            color: c.onSurface,
           ),
         ),
         content: Text(
           AppLocalizations.tr('delete_account_message'),
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.inter(
             fontSize: 13,
-            color: AppTheme.textS(context),
+            color: c.onSurfaceVariant,
             height: 1.5,
           ),
         ),
@@ -1018,9 +1033,9 @@ class SettingsScreen extends StatelessWidget {
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               AppLocalizations.tr('cancel'),
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontWeight: FontWeight.w500,
-                color: AppTheme.textS(context),
+                color: c.onSurfaceVariant,
               ),
             ),
           ),
@@ -1052,7 +1067,7 @@ class SettingsScreen extends StatelessWidget {
             },
             child: Text(
               AppLocalizations.tr('yes_delete'),
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
             ),
           ),
         ],

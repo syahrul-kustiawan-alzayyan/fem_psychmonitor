@@ -4,59 +4,44 @@ import 'package:google_fonts/google_fonts.dart';
 /// ─────────────────────────────────────────────────────────────
 /// AppTheme — Sistem Desain Premium Fem-Psych Monitor
 ///
-/// Panduan Warna (Rose Pink — warm & sophisticated):
-///   • Background  : Off-white #F8FAFC  → bersih, tidak melelahkan mata
-///   • Primary     : Rose #E8728A       → warm pink elegan
-///   • Secondary   : Coral #F4A7B5      → aksen lembut
-///   • Emotion     : Palet pastel/muted agar tidak memicu kecemasan
+/// Palet terpadu dengan tema "Resonance" (warm rose — sophisticated):
+///   • Background  : Warm off-white #FAF6F3 → bersih, hangat
+///   • Primary     : Rose #D6336C          → aksen utama
+///   • Container   : Blush #FFDCE7         → aksen lembut
+///   • Surface     : Putih hangat + border outline lembut
 ///
 /// Tipografi: Poppins (Google Fonts) — modern, premium, rounded
 /// ─────────────────────────────────────────────────────────────
 class AppTheme {
   AppTheme._(); // Prevent instantiation
 
-  // ── Warna Utama (Rose Pink — Improved Contrast) ─────────────
-  static const Color primaryColor = Color.fromARGB(
-    255,
-    232,
-    114,
-    138,
-  ); // Rich rose (darker for better contrast on light bg)
-  static const Color primaryLight = Color.fromARGB(
-    255,
-    253,
-    215,
-    224,
-  ); // Very light blush (for decorative bg only)
-  static const Color primaryDark = Color.fromARGB(
-    255,
-    212,
-    86,
-    116,
-  ); // Deep rose (for text/icons — meets WCAG AA)
-  static const Color secondaryColor = Color.fromARGB(
-    255,
-    232,
-    141,
-    160,
-  ); // Medium rose
-  static const Color accentColor = Color.fromARGB(
-    255,
-    232,
-    130,
-    154,
-  ); // Deeper cotton candy pink
+  // ── Warna Utama (Resonance Rose Dusty) ───────────────────────
+  static const Color primaryColor = Color(
+    0xFFC77E8C,
+  ); // Resonance primary (dusty rose)
+  static const Color primaryLight = Color(
+    0xFFF0D9DE,
+  ); // Dusty blush / primaryContainer
+  static const Color primaryDark = Color(
+    0xFFA05A6B,
+  ); // Deep dusty rose (untuk teks/ikon — kontras lebih baik)
+  static const Color secondaryColor = Color(
+    0xFFD9A3AE,
+  ); // Soft dusty rose
+  static const Color accentColor = Color(
+    0xFFE2B6BF,
+  ); // Dusty pink accent (Resonance dark primary)
 
   // ── Warna Surface & Background ──────────────────────────────
-  static const Color backgroundColor = Color(0xFFF8FAFC); // Off-white
+  static const Color backgroundColor = Color(0xFFFAF6F3); // Warm off-white
   static const Color surfaceColor = Color(0xFFFFFFFF); // Pure white
   static const Color cardColor = Color(0xFFFFFFFF);
-  static const Color surfaceVariant = Color(0xFFF1F5F9); // Very light gray
+  static const Color surfaceVariant = Color(0xFFF1EAE6); // Warm gray
 
   // ── Warna Teks ──────────────────────────────────────────────
-  static const Color textPrimary = Color(0xFF1E293B); // Near-black slate
-  static const Color textSecondary = Color(0xFF64748B); // Slate-500
-  static const Color textHint = Color(0xFF94A3B8); // Slate-400
+  static const Color textPrimary = Color(0xFF24161C); // Warm near-black
+  static const Color textSecondary = Color(0xFF5E4B53); // Warm gray-brown
+  static const Color textHint = Color(0xFFBBA8A1); // Soft outline tone
 
   // ── Warna Emosi (Pastel — lembut, feminin, ramah) ───────────
   static const Map<String, Color> emotionColors = {
@@ -100,10 +85,10 @@ class AppTheme {
   // Gradient Background untuk seluruh screen
   static const LinearGradient lightGradientBackground = LinearGradient(
     colors: [
-      Color(0xFFFFF0F5), // Lavender blush
-      Color(0xFFFCE4EC), // Pink-50
-      Color(0xFFFFF5F7), // Very light pink
-      Color(0xFFF8FAFC), // Off-white
+      Color(0xFFFAF6F3), // Warm off-white
+      Color(0xFFF9ECEE), // Blush hint
+      Color(0xFFF7E9EC), // Pink-50 warm
+      Color(0xFFFAF6F3), // Warm off-white
     ],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
@@ -112,31 +97,31 @@ class AppTheme {
 
   static const LinearGradient darkGradientBackground = LinearGradient(
     colors: [
-      Color(0xFF0F172A), // Dark slate
-      Color(0xFF2D1B2E), // Dark purple-pink
-      Color(0xFF0F172A), // Dark slate
+      Color(0xFF211B1E), // Dark warm brown
+      Color(0xFF2E2226), // Dark plum
+      Color(0xFF211B1E), // Dark warm brown
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     stops: [0.0, 0.5, 1.0],
   );
 
-  // ── Shadow Reusable ─────────────────────────────────────────
+  // ── Shadow Reusable (taktil ala Resonance) ───────────────────
   static List<BoxShadow> get cardShadow => [
     BoxShadow(
-      color: const Color(0xFF1E293B).withValues(alpha: 0.06),
-      blurRadius: 16,
+      color: const Color(0x1424161C),
+      blurRadius: 0,
       spreadRadius: 0,
-      offset: const Offset(0, 4),
+      offset: const Offset(2, 2),
     ),
   ];
 
   static List<BoxShadow> get primaryShadow => [
     BoxShadow(
-      color: primaryColor.withValues(alpha: 0.35),
-      blurRadius: 20,
+      color: const Color(0x4024161C),
+      blurRadius: 0,
       spreadRadius: 0,
-      offset: const Offset(0, 8),
+      offset: const Offset(4, 4),
     ),
   ];
 
@@ -158,8 +143,8 @@ class AppTheme {
   static ThemeData get lightTheme {
     final base = ThemeData(useMaterial3: true);
 
-    // Poppins Text Theme
-    final poppinsText = GoogleFonts.poppinsTextTheme(base.textTheme);
+    // Space Grotesk (judul) + Inter (isi)
+    final brandText = GoogleFonts.spaceGroteskTextTheme(base.textTheme);
 
     return ThemeData(
       useMaterial3: true,
@@ -171,8 +156,8 @@ class AppTheme {
             surface: surfaceColor,
             brightness: Brightness.light,
           ).copyWith(
-            primaryContainer: primaryColor.withValues(alpha: 0.12),
-            secondaryContainer: secondaryColor.withValues(alpha: 0.12),
+            primaryContainer: Color(0xFFF0D9DE),
+            secondaryContainer: Color(0xFFF0D9DE),
           ),
       scaffoldBackgroundColor: Colors.transparent, // Use gradient decorator
       // ── Decorator untuk gradient background ───────────────
@@ -185,10 +170,10 @@ class AppTheme {
         ),
       ),
 
-      // ── Tipografi Poppins ──────────────────────────────────
-      textTheme: poppinsText.copyWith(
+      // ── Tipografi Space Grotesk + Inter ────────────────────
+      textTheme: brandText.copyWith(
         // Heading besar (dashboard title)
-        displayLarge: GoogleFonts.poppins(
+        displayLarge: GoogleFonts.spaceGrotesk(
           fontSize: 28,
           fontWeight: FontWeight.w700,
           color: textPrimary,
@@ -196,56 +181,56 @@ class AppTheme {
           height: 1.2,
         ),
         // Section heading
-        headlineMedium: GoogleFonts.poppins(
+        headlineMedium: GoogleFonts.spaceGrotesk(
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: textPrimary,
           letterSpacing: -0.3,
         ),
         // Card title
-        titleLarge: GoogleFonts.poppins(
+        titleLarge: GoogleFonts.spaceGrotesk(
           fontSize: 17,
           fontWeight: FontWeight.w600,
           color: textPrimary,
           letterSpacing: -0.2,
         ),
-        titleMedium: GoogleFonts.poppins(
+        titleMedium: GoogleFonts.spaceGrotesk(
           fontSize: 15,
           fontWeight: FontWeight.w600,
           color: textPrimary,
         ),
-        titleSmall: GoogleFonts.poppins(
+        titleSmall: GoogleFonts.spaceGrotesk(
           fontSize: 13,
           fontWeight: FontWeight.w600,
           color: textSecondary,
           letterSpacing: 0.1,
         ),
         // Body teks
-        bodyLarge: GoogleFonts.poppins(
+        bodyLarge: GoogleFonts.inter(
           fontSize: 15,
           fontWeight: FontWeight.w400,
           color: textPrimary,
           height: 1.6,
         ),
-        bodyMedium: GoogleFonts.poppins(
+        bodyMedium: GoogleFonts.inter(
           fontSize: 13,
           fontWeight: FontWeight.w400,
           color: textSecondary,
           height: 1.5,
         ),
-        bodySmall: GoogleFonts.poppins(
+        bodySmall: GoogleFonts.inter(
           fontSize: 11,
           fontWeight: FontWeight.w400,
           color: textHint,
         ),
         // Label untuk tombol / chip
-        labelLarge: GoogleFonts.poppins(
+        labelLarge: GoogleFonts.spaceGrotesk(
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: textPrimary,
           letterSpacing: 0.2,
         ),
-        labelMedium: GoogleFonts.poppins(
+        labelMedium: GoogleFonts.inter(
           fontSize: 12,
           fontWeight: FontWeight.w600,
           color: textSecondary,
@@ -273,7 +258,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(radiusMd),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-          textStyle: GoogleFonts.poppins(
+          textStyle: GoogleFonts.spaceGrotesk(
             fontSize: 15,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
@@ -290,7 +275,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(radiusMd),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          textStyle: GoogleFonts.poppins(
+          textStyle: GoogleFonts.spaceGrotesk(
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -317,7 +302,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: GoogleFonts.poppins(
+        titleTextStyle: GoogleFonts.spaceGrotesk(
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: textPrimary,
@@ -351,26 +336,26 @@ class AppTheme {
 
       // ── Divider ────────────────────────────────────────────
       dividerTheme: const DividerThemeData(
-        color: Color(0xFFE2E8F0), // Slate-200
+        color: Color(0xFFE2D7D1), // Warm outline
         space: 1,
         thickness: 1,
       ),
     );
   }
 
-  // ── Warna Dark Mode ──────────────────────────────────────────
-  static const Color darkBackground = Color(0xFF0F172A); // Dark slate
-  static const Color darkSurface = Color(0xFF1E293B); // Slate
-  static const Color darkCard = Color(0xFF334155); // Light slate
-  static const Color darkSurfaceVar = Color(0xFF475569); // Medium slate
-  static const Color darkTextPrimary = Color(0xDEFFFFFF); // white 87%
-  static const Color darkTextSecondary = Color(0x99FFFFFF); // white 60%
-  static const Color darkTextHint = Color(0x61FFFFFF); // white 38%
+  // ── Warna Dark Mode (Resonance warm dark) ─────────────────────
+  static const Color darkBackground = Color(0xFF211B1E); // Warm near-black
+  static const Color darkSurface = Color(0xFF2A2226); // Warm dark surface
+  static const Color darkCard = Color(0xFF332A2E); // Warm dark card
+  static const Color darkSurfaceVar = Color(0xFF3A2E33); // Warm dark variant
+  static const Color darkTextPrimary = Color(0xFFF4EDF0); // Warm white 92%
+  static const Color darkTextSecondary = Color(0xFFCBBBC1); // Warm gray 70%
+  static const Color darkTextHint = Color(0xFF8C7075); // Warm gray 45%
 
   /// ── ThemeData Dark ─────────────────────────────────────────────
   static ThemeData get darkTheme {
     final base = ThemeData(useMaterial3: true, brightness: Brightness.dark);
-    final poppinsText = GoogleFonts.poppinsTextTheme(base.textTheme);
+    final brandText = GoogleFonts.spaceGroteskTextTheme(base.textTheme);
 
     return ThemeData(
       useMaterial3: true,
@@ -383,66 +368,66 @@ class AppTheme {
             surface: darkSurface,
             brightness: Brightness.dark,
           ).copyWith(
-            primaryContainer: primaryColor.withValues(alpha: 0.2),
-            secondaryContainer: secondaryColor.withValues(alpha: 0.2),
+            primaryContainer: const Color(0xFF5C0E2F),
+            secondaryContainer: const Color(0xFF5C0E2F),
           ),
       scaffoldBackgroundColor: Colors.transparent, // Use gradient decorator
 
-      textTheme: poppinsText.copyWith(
-        displayLarge: GoogleFonts.poppins(
+      textTheme: brandText.copyWith(
+        displayLarge: GoogleFonts.spaceGrotesk(
           fontSize: 28,
           fontWeight: FontWeight.w700,
           color: darkTextPrimary,
           letterSpacing: -0.5,
           height: 1.2,
         ),
-        headlineMedium: GoogleFonts.poppins(
+        headlineMedium: GoogleFonts.spaceGrotesk(
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: darkTextPrimary,
           letterSpacing: -0.3,
         ),
-        titleLarge: GoogleFonts.poppins(
+        titleLarge: GoogleFonts.spaceGrotesk(
           fontSize: 17,
           fontWeight: FontWeight.w600,
           color: darkTextPrimary,
           letterSpacing: -0.2,
         ),
-        titleMedium: GoogleFonts.poppins(
+        titleMedium: GoogleFonts.spaceGrotesk(
           fontSize: 15,
           fontWeight: FontWeight.w600,
           color: darkTextPrimary,
         ),
-        titleSmall: GoogleFonts.poppins(
+        titleSmall: GoogleFonts.spaceGrotesk(
           fontSize: 13,
           fontWeight: FontWeight.w600,
           color: darkTextSecondary,
           letterSpacing: 0.1,
         ),
-        bodyLarge: GoogleFonts.poppins(
+        bodyLarge: GoogleFonts.inter(
           fontSize: 15,
           fontWeight: FontWeight.w400,
           color: darkTextPrimary,
           height: 1.6,
         ),
-        bodyMedium: GoogleFonts.poppins(
+        bodyMedium: GoogleFonts.inter(
           fontSize: 13,
           fontWeight: FontWeight.w400,
           color: darkTextSecondary,
           height: 1.5,
         ),
-        bodySmall: GoogleFonts.poppins(
+        bodySmall: GoogleFonts.inter(
           fontSize: 11,
           fontWeight: FontWeight.w400,
           color: darkTextHint,
         ),
-        labelLarge: GoogleFonts.poppins(
+        labelLarge: GoogleFonts.spaceGrotesk(
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: darkTextPrimary,
           letterSpacing: 0.2,
         ),
-        labelMedium: GoogleFonts.poppins(
+        labelMedium: GoogleFonts.inter(
           fontSize: 12,
           fontWeight: FontWeight.w600,
           color: darkTextSecondary,
@@ -468,7 +453,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(radiusMd),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-          textStyle: GoogleFonts.poppins(
+          textStyle: GoogleFonts.spaceGrotesk(
             fontSize: 15,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
@@ -484,7 +469,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(radiusMd),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          textStyle: GoogleFonts.poppins(
+          textStyle: GoogleFonts.spaceGrotesk(
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -509,7 +494,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: GoogleFonts.poppins(
+        titleTextStyle: GoogleFonts.spaceGrotesk(
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: darkTextPrimary,
@@ -540,7 +525,7 @@ class AppTheme {
       ),
 
       dividerTheme: const DividerThemeData(
-        color: Color(0xFF383838),
+        color: Color(0xFF4A3B41),
         space: 1,
         thickness: 1,
       ),

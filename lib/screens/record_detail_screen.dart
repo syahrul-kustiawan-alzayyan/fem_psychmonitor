@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../services/database_service.dart';
 import '../services/gemini_service.dart';
 import '../services/suggestion_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/gradient_background.dart';
+import '../theme/resonance_colors.dart';
 import '../widgets/suggestion_card.dart';
 
 class RecordDetailScreen extends StatefulWidget {
@@ -82,6 +83,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
     final combined = _combinedScores;
     final sorted = _sortedScores;
     final domEntry = sorted.entries.first;
@@ -89,7 +91,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
     final domConf = domEntry.value;
 
     return Scaffold(
-      backgroundColor: AppTheme.bg(context),
+      backgroundColor: c.background,
       extendBody: true,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -100,30 +102,35 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
         leadingWidth: 0,
         title: Row(
           children: [
-            ShaderMask(
-              shaderCallback: (bounds) =>
-                  AppTheme.primaryGradient.createShader(bounds),
-              child: const Icon(Icons.article_rounded, color: Colors.white, size: 22),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: c.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                PhosphorIconsRegular.fileText,
+                color: c.primary,
+                size: 18,
+              ),
             ),
-            const SizedBox(width: 10),
-            ShaderMask(
-              shaderCallback: (bounds) =>
-                  AppTheme.primaryGradient.createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
-              child: Text(
-                AppLocalizations.tr('detail_title'),
-                style: GoogleFonts.poppins(
-                  fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: -0.3,
-                ),
+            const SizedBox(width: 12),
+            Text(
+              AppLocalizations.tr('detail_title'),
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: c.onSurface,
+                letterSpacing: -0.3,
               ),
             ),
           ],
         ),
       ),
-      body: GradientBackground(
-        useOverlay: true,
-        child: SafeArea(
-          bottom: false,
-          child: SingleChildScrollView(
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -147,7 +154,6 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                   SuggestionCard(
                     title: _title,
                     traitSuggestions: _suggestionResult!.traitSuggestions,
-                    icon: Icons.lightbulb_outline_rounded,
                     color: domEmotion.color,
                     isCollapsible: false,
                   )
@@ -166,7 +172,6 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 

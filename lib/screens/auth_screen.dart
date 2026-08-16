@@ -17,6 +17,7 @@ import '../services/subscription_service.dart';
 import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../theme/app_theme.dart';
+import '../theme/resonance_colors.dart';
 
 enum _AuthMode { login, register }
 
@@ -624,7 +625,7 @@ class _AuthScreenState extends State<AuthScreen>
               ),
               child: const Icon(
                 Icons.login_rounded,
-                color: Color(0xFFE8728A),
+                color: Color(0xFFC77E8C),
                 size: 48,
               ),
             ),
@@ -812,7 +813,7 @@ class _AuthScreenState extends State<AuthScreen>
               ),
               child: const Icon(
                 Icons.assignment_rounded,
-                color: Color(0xFFE8728A),
+                color: Color(0xFFC77E8C),
                 size: 48,
               ),
             ),
@@ -902,7 +903,7 @@ class _AuthScreenState extends State<AuthScreen>
               ),
               child: const Icon(
                 Icons.email_rounded,
-                color: Color(0xFFE8728A),
+                color: Color(0xFFC77E8C),
                 size: 48,
               ),
             ),
@@ -971,7 +972,7 @@ class _AuthScreenState extends State<AuthScreen>
 
   @override
   Widget build(BuildContext context) {
-    final c = _ResonanceColors.of(context);
+    final c = ResonanceColors.of(context);
     return Scaffold(
       backgroundColor: c.background,
       body: SafeArea(
@@ -1014,7 +1015,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildHero(_ResonanceColors c) {
+  Widget _buildHero(ResonanceColors c) {
     return SizedBox(
       height: 130,
       child: Stack(
@@ -1037,7 +1038,7 @@ class _AuthScreenState extends State<AuthScreen>
           Positioned(
             right: 24,
             top: 10,
-            child: _FloatingChip(
+            child: FloatingChip(
               label: _isRegister ? 'emotion: joy 91%' : 'emotion: calm 84%',
               color: c,
             ),
@@ -1047,7 +1048,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildBrandName(_ResonanceColors c) {
+  Widget _buildBrandName(ResonanceColors c) {
     return Center(
       child: Text(
         'Fem-PsychMonitor',
@@ -1061,7 +1062,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildEyebrow(_ResonanceColors c) {
+  Widget _buildEyebrow(ResonanceColors c) {
     final index = _isRegister ? '02' : '01';
     final label = _isRegister ? 'DAFTAR' : 'MASUK';
     return Center(
@@ -1091,7 +1092,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildTitle(_ResonanceColors c) {
+  Widget _buildTitle(ResonanceColors c) {
     return Text(
       _isRegister
           ? AppLocalizations.tr('register_title')
@@ -1106,7 +1107,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildSubtitle(_ResonanceColors c) {
+  Widget _buildSubtitle(ResonanceColors c) {
     return Text(
       _isRegister
           ? 'Mulai perjalanan kesehatan mentalmu'
@@ -1120,7 +1121,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildWaveform(_ResonanceColors c) {
+  Widget _buildWaveform(ResonanceColors c) {
     const heights = [
       12.0, 20.0, 28.0, 16.0, 24.0, 14.0, 26.0, 18.0, 22.0, 12.0,
       20.0, 28.0, 16.0, 24.0, 14.0, 26.0, 18.0, 22.0,
@@ -1147,7 +1148,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildFormCard(_ResonanceColors c) {
+  Widget _buildFormCard(ResonanceColors c) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -1313,7 +1314,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildModeToggle(_ResonanceColors c) {
+  Widget _buildModeToggle(ResonanceColors c) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -1330,7 +1331,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildModeTab(_ResonanceColors c, _AuthMode mode) {
+  Widget _buildModeTab(ResonanceColors c, _AuthMode mode) {
     final selected = _mode == mode;
     final label = mode == _AuthMode.login
         ? AppLocalizations.tr('login')
@@ -1388,7 +1389,7 @@ class _AuthScreenState extends State<AuthScreen>
     TextCapitalization textCapitalization = TextCapitalization.none,
     String? Function(String?)? validator,
   }) {
-    final c = _ResonanceColors.of(context);
+    final c = ResonanceColors.of(context);
     return TextFormField(
       controller: controller,
       obscureText: obscure,
@@ -1447,7 +1448,7 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Widget _buildPrimaryButton({
-    required _ResonanceColors c,
+    required ResonanceColors c,
     Key? key,
     required String label,
     required VoidCallback onTap,
@@ -1502,7 +1503,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildDivider(_ResonanceColors c) {
+  Widget _buildDivider(ResonanceColors c) {
     return Row(
       children: [
         Expanded(
@@ -1525,7 +1526,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildPrivacyCheckbox(_ResonanceColors c) {
+  Widget _buildPrivacyCheckbox(ResonanceColors c) {
     return GestureDetector(
       onTap: () => setState(() => _acceptedPrivacy = !_acceptedPrivacy),
       behavior: HitTestBehavior.opaque,
@@ -1595,7 +1596,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildGoogleButton(_ResonanceColors c) {
+  Widget _buildGoogleButton(ResonanceColors c) {
     final isDisabled = _isLoading;
     return SizedBox(
       width: double.infinity,
@@ -1671,7 +1672,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _buildFooter(_ResonanceColors c) {
+  Widget _buildFooter(ResonanceColors c) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
@@ -1698,113 +1699,6 @@ void _openPrivacyPolicy() {
     launchUrl(
       Uri.parse('https://psychmonitor.com/terms-of-services.html'),
       mode: LaunchMode.externalApplication,
-    );
-  }
-}
-
-/// ─────────────────────────────────────────────────────────────
-/// Palet warna Resonance Auth (turunan brand logo — rose magenta)
-/// ─────────────────────────────────────────────────────────────
-class _ResonanceColors {
-  final Color background;
-  final Color surfaceLowest;
-  final Color surfaceVariant;
-  final Color surfaceContainer;
-  final Color outline;
-  final Color outlineVariant;
-  final Color onSurface;
-  final Color onSurfaceVariant;
-  final Color primary;
-  final Color primaryContainer;
-
-  const _ResonanceColors({
-    required this.background,
-    required this.surfaceLowest,
-    required this.surfaceVariant,
-    required this.surfaceContainer,
-    required this.outline,
-    required this.outlineVariant,
-    required this.onSurface,
-    required this.onSurfaceVariant,
-    required this.primary,
-    required this.primaryContainer,
-  });
-
-  static const _light = _ResonanceColors(
-    background: Color(0xFFFAF6F3),
-    surfaceLowest: Color(0xFFFFFFFF),
-    surfaceVariant: Color(0xFFF1EAE6),
-    surfaceContainer: Color(0xFFF1EAE6),
-    outline: Color(0xFFBBA8A1),
-    outlineVariant: Color(0xFFE2D7D1),
-    onSurface: Color(0xFF24161C),
-    onSurfaceVariant: Color(0xFF5E4B53),
-    primary: Color(0xFFD6336C),
-    primaryContainer: Color(0xFFFFDCE7),
-  );
-
-  static const _dark = _ResonanceColors(
-    background: Color(0xFF211B1E),
-    surfaceLowest: Color(0xFF2A2226),
-    surfaceVariant: Color(0xFF3A2E33),
-    surfaceContainer: Color(0xFF332A2E),
-    outline: Color(0xFF8C7075),
-    outlineVariant: Color(0xFF4A3B41),
-    onSurface: Color(0xFFF4EDF0),
-    onSurfaceVariant: Color(0xFFCBBBC1),
-    primary: Color(0xFFFFB1C2),
-    primaryContainer: Color(0xFF5C0E2F),
-  );
-
-  static _ResonanceColors of(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? _dark : _light;
-}
-
-/// Chip data mengambang (emotion readout) — elemen 3D dari desain
-class _FloatingChip extends StatelessWidget {
-  final String label;
-  final _ResonanceColors color;
-
-  const _FloatingChip({required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.surfaceLowest,
-        border: Border.all(color: color.outlineVariant),
-        borderRadius: BorderRadius.circular(999),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF24161C).withValues(alpha: 0.1),
-            offset: const Offset(2, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: const BoxDecoration(
-              color: Color(0xFF2E5F6E),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: GoogleFonts.jetBrainsMono(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 1.4,
-              color: color.onSurface,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -1949,7 +1843,7 @@ class _VerificationDialogState extends State<_VerificationDialog>
   }
 
   Widget _buildStepIndicator({int current = 2}) {
-    final active = const Color(0xFFE8728A);
+    final active = const Color(0xFFC77E8C);
     final inactive = AppTheme.textH(context);
 
     Widget step(int number, String label, {bool completed = false, bool isCurrent = false}) {
@@ -2027,7 +1921,7 @@ class _VerificationDialogState extends State<_VerificationDialog>
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFFE8728A), Color(0xFFD45674)],
+              colors: [Color(0xFFC77E8C), Color(0xFFB76E79)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -2239,7 +2133,7 @@ class _VerificationDialogState extends State<_VerificationDialog>
           height: 40,
           child: CircularProgressIndicator(
             strokeWidth: 3,
-            color: Color(0xFFE8728A),
+            color: Color(0xFFC77E8C),
           ),
         ),
         const SizedBox(height: 20),
@@ -2305,7 +2199,7 @@ class _SetPasswordDialogState extends State<_SetPasswordDialog> {
             ),
             child: const Icon(
               Icons.lock_outline_rounded,
-              color: Color(0xFFE8728A),
+              color: Color(0xFFC77E8C),
               size: 48,
             ),
           ),

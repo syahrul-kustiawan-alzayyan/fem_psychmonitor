@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
@@ -22,7 +23,7 @@ import '../services/suggestion_service.dart';
 import '../services/text_emotion_service.dart';
 import '../services/whisper_init_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/gradient_background.dart';
+import '../theme/resonance_colors.dart';
 import 'result_screen.dart';
 
 class EmotionDetectionScreen extends StatefulWidget {
@@ -531,8 +532,9 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
 
   @override
   Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
     return Scaffold(
-      backgroundColor: AppTheme.bg(context),
+      backgroundColor: c.background,
       extendBody: true,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -542,28 +544,34 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         automaticallyImplyLeading: false,
         leadingWidth: 0,
         centerTitle: false,
-        title: ShaderMask(
-          shaderCallback: (bounds) =>
-              AppTheme.primaryGradient.createShader(bounds),
-          child: Row(
-            children: [
-              Icon(Icons.mic_rounded, size: 22, color: Colors.white),
-              const SizedBox(width: 8),
-              Text(
-                AppLocalizations.tr('emotion_detection'),
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+        title: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: c.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
-          ),
+              child: Icon(
+                PhosphorIconsRegular.microphone,
+                color: c.primary,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              AppLocalizations.tr('emotion_detection'),
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: c.onSurface,
+              ),
+            ),
+          ],
         ),
       ),
-      body: GradientBackground(
-        useOverlay: true,
-        child: Stack(
+      body: Stack(
           children: [
             Positioned.fill(
               child: SafeArea(
@@ -648,7 +656,6 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
               ),
           ],
         ),
-      ),
     );
   }
 

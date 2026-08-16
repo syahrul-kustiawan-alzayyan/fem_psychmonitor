@@ -300,9 +300,9 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
               end: Alignment.centerRight,
               stops: const [0.0, 0.5, 1.0],
               colors: [
-                isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                isDark ? const Color(0xFF475569) : const Color(0xFFF1F5F9),
-                isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                isDark ? const Color(0xFF3A3035) : const Color(0xFFEDE4DF),
+                isDark ? const Color(0xFF4A3B41) : const Color(0xFFF6EFEB),
+                isDark ? const Color(0xFF3A3035) : const Color(0xFFEDE4DF),
               ],
               transform: GradientRotation(_animation.value),
             ),

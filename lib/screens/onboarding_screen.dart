@@ -16,7 +16,7 @@ import '../providers/premium_provider.dart';
 import '../services/ad_service.dart';
 import '../services/database_service.dart';
 import '../services/storage_service.dart';
-import '../theme/app_theme.dart';
+import '../theme/resonance_colors.dart';
 
 class OnboardingScreen extends StatelessWidget {
   final VoidCallback onCompleted;
@@ -131,8 +131,9 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
 
   @override
   Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
     return Scaffold(
-      backgroundColor: AppTheme.bg(context),
+      backgroundColor: c.background,
       body: Column(
         children: [
           Expanded(
@@ -164,11 +165,9 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
                   bottom: MediaQuery.of(context).padding.bottom + 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface(context).withValues(alpha: 0.6),
+                  color: c.surfaceLowest.withValues(alpha: 0.85),
                   border: Border(
-                    top: BorderSide(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.08),
-                    ),
+                    top: BorderSide(color: c.outlineVariant),
                   ),
                 ),
                 child: Center(

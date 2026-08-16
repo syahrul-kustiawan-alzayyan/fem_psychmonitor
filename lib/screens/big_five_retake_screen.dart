@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
+import '../theme/resonance_colors.dart';
 import '../services/database_service.dart';
-import '../widgets/gradient_background.dart';
 import 'onboarding/onboarding_state.dart';
 import 'onboarding/bigfive_section.dart';
 
@@ -57,8 +58,9 @@ class _BigFiveRetakeScreenState extends State<BigFiveRetakeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
     return Scaffold(
-      backgroundColor: AppTheme.bg(context),
+      backgroundColor: c.background,
       extendBody: true,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -66,55 +68,49 @@ class _BigFiveRetakeScreenState extends State<BigFiveRetakeScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
-        title: ShaderMask(
-          shaderCallback: (bounds) =>
-              AppTheme.primaryGradient.createShader(bounds),
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 18,
-                    color: AppTheme.primaryColor,
-                  ),
+        title: Row(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: c.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  PhosphorIconsRegular.arrowLeft,
+                  size: 17,
+                  color: c.primary,
                 ),
               ),
-              const SizedBox(width: 12),
-              Text(
-                'Big Five',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Big Five',
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: c.onSurface,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-      body: GradientBackground(
-        useOverlay: true,
-        child: SafeArea(
-          child: _pageIndex == 0
-              ? _buildIntro()
-              : Consumer<OnboardingState>(
-                  builder: (context, obState, _) {
-                    if (obState.isLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    return BigFiveSection(
-                      onNext: _handleComplete,
-                    );
-                  },
-                ),
-        ),
+      body: SafeArea(
+        child: _pageIndex == 0
+            ? _buildIntro()
+            : Consumer<OnboardingState>(
+                builder: (context, obState, _) {
+                  if (obState.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return BigFiveSection(
+                    onNext: _handleComplete,
+                  );
+                },
+              ),
       ),
     );
   }
@@ -139,7 +135,7 @@ class _BigFiveRetakeScreenState extends State<BigFiveRetakeScreen> {
                 ),
               ],
             ),
-            child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 40),
+            child: const Icon(PhosphorIconsRegular.brain, color: Colors.white, size: 40),
           ),
           const SizedBox(height: 28),
           Text(

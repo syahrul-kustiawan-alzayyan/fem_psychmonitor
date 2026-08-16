@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
@@ -15,24 +18,22 @@ import '../services/database_service.dart';
 import '../services/storage_service.dart';
 import '../services/subscription_service.dart';
 import '../services/suggestion_service.dart';
-import '../theme/app_theme.dart';
+import '../theme/resonance_colors.dart';
 import '../utils/animations.dart';
-import '../widgets/gradient_background.dart';
 import '../widgets/suggestion_card.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_screen.dart';
 import 'auth_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomeScreen — Dashboard Utama Fem-Psych Monitor
 //
-// Arsitektur Widget (dipisah agar mudah di-maintain):
-//   • _buildHeader()           → Greeting + avatar inisial
-//   • _buildPsychCard()        → Kartu status psikis hari ini (gradient)
-//   • _buildQuickStats()       → 3 kartu statistik mini
-//   • _buildCTAButton()        → Tombol rekam besar bergaya premium
-//   • _buildOverallSuggestion()→ Rekomendasi psikis keseluruhan
-//   • _buildRecentHistory()    → Cuplikan 3 log terbaru
+// Desain: Executive Dashboard + Bento Grid (ui-ux-pro-max skill)
+//   • _buildHeader()        → Greeting + avatar inisial
+//   • _buildPsychCard()     → Kartu status psikis (layered card)
+//   • _buildStatsBento()    → 2x2 grid statistik mini
+//   • _buildCTAButton()     → Tombol rekam besar (taktil)
+//   • _buildOverallSuggestion() → Rekomendasi psikis keseluruhan
+//   • _buildRecentHistory() → Cuplikan 3 log terbaru
 // ─────────────────────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
   final VoidCallback onStartRecording;
@@ -101,12 +102,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return AppLocalizations.tr('greeting_night');
   }
 
-  String get _greetingEmoji {
+  IconData get _greetingIcon {
     final h = DateTime.now().hour;
-    if (h < 11) return '☀️';
-    if (h < 15) return '🌤️';
-    if (h < 18) return '🌅';
-    return '🌙';
+    if (h < 11) return PhosphorIconsRegular.sun;
+    if (h < 15) return PhosphorIconsRegular.sunDim;
+    if (h < 18) return PhosphorIconsRegular.sunDim;
+    return PhosphorIconsRegular.moonStars;
+  }
+
+  Color get _greetingColor {
+    final h = DateTime.now().hour;
+    if (h < 11) return const Color(0xFFF59E0B);
+    if (h < 15) return const Color(0xFFF97316);
+    if (h < 18) return const Color(0xFFD97706);
+    return const Color(0xFF6366F1);
   }
 
   // ── Formatted date ───────────────────────────────────────────
@@ -123,111 +132,109 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     // Buat Future baru setiap build untuk memastikan data selalu fresh
     final recordingsFuture = DatabaseService.getRecordings();
+    final c = ResonanceColors.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: GradientBackground(
-        useOverlay: true,
-        child: SafeArea(
-          bottom: false, // bottom nav melayang di atasnya
-          child: FutureBuilder<List<RecordingData>>(
-            future: recordingsFuture,
-            builder: (context, snapshot) {
-              final recordings = snapshot.data ?? [];
-              final historyList = recordings
-                  .map((r) => r.toEmotionRecord())
-                  .toList();
+      backgroundColor: c.background,
+      body: SafeArea(
+        bottom: false, // bottom nav melayang di atasnya
+        child: FutureBuilder<List<RecordingData>>(
+          future: recordingsFuture,
+          builder: (context, snapshot) {
+            final recordings = snapshot.data ?? [];
+            final historyList = recordings
+                .map((r) => r.toEmotionRecord())
+                .toList();
 
-              // Only show emotion data if there are actual recordings
-              final latest = historyList.isNotEmpty ? historyList.first : null;
+            // Only show emotion data if there are actual recordings
+            final latest = historyList.isNotEmpty ? historyList.first : null;
 
-              return SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spaceLg,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: AppTheme.spaceLg),
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
 
-                    // ── Header ─────────────────────────────────────
-                    FadeTransition(
-                      opacity: AnimationUtils.fadeInAnimation(
+                  // ── Header ─────────────────────────────────────
+                  FadeTransition(
+                    opacity: AnimationUtils.fadeInAnimation(
+                      _staggerCtrl,
+                      0,
+                      0.15,
+                    ),
+                    child: SlideTransition(
+                      position: AnimationUtils.slideUpAnimation(
                         _staggerCtrl,
                         0,
                         0.15,
                       ),
-                      child: SlideTransition(
-                        position: AnimationUtils.slideUpAnimation(
-                          _staggerCtrl,
-                          0,
-                          0.15,
-                        ),
-                        child: _buildHeader(context),
-                      ),
+                      child: _buildHeader(context),
                     ),
+                  ),
 
-                    const SizedBox(height: AppTheme.spaceXl),
+                  const SizedBox(height: 24),
 
-                    // ── Kartu Status Psikis ─────────────────────────
-                    FadeTransition(
-                      opacity: AnimationUtils.fadeInAnimation(
+                  // ── Kartu Status Psikis ─────────────────────────
+                  FadeTransition(
+                    opacity: AnimationUtils.fadeInAnimation(
+                      _staggerCtrl,
+                      1,
+                      0.15,
+                    ),
+                    child: SlideTransition(
+                      position: AnimationUtils.slideUpAnimation(
                         _staggerCtrl,
                         1,
                         0.15,
                       ),
-                      child: SlideTransition(
-                        position: AnimationUtils.slideUpAnimation(
-                          _staggerCtrl,
-                          1,
-                          0.15,
-                        ),
-                        child: _buildPsychCard(context, latest, historyList),
-                      ),
+                      child: _buildPsychCard(context, latest, historyList),
                     ),
+                  ),
 
-                    const SizedBox(height: AppTheme.spaceMd),
+                  const SizedBox(height: 16),
 
-                    // ── Quick Stats ─────────────────────────────────
-                    FadeTransition(
-                      opacity: AnimationUtils.fadeInAnimation(
+                  // ── Bento Stats ─────────────────────────────────
+                  FadeTransition(
+                    opacity: AnimationUtils.fadeInAnimation(
+                      _staggerCtrl,
+                      2,
+                      0.15,
+                    ),
+                    child: SlideTransition(
+                      position: AnimationUtils.slideUpAnimation(
                         _staggerCtrl,
                         2,
                         0.15,
                       ),
-                      child: SlideTransition(
-                        position: AnimationUtils.slideUpAnimation(
-                          _staggerCtrl,
-                          2,
-                          0.15,
-                        ),
-                        child: _buildQuickStats(context, historyList),
-                      ),
+                      child: _buildStatsBento(context, historyList),
                     ),
+                  ),
 
-                    const SizedBox(height: AppTheme.spaceXl),
+                  const SizedBox(height: 24),
 
-                    // ── Sisa Deteksi Harian ─────────────────────────
-                    FadeTransition(
-                      opacity: AnimationUtils.fadeInAnimation(
+                  // ── Tombol CTA Rekam ────────────────────────────
+                  FadeTransition(
+                    opacity: AnimationUtils.fadeInAnimation(
+                      _staggerCtrl,
+                      3,
+                      0.15,
+                    ),
+                    child: SlideTransition(
+                      position: AnimationUtils.slideUpAnimation(
                         _staggerCtrl,
                         3,
                         0.15,
                       ),
-                      child: SlideTransition(
-                        position: AnimationUtils.slideUpAnimation(
-                          _staggerCtrl,
-                          3,
-                          0.15,
-                        ),
-                        child: _buildRemainingDetections(context),
-                      ),
+                      child: _buildCTAButton(context),
                     ),
+                  ),
 
-                    const SizedBox(height: AppTheme.spaceXl),
+                  const SizedBox(height: 24),
 
-                    // ── Tombol CTA Rekam ────────────────────────────
+                  // ── Rekomendasi Psikis ──────────────────────────
+                  if (historyList.isNotEmpty) ...[
                     FadeTransition(
                       opacity: AnimationUtils.fadeInAnimation(
                         _staggerCtrl,
@@ -240,59 +247,38 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           4,
                           0.15,
                         ),
-                        child: _buildCTAButton(context),
+                        child: _buildOverallSuggestion(context, historyList),
                       ),
                     ),
+                    const SizedBox(height: 24),
+                  ],
 
-                    const SizedBox(height: AppTheme.spaceXl),
-
-                    // ── Rekomendasi Psikis ──────────────────────────
-                    if (historyList.isNotEmpty) ...[
-                      FadeTransition(
-                        opacity: AnimationUtils.fadeInAnimation(
+                  // ── Riwayat Terbaru ─────────────────────────────
+                  if (historyList.isNotEmpty)
+                    FadeTransition(
+                      opacity: AnimationUtils.fadeInAnimation(
+                        _staggerCtrl,
+                        5,
+                        0.15,
+                      ),
+                      child: SlideTransition(
+                        position: AnimationUtils.slideUpAnimation(
                           _staggerCtrl,
                           5,
                           0.15,
                         ),
-                        child: SlideTransition(
-                          position: AnimationUtils.slideUpAnimation(
-                            _staggerCtrl,
-                            5,
-                            0.15,
-                          ),
-                          child: _buildOverallSuggestion(context, historyList),
-                        ),
+                        child: _buildRecentHistory(context, historyList),
                       ),
-                      const SizedBox(height: AppTheme.spaceXl),
-                    ],
+                    ),
 
-                    // ── Riwayat Terbaru ─────────────────────────────
-                    if (historyList.isNotEmpty)
-                      FadeTransition(
-                        opacity: AnimationUtils.fadeInAnimation(
-                          _staggerCtrl,
-                          6,
-                          0.15,
-                        ),
-                        child: SlideTransition(
-                          position: AnimationUtils.slideUpAnimation(
-                            _staggerCtrl,
-                            6,
-                            0.15,
-                          ),
-                          child: _buildRecentHistory(context, historyList),
-                        ),
-                      ),
-
-                    // Padding akhir agar tidak tertutup bottom nav
-                    const SizedBox(height: 100),
-                  ],
-                ),
-              );
-            },
-          ),
+                  // Padding akhir agar tidak tertutup bottom nav
+                  const SizedBox(height: 100),
+                ],
+              ),
+            );
+          },
         ),
-      ), // End GradientBackground
+      ),
     );
   }
 
@@ -300,6 +286,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Widget: Header — Greeting + Avatar
   // ─────────────────────────────────────────────────────────────
   Widget _buildHeader(BuildContext context) {
+    final c = ResonanceColors.of(context);
     final auth = context.watch<AuthProvider>();
     final displayName = auth.username.isNotEmpty ? auth.username : 'User';
     final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : '?';
@@ -314,42 +301,57 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               // Tanggal hari ini
               Text(
                 _todayLabel,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textH(context),
-                  letterSpacing: 0.3,
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w500,
+                  color: c.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               // Greeting + nama
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '$_greeting $_greetingEmoji\n',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.textS(context),
-                      ),
+              Row(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: _greetingColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(9),
                     ),
-                    TextSpan(
-                      text: displayName,
-                      style: GoogleFonts.poppins(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textP(context),
-                        letterSpacing: -0.5,
-                        height: 1.15,
-                      ),
+                    child: Icon(
+                      _greetingIcon,
+                      color: _greetingColor,
+                      size: 15,
                     ),
-                  ],
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _greeting,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: c.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                displayName,
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 25,
+                  fontWeight: FontWeight.w700,
+                  color: c.onSurface,
+                  letterSpacing: -0.5,
+                  height: 1.15,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 AppLocalizations.tr('how_are_you'),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.textS(context),
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: c.onSurfaceVariant,
                 ),
               ),
             ],
@@ -360,9 +362,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         PopupMenuButton<String>(
           offset: const Offset(0, 56),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            borderRadius: BorderRadius.circular(16),
           ),
-          color: AppTheme.surface(context),
+          color: c.surfaceLowest,
           onSelected: (val) async {
             if (val == 'settings') {
               await Navigator.push(
@@ -374,22 +376,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  backgroundColor: AppTheme.surface(ctx),
+                  backgroundColor: c.surfaceLowest,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                    borderRadius: BorderRadius.circular(24),
                   ),
                   title: Text(
                     AppLocalizations.tr('logout_confirm'),
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.spaceGrotesk(
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.textP(ctx),
+                      color: c.onSurface,
                     ),
                   ),
                   content: Text(
                     AppLocalizations.tr('logout_confirm_desc'),
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: AppTheme.textS(ctx),
+                      color: c.onSurfaceVariant,
                     ),
                   ),
                   actions: [
@@ -397,16 +399,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       onPressed: () => Navigator.pop(ctx, false),
                       child: Text(
                         AppLocalizations.tr('cancel'),
-                        style: GoogleFonts.poppins(
-                          color: AppTheme.textS(ctx),
-                        ),
+                        style: GoogleFonts.inter(color: c.onSurfaceVariant),
                       ),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
                       child: Text(
                         AppLocalizations.tr('logout'),
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.inter(
                           color: const Color(0xFFF87171),
                           fontWeight: FontWeight.w600,
                         ),
@@ -442,15 +442,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: Row(
                 children: [
                   Icon(
-                    Icons.settings_outlined,
-                    color: AppTheme.textP(context),
+                    PhosphorIconsRegular.gearSix,
+                    color: c.onSurface,
                     size: 20,
                   ),
                   const SizedBox(width: 12),
                   Text(
                     AppLocalizations.tr('settings_menu'),
-                    style: GoogleFonts.poppins(
-                      color: AppTheme.textP(context),
+                    style: GoogleFonts.inter(
+                      color: c.onSurface,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -471,7 +471,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Icon(
-                        Icons.logout_rounded,
+                        PhosphorIconsRegular.signOut,
                         color: Color(0xFFF87171),
                         size: 16,
                       ),
@@ -479,7 +479,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     const SizedBox(width: 12),
                     Text(
                       AppLocalizations.tr('logout'),
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.inter(
                         color: const Color(0xFFF87171),
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -498,20 +498,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        gradient: AppTheme.warmGradient,
+                        color: c.primaryContainer,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Icon(
-                        Icons.login_rounded,
-                        color: Colors.white,
+                      child: Icon(
+                        PhosphorIconsRegular.signIn,
+                        color: c.primary,
                         size: 16,
                       ),
                     ),
                     const SizedBox(width: 12),
                     Text(
                       AppLocalizations.tr('login_signup'),
-                      style: GoogleFonts.poppins(
-                        color: AppTheme.primaryDark,
+                      style: GoogleFonts.inter(
+                        color: c.primary,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -522,15 +522,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ],
           ],
           child: Container(
-            padding: const EdgeInsets.all(2.5),
+            padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: AppTheme.primaryGradient,
-              boxShadow: [
+              border: Border.all(color: c.outlineVariant),
+              boxShadow: const [
                 BoxShadow(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  color: Color(0x1424161C),
+                  offset: Offset(2, 2),
                 ),
               ],
             ),
@@ -539,7 +538,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               height: 52,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.surface(context),
+                color: c.surfaceLowest,
                 image: _photoPath != null && File(_photoPath!).existsSync()
                     ? DecorationImage(
                         image: FileImage(File(_photoPath!)),
@@ -551,8 +550,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ? Center(
                       child: Text(
                         initial,
-                        style: GoogleFonts.poppins(
-                          color: AppTheme.primaryColor,
+                        style: GoogleFonts.spaceGrotesk(
+                          color: c.primary,
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                         ),
@@ -567,8 +566,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // Widget: Kartu Status Psikis dengan Gradien
-  // Menampilkan hasil asesmen kesehatan mental dari onboarding
+  // Widget: Kartu Status Psikis — layered card dengan accent status
   // ─────────────────────────────────────────────────────────────
   Widget _buildPsychCard(BuildContext context, EmotionRecord? latest, List<EmotionRecord> history) {
     // Ambil data user dari database
@@ -591,459 +589,389 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         }
 
         // Tentukan warna dan info berdasarkan skor (0-100, tinggi = baik)
-        Color primaryColor;
-        Color secondaryColor;
+        Color statusColor;
         String statusLabel;
         IconData statusIcon;
         String description;
 
         if (displayScore100 == null) {
-          primaryColor = const Color(0xFF64748B);
-          secondaryColor = const Color(0xFF94A3B8);
+          statusColor = const Color(0xFF8C7075);
           statusLabel = AppLocalizations.tr('not_assessed');
-          statusIcon = Icons.help_outline_rounded;
+          statusIcon = PhosphorIconsRegular.question;
           description = AppLocalizations.tr('fill_questionnaire_to_see_score');
         } else if (displayScore100 >= 76) {
-          primaryColor = const Color(0xFF10B981); // Green - Optimal
-          secondaryColor = const Color(0xFF34D399);
+          statusColor = const Color(0xFF10B981); // Green - Optimal
           statusLabel = AppLocalizations.tr('psych_excellent');
-          statusIcon = Icons.check_circle_rounded;
+          statusIcon = PhosphorIconsRegular.checkCircle;
           description = _getHealthClassDescription(displayScore100);
         } else if (displayScore100 >= 51) {
-          primaryColor = const Color(0xFFF59E0B); // Amber - Cukup
-          secondaryColor = const Color(0xFFFBBF24);
+          statusColor = const Color(0xFFF59E0B); // Amber - Cukup
           statusLabel = AppLocalizations.tr('psych_good');
-          statusIcon = Icons.check_circle_outline_rounded;
+          statusIcon = PhosphorIconsRegular.checkCircle;
           description = _getHealthClassDescription(displayScore100);
         } else if (displayScore100 >= 26) {
-          primaryColor = const Color(0xFFF97316); // Orange - Rentan
-          secondaryColor = const Color(0xFFFB923C);
+          statusColor = const Color(0xFFF97316); // Orange - Rentan
           statusLabel = AppLocalizations.tr('psych_fair');
-          statusIcon = Icons.warning_amber_rounded;
+          statusIcon = PhosphorIconsRegular.warning;
           description = _getHealthClassDescription(displayScore100);
         } else {
-          primaryColor = const Color(0xFFEF4444); // Red - Perlu perhatian
-          secondaryColor = const Color(0xFFF87171);
+          statusColor = const Color(0xFFEF4444); // Red - Perlu perhatian
           statusLabel = AppLocalizations.tr('psych_needs_attention');
-          statusIcon = Icons.error_rounded;
+          statusIcon = PhosphorIconsRegular.warningCircle;
           description = _getHealthClassDescription(displayScore100);
         }
 
+        final cardEnd = Color.lerp(statusColor, Colors.black, 0.32)!;
+        final white70 = Colors.white.withValues(alpha: 0.7);
+        final white90 = Colors.white.withValues(alpha: 0.9);
+
         return Container(
           width: double.infinity,
-          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [primaryColor, secondaryColor],
+              colors: [statusColor, cardEnd],
             ),
-            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: primaryColor.withValues(alpha: 0.4),
-                blurRadius: 20,
-                spreadRadius: 0,
-                offset: const Offset(0, 8),
+                color: statusColor.withValues(alpha: 0.35),
+                offset: const Offset(4, 4),
               ),
             ],
           ),
-          child: Stack(
-            children: [
-              // ── Dekorasi background ────────────────────────────
-              Positioned(
-                top: -40,
-                right: -30,
-                child: Container(
-                  width: 140,
-                  height: 140,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.1),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: -50,
-                left: -30,
-                child: Container(
-                  width: 180,
-                  height: 180,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.08),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 20,
-                right: 20,
-                child: Opacity(
-                  opacity: 0.1,
-                  child: Column(
-                    children: List.generate(
-                      3,
-                      (i) => Row(
-                        children: List.generate(
-                          3,
-                          (j) => Container(
-                            margin: const EdgeInsets.all(4),
-                            width: 4,
-                            height: 4,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: _PsychCardDecorPainter(color: Colors.white),
                     ),
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          PhosphorIconsRegular.heart,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        AppLocalizations.tr('mental_health'),
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.35),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(statusIcon, size: 12, color: Colors.white),
+                        const SizedBox(width: 5),
+                        Text(
+                          statusLabel,
+                          style: GoogleFonts.spaceGrotesk(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
 
-              // ── Konten Utama ─────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.all(AppTheme.spaceXl),
-                child: Column(
+const SizedBox(height: 16),
+
+              // Hero skor zen — baris skor + garis progress tipis
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    displayScore100 != null ? '$displayScore100' : '---',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 42,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -1,
+                      height: 1,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 5),
+                    child: Text(
+                      '/ 100',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: white70,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // Garis progress tipis
+              ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(
+                  value: displayScore100 != null
+                      ? displayScore100 / 100
+                      : 0,
+                  minHeight: 4,
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // Deskripsi/saran
+              Container(
+                padding: const EdgeInsets.all(11),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.22),
+                  ),
+                ),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                Icons.favorite_rounded,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              AppLocalizations.tr('mental_health'),
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            borderRadius: BorderRadius.circular(
-                              AppTheme.radiusFull,
-                            ),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.4),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(statusIcon, size: 11, color: Colors.white),
-                              const SizedBox(width: 4),
-                              Text(
-                                statusLabel,
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.3,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    Icon(
+                      PhosphorIconsRegular.lightbulb,
+                      color: white90,
+                      size: 15,
                     ),
-
-                    const SizedBox(height: 20),
-
-                    // Skor besar: 0-100 scale
-                    Row(
-                      children: [
-                        Image.asset(
-                          _mentalLevelIcon(displayScore100),
-                          width: 56,
-                          height: 56,
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              displayScore100 != null
-                                  ? '$displayScore100 / 100'
-                                  : '--- / 100',
-                              style: GoogleFonts.poppins(
-                                fontSize: 36,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                                letterSpacing: -1,
-                                height: 1,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              displayScore100 != null
-                                  ? _getScoreCategory100(displayScore100)
-                                  : AppLocalizations.tr('mental_health_score'),
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white.withValues(alpha: 0.85),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Progress bar visual
-                    if (displayScore100 != null) ...[
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: LinearProgressIndicator(
-                          value: displayScore100 / 100,
-                          minHeight: 8,
-                          backgroundColor: Colors.white.withValues(alpha: 0.2),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                    const SizedBox(width: 7),
+                    Expanded(
+                      child: Text(
+                        description,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: white90,
+                          height: 1.45,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
 
-                    // Deskripsi/saran
+              // Indikator dampak emosi
+              if (history.isNotEmpty && displayScore100 != null) ...[
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.22),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        width: 30,
+                        height: 30,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            width: 1,
-                          ),
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
                         ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                              Icons.lightbulb_outline_rounded,
-                              color: Colors.white.withValues(alpha: 0.9),
-                              size: 16,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                description,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11.5,
-                                  color: Colors.white.withValues(alpha: 0.95),
-                                  height: 1.5,
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: Icon(
+                          history.first.emotionScore >= 0
+                              ? PhosphorIconsRegular.trendUp
+                              : PhosphorIconsRegular.trendDown,
+                          color: Colors.white,
+                          size: 15,
                         ),
                       ),
-
-                    // Indikator dampak emosi
-                    if (history.isNotEmpty && displayScore100 != null) ...[
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      const SizedBox(width: 10),
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               AppLocalizations.tr('emotion_impact_on_score'),
-                              style: GoogleFonts.poppins(
-                                fontSize: 9,
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white.withValues(alpha: 0.7),
+                                color: white70,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(
-                                  history.first.emotionScore >= 0
-                                      ? Icons.trending_up_rounded
-                                      : Icons.trending_down_rounded,
-                                  color: Colors.white.withValues(alpha: 0.85),
-                                  size: 14,
-                                ),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    history.first.emotionScore >= 0
-                                        ? AppLocalizations.tr('positive_emotions_increase')
-                                        : AppLocalizations.tr('negative_emotions_decrease'),
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 9.5,
-                                      color: Colors.white.withValues(alpha: 0.8),
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    history.first.emotionScore >= 0
-                                        ? '+${(history.first.emotionScore.abs() / 5 * 17).round()}'
-                                        : '-${(history.first.emotionScore.abs() / 5 * 17).round()}',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            const SizedBox(height: 2),
+                            Text(
+                              history.first.emotionScore >= 0
+                                  ? AppLocalizations.tr('positive_emotions_increase')
+                                  : AppLocalizations.tr('negative_emotions_decrease'),
+                              style: GoogleFonts.inter(
+                                fontSize: 11.5,
+                                color: Colors.white,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-
-                    // Safety layer (butuh perhatian klinis)
-                    if (displayScore100 != null && displayScore100 < 26) ...[
-                      const SizedBox(height: 16),
-                      _buildPsychSafetyReferral(context),
-                    ],
-
-                    // Deteksi terakhir (jika ada)
-                    if (latest != null) ...[
-                      const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
+                          horizontal: 10,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(999),
                         ),
-                        child: Row(
+                        child: Text(
+                          history.first.emotionScore >= 0
+                              ? '+${(history.first.emotionScore.abs() / 5 * 17).round()}'
+                              : '-${(history.first.emotionScore.abs() / 5 * 17).round()}',
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // Safety layer (butuh perhatian klinis)
+              if (displayScore100 != null && displayScore100 < 26) ...[
+                const SizedBox(height: 14),
+                _buildPsychSafetyReferral(context),
+              ],
+
+              // Deteksi terakhir (jika ada)
+              if (latest != null) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.22),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(7),
+                          child: Image.asset(
+                            latest.emotion.assetIconPath,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Image.asset(
-                              latest.emotion.assetIconPath,
-                              width: 36,
-                              height: 36,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    AppLocalizations.tr('last_detection'),
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.white.withValues(alpha: 0.75),
-                                    ),
-                                  ),
-                                  Text(
-                                    '${latest.emotion.displayName} • ${(latest.confidence * 100).toStringAsFixed(0)}%',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
+                            Text(
+                              AppLocalizations.tr('last_detection'),
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: white70,
                               ),
                             ),
                             Text(
-                              latest.formattedTime,
-                              style: GoogleFonts.poppins(
-                                fontSize: 10,
-                                color: Colors.white.withValues(alpha: 0.7),
+                              '${latest.emotion.displayName} (${(latest.confidence * 100).toStringAsFixed(0)}%)',
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
                               ),
                             ),
                           ],
                         ),
                       ),
+                      Text(
+                        latest.formattedTime,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 10,
+                          color: white70,
+                        ),
+                      ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ],
+          ),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  // Path aset level mental berdasarkan skor
-  String _mentalLevelIcon(int? score) {
-    if (score == null) return 'assets/icon/level mental/butuh perhatian.png';
-    if (score >= 76) return 'assets/icon/level mental/baik.png';
-    if (score >= 51) return 'assets/icon/level mental/cukup.png';
-    if (score >= 26) return 'assets/icon/level mental/rentan.png';
-    return 'assets/icon/level mental/butuh perhatian.png';
-  }
-
-  // Helper untuk kategori skor 0-100 (tinggi = baik)
-  String _getScoreCategory100(int score) {
-    if (score >= 76) return AppLocalizations.tr('psych_excellent');
-    if (score >= 51) return AppLocalizations.tr('psych_good');
-    if (score >= 26) return AppLocalizations.tr('psych_fair');
-    return AppLocalizations.tr('psych_needs_attention');
-  }
-
-  // Helper untuk get description kelas kesehatan mental
-  String _getHealthClassDescription(int score) {
-    if (score >= 91) return AppLocalizations.tr('overall_exc_4');
-    if (score >= 81) return AppLocalizations.tr('overall_exc_3');
-    if (score >= 76) return AppLocalizations.tr('overall_exc_2');
-    if (score >= 66) return AppLocalizations.tr('overall_good_4');
-    if (score >= 61) return AppLocalizations.tr('overall_good_3');
-    if (score >= 56) return AppLocalizations.tr('overall_good_2');
-    if (score >= 51) return AppLocalizations.tr('overall_good_1');
-    if (score >= 41) return AppLocalizations.tr('overall_fair_5');
-    if (score >= 36) return AppLocalizations.tr('overall_fair_4');
-    if (score >= 31) return AppLocalizations.tr('overall_fair_3');
-    if (score >= 26) return AppLocalizations.tr('overall_fair_2');
-    if (score >= 16) return AppLocalizations.tr('overall_attn_5');
-    if (score >= 11) return AppLocalizations.tr('overall_attn_4');
-    if (score >= 6)  return AppLocalizations.tr('overall_attn_3');
-    return AppLocalizations.tr('overall_attn_2');
-  }
-
   // ─────────────────────────────────────────────────────────────
-  // Widget: Quick Stats — 3 kartu statistik mini
+  // Widget: Bento Stats — grid 2x2 statistik mini
   // ─────────────────────────────────────────────────────────────
-  Widget _buildQuickStats(BuildContext context, List<EmotionRecord> history) {
+  Widget _buildStatsBento(BuildContext context, List<EmotionRecord> history) {
     final positiveCount = history
         .where((r) => r.emotion == EmotionType.happy)
         .length;
@@ -1056,81 +984,141 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         )
         .length;
 
-    final stats = [
+final stats = [
       (
         value: '${history.length}',
         label: AppLocalizations.tr('recordings'),
-        icon: Icons.analytics_rounded,
-        color: AppTheme.iconColor(context),
+        icon: PhosphorIconsRegular.chartBar,
+        color: ResonanceColors.of(context).primary,
       ),
       (
         value: '$positiveCount',
         label: AppLocalizations.tr('positive'),
-        icon: Icons.sentiment_satisfied_alt_rounded,
+        icon: PhosphorIconsRegular.smiley,
         color: const Color(0xFFF59E0B),
       ),
       (
         value: '$negativeCount',
         label: AppLocalizations.tr('attention'),
-        icon: Icons.favorite_border_rounded,
+        icon: PhosphorIconsRegular.smileySad,
         color: const Color(0xFFF87171),
       ),
     ];
 
-    return Row(
-      children: stats.asMap().entries.map((entry) {
-        final i = entry.key;
-        final s = entry.value;
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(right: i < stats.length - 1 ? 10 : 0),
-            child: GlassCard(
-              useBlur:
-                  !(Platform.isWindows || Platform.isLinux || Platform.isMacOS),
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: s.color.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(s.icon, color: s.color, size: 20),
-                  ),
-                  const SizedBox(height: 8),
-                  AnimatedCounter(
-                    value: double.parse(s.value),
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: s.color,
-                      height: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    s.label,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.textS(context),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+    return Column(
+      children: [
+        Row(
+          children: [
+Expanded(
+              child: _buildStatTile(
+                context,
+                value: stats[0].value,
+                label: stats[0].label,
+                icon: stats[0].icon,
+                color: stats[0].color,
               ),
             ),
-          ),
-        );
-      }).toList(),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildStatTile(
+                context,
+                value: stats[1].value,
+                label: stats[1].label,
+                icon: stats[1].icon,
+                color: stats[1].color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatTile(
+                context,
+                value: stats[2].value,
+                label: stats[2].label,
+                icon: stats[2].icon,
+                color: stats[2].color,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildRemainingTile(context),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // Widget: Sisa Deteksi Harian
-  // ─────────────────────────────────────────────────────────────
-  Widget _buildRemainingDetections(BuildContext context) {
+Widget _buildStatTile(
+    BuildContext context, {
+    required String value,
+    required String label,
+    required IconData icon,
+    required Color color,
+  }) {
+    final c = ResonanceColors.of(context);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: c.surfaceLowest,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: c.outlineVariant),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1424161C),
+            offset: Offset(2, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AnimatedCounter(
+                  value: double.parse(value),
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w700,
+                    color: c.onSurface,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w500,
+                    color: c.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRemainingTile(BuildContext context) {
+    final c = ResonanceColors.of(context);
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
     return FutureBuilder<int>(
       future: StorageService.getRemainingDetections(uid),
@@ -1138,33 +1126,40 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         final premium = context.watch<PremiumProvider>();
         final remaining = snapshot.data ?? 5;
         final isLow = remaining <= 2;
+        final color = premium.isPremium
+            ? const Color(0xFF10B981)
+            : isLow
+                ? const Color(0xFFF87171)
+                : const Color(0xFFF59E0B);
 
-        return GlassCard(
-          useBlur: !(Platform.isWindows || Platform.isLinux || Platform.isMacOS),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: c.surfaceLowest,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: c.outlineVariant),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1424161C),
+                offset: Offset(2, 2),
+              ),
+            ],
+          ),
+child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
-                  color: (premium.isPremium
-                      ? const Color(0xFF10B981)
-                      : isLow
-                          ? const Color(0xFFF87171)
-                          : const Color(0xFFF59E0B)
-                  ).withValues(alpha: 0.15),
+                  color: color.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   premium.isPremium
-                      ? Icons.auto_awesome_rounded
-                      : Icons.wifi_tethering_rounded,
-                  color: premium.isPremium
-                      ? const Color(0xFF10B981)
-                      : isLow
-                          ? const Color(0xFFF87171)
-                          : const Color(0xFFF59E0B),
-                  size: 20,
+                      ? PhosphorIconsRegular.infinity
+                      : PhosphorIconsRegular.timer,
+                  color: color,
+                  size: 18,
                 ),
               ),
               const SizedBox(width: 12),
@@ -1173,48 +1168,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.tr('remaining_detections'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.textS(context),
+                      premium.isPremium
+                          ? '∞'
+                          : '$remaining/5',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700,
+                        color: color,
+                        height: 1,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
-                      premium.isPremium
-                          ? AppLocalizations.tr('remaining_unlimited')
-                          : '$remaining/5',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: premium.isPremium
-                            ? const Color(0xFF10B981)
-                            : isLow
-                                ? const Color(0xFFF87171)
-                                : AppTheme.textP(context),
-                        height: 1.2,
+                      AppLocalizations.tr('remaining_detections'),
+                      style: GoogleFonts.inter(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w500,
+                        color: c.onSurfaceVariant,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              if (!premium.isPremium && remaining > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${AppLocalizations.tr('remaining_prefix')} $remaining',
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF10B981),
-                    ),
-                  ),
-                ),
             ],
           ),
         );
@@ -1223,37 +1200,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // Widget: Tombol CTA Rekam — Besar, Elegan, Animated
+  // Widget: Tombol CTA Rekam — taktil, pill besar
   // ─────────────────────────────────────────────────────────────
   Widget _buildCTAButton(BuildContext context) {
+    final c = ResonanceColors.of(context);
     return GestureDetector(
       onTap: widget.onStartRecording,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 28),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.primaryColor.withValues(alpha: 0.05),
-              AppTheme.secondaryColor.withValues(alpha: 0.05),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-          border: Border.all(
-            color: AppTheme.primaryColor.withValues(alpha: 0.2),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              blurRadius: 20,
-              spreadRadius: 0,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
+      child: ResonanceCard(
+        c: c,
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1264,7 +1219,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 return Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Ring luar (pulse)
                     Transform.scale(
                       scale: _pulseAnim.value * 1.35,
                       child: Container(
@@ -1272,16 +1226,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         height: 76,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              AppTheme.primaryColor.withValues(alpha: 0.08),
-                              AppTheme.secondaryColor.withValues(alpha: 0.08),
-                            ],
-                          ),
+                          color: c.primaryContainer,
                         ),
                       ),
                     ),
-                    // Ring tengah (pulse lambat)
                     Transform.scale(
                       scale: _pulseAnim.value * 1.18,
                       child: Container(
@@ -1289,41 +1237,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         height: 76,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              AppTheme.primaryColor.withValues(alpha: 0.12),
-                              AppTheme.secondaryColor.withValues(alpha: 0.12),
-                            ],
-                          ),
+                          color: c.primaryContainer.withValues(alpha: 0.6),
                         ),
                       ),
                     ),
-                    // Tombol utama dengan gradient border
                     Container(
                       width: 76,
                       height: 76,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: AppTheme.primaryGradient,
-                        boxShadow: [
+                        color: c.primary,
+                        boxShadow: const [
                           BoxShadow(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.4),
-                            blurRadius: 20,
-                            spreadRadius: 0,
-                            offset: const Offset(0, 8),
-                          ),
-                          BoxShadow(
-                            color: AppTheme.secondaryColor.withValues(
-                              alpha: 0.3,
-                            ),
-                            blurRadius: 16,
-                            spreadRadius: 0,
-                            offset: const Offset(0, 4),
+                            color: Color(0x4024161C),
+                            offset: Offset(4, 4),
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.mic_rounded,
+                      child: Icon(
+                        PhosphorIconsRegular.microphone,
                         color: Colors.white,
                         size: 34,
                       ),
@@ -1337,23 +1269,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
             Text(
               AppLocalizations.tr('start_recording'),
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.spaceGrotesk(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                foreground: Paint()
-                  ..shader = AppTheme.primaryGradient.createShader(
-                    const Rect.fromLTWH(0, 0, 200, 70),
-                  ),
+                color: c.onSurface,
                 letterSpacing: -0.2,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               AppLocalizations.tr('start_recording_desc'),
-              style: GoogleFonts.poppins(
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w400,
-                color: AppTheme.textS(context),
+                color: c.onSurfaceVariant,
               ),
             ),
 
@@ -1363,11 +1293,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildFeatureTag('⚡ Real-time', AppTheme.primaryColor),
+                _buildFeatureTag(
+                  context,
+                  PhosphorIconsRegular.waveform,
+                  'Real-time',
+                  c.primary,
+                ),
                 const SizedBox(width: 8),
-                _buildFeatureTag('🔒 Private', AppTheme.secondaryColor),
+                _buildFeatureTag(
+                  context,
+                  PhosphorIconsRegular.lock,
+                  'Private',
+                  c.primary,
+                ),
                 const SizedBox(width: 8),
-                _buildFeatureTag('🧠 6 Emotions', const Color(0xFFF59E0B)),
+                _buildFeatureTag(
+                  context,
+                  PhosphorIconsRegular.brain,
+                  '6 Emosi',
+                  const Color(0xFFF59E0B),
+                ),
               ],
             ),
           ],
@@ -1376,21 +1321,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildFeatureTag(String label, Color color) {
+  Widget _buildFeatureTag(BuildContext context, IconData icon, String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+        borderRadius: BorderRadius.circular(999),
         border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
       ),
-      child: Text(
-        label,
-        style: GoogleFonts.poppins(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: color),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1426,14 +1378,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 children: [
                   _buildSectionHeader(
                     context,
-                    icon: Icons.auto_awesome_rounded,
+                    icon: PhosphorIconsRegular.sparkle,
                     title: AppLocalizations.tr('psych_recommendation'),
                   ),
                   const SizedBox(height: 14),
                   SuggestionCard(
                     title: title,
                     traitSuggestions: result.traitSuggestions,
-                    icon: Icons.tips_and_updates_rounded,
+                    icon: PhosphorIconsRegular.lightbulb,
                     color: dominant.color,
                     isCollapsible: true,
                   ),
@@ -1469,7 +1421,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFFDC2626).withValues(alpha: 0.3),
@@ -1490,7 +1442,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
-                  Icons.emergency_rounded,
+                  PhosphorIconsRegular.warningCircle,
                   color: Colors.white,
                   size: 18,
                 ),
@@ -1501,7 +1453,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   AppLocalizations.locale.startsWith('en')
                       ? 'Need Help?'
                       : 'Butuh Bantuan?',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.spaceGrotesk(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
@@ -1514,7 +1466,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           if (result.safetyMessage != null)
             Text(
               result.safetyMessage!,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 13,
                 color: Colors.white.withValues(alpha: 0.95),
                 height: 1.5,
@@ -1527,13 +1479,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.arrow_right_rounded,
+                      const Icon(PhosphorIconsRegular.arrowRight,
                           color: Colors.white, size: 16),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           action,
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.inter(
                             fontSize: 12,
                             color: Colors.white.withValues(alpha: 0.9),
                             height: 1.4,
@@ -1549,12 +1501,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () => launchUrl(Uri.parse('tel:199')),
-              icon: const Icon(Icons.phone_rounded, size: 18),
+              icon: const Icon(PhosphorIconsRegular.phone, size: 18),
               label: Text(
                 AppLocalizations.locale.startsWith('en')
                     ? 'Call 199 (Sejiwa)'
                     : 'Hubungi 199 (Sejiwa)',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.spaceGrotesk(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1582,6 +1534,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     BuildContext context,
     List<EmotionRecord> history,
   ) {
+    final c = ResonanceColors.of(context);
     final recent = history.take(3).toList();
 
     return Column(
@@ -1592,7 +1545,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             _buildSectionHeader(
               context,
-              icon: Icons.history_rounded,
+              icon: PhosphorIconsRegular.clock,
               title: AppLocalizations.tr('recent_detections'),
             ),
             GestureDetector(
@@ -1601,18 +1554,33 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 widget.onNavigateToHistory?.call();
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.iconColor(context).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
                 ),
-                child: Text(
-                  AppLocalizations.tr('see_all'),
-                  style: GoogleFonts.poppins(
-                    color: AppTheme.iconColor(context),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12.5,
-                  ),
+                decoration: BoxDecoration(
+                  color: c.surfaceLowest,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: c.outlineVariant),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      AppLocalizations.tr('see_all'),
+                      style: GoogleFonts.inter(
+                        color: c.onSurface,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 3),
+                    Icon(
+                      PhosphorIconsRegular.arrowUpRight,
+                      color: c.onSurface,
+                      size: 13,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -1626,15 +1594,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // Item list riwayat dengan left-border accent
   Widget _buildHistoryItem(BuildContext context, EmotionRecord record) {
+    final c = ResonanceColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        boxShadow: AppTheme.cardShadow,
+        color: c.surfaceLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.outlineVariant),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1424161C),
+            offset: Offset(2, 2),
+          ),
+        ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        borderRadius: BorderRadius.circular(16),
         child: IntrinsicHeight(
           child: Row(
             children: [
@@ -1644,8 +1619,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 decoration: BoxDecoration(
                   color: record.emotion.color,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(AppTheme.radiusMd),
-                    bottomLeft: Radius.circular(AppTheme.radiusMd),
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
                   ),
                 ),
               ),
@@ -1653,34 +1628,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
-                    vertical: 13,
+                    vertical: 12,
                   ),
                   child: Row(
                     children: [
                       // Ikon emosi
                       Image.asset(
                         record.emotion.assetIconPath,
-                        width: 48,
-                        height: 48,
+                        width: 44,
+                        height: 44,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               record.emotion.displayName,
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.spaceGrotesk(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
-                                color: AppTheme.textP(context),
+                                color: c.onSurface,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               record.formattedTime,
-                              style: GoogleFonts.poppins(
-                                color: AppTheme.textS(context),
+                              style: GoogleFonts.inter(
+                                color: c.onSurfaceVariant,
                                 fontSize: 11.5,
                               ),
                             ),
@@ -1695,16 +1670,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                         decoration: BoxDecoration(
                           color: record.emotion.color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(
-                            AppTheme.radiusFull,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: record.emotion.color.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Text(
                           record.confidencePercent,
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.jetBrainsMono(
                             color: record.emotion.color,
                             fontWeight: FontWeight.w700,
-                            fontSize: 12,
+                            fontSize: 11,
                           ),
                         ),
                       ),
@@ -1729,29 +1705,39 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     String? trailingLabel,
     Color? trailingColor,
   }) {
+    final c = ResonanceColors.of(context);
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(6),
+          width: 30,
+          height: 30,
           decoration: BoxDecoration(
-            color: AppTheme.iconColor(context).withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(8),
+            color: c.primaryContainer,
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: AppTheme.iconColor(context), size: 16),
+          child: Icon(icon, color: c.primary, size: 16),
         ),
-        const SizedBox(width: 8),
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: GoogleFonts.spaceGrotesk(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: c.onSurface,
+            letterSpacing: -0.2,
+          ),
+        ),
         if (trailingLabel != null && trailingColor != null) ...[
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
               color: trailingColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
               trailingLabel,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: trailingColor,
@@ -1762,4 +1748,110 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ],
     );
   }
+
+// Helper untuk get description kelas kesehatan mental
+  String _getHealthClassDescription(int score) {
+    if (score >= 91) return AppLocalizations.tr('overall_exc_4');
+    if (score >= 81) return AppLocalizations.tr('overall_exc_3');
+    if (score >= 76) return AppLocalizations.tr('overall_exc_2');
+    if (score >= 66) return AppLocalizations.tr('overall_good_4');
+    if (score >= 61) return AppLocalizations.tr('overall_good_3');
+    if (score >= 56) return AppLocalizations.tr('overall_good_2');
+    if (score >= 51) return AppLocalizations.tr('overall_good_1');
+    if (score >= 41) return AppLocalizations.tr('overall_fair_5');
+    if (score >= 36) return AppLocalizations.tr('overall_fair_4');
+    if (score >= 31) return AppLocalizations.tr('overall_fair_3');
+    if (score >= 26) return AppLocalizations.tr('overall_fair_2');
+    if (score >= 16) return AppLocalizations.tr('overall_attn_5');
+    if (score >= 11) return AppLocalizations.tr('overall_attn_4');
+    if (score >= 6)  return AppLocalizations.tr('overall_attn_3');
+    return AppLocalizations.tr('overall_attn_2');
+  }
+}
+// -------------------------------------------------------------
+// _PsychCardDecorPainter — Dekorasi halus di dalam kartu kesehatan mental
+// -------------------------------------------------------------
+class _PsychCardDecorPainter extends CustomPainter {
+  final Color color;
+
+  const _PsychCardDecorPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Lingkaran lembut di pojok
+    canvas.drawCircle(
+      Offset(size.width * 0.98, -24),
+      110,
+      Paint()..color = color.withValues(alpha: 0.05),
+    );
+    canvas.drawCircle(
+      Offset(-14, size.height * 0.72),
+      70,
+      Paint()..color = color.withValues(alpha: 0.06),
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.82, size.height * 0.92),
+      34,
+      Paint()..color = color.withValues(alpha: 0.07),
+    );
+
+    // Titik-titik kecil
+    final dot = Paint()..color = color.withValues(alpha: 0.1);
+    canvas.drawCircle(Offset(size.width * 0.16, size.height * 0.1), 3, dot);
+    canvas.drawCircle(Offset(size.width * 0.6, size.height * 0.05), 2.2, dot);
+    canvas.drawCircle(Offset(size.width * 0.3, size.height * 0.94), 2.5, dot);
+
+    // Gelombang sinus halus
+    _drawWave(
+      canvas,
+      size,
+      baseY: size.height * 0.3,
+      amp: 7,
+      freq: 5,
+      phase: 0,
+      stroke: 1.6,
+      alpha: 0.1,
+    );
+    _drawWave(
+      canvas,
+      size,
+      baseY: size.height * 0.36,
+      amp: 12,
+      freq: 3.2,
+      phase: math.pi,
+      stroke: 1.4,
+      alpha: 0.07,
+    );
+  }
+
+  void _drawWave(
+    Canvas canvas,
+    Size size, {
+    required double baseY,
+    required double amp,
+    required double freq,
+    required double phase,
+    required double stroke,
+    required double alpha,
+  }) {
+    final paint = Paint()
+      ..color = color.withValues(alpha: alpha)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.round;
+    final path = Path();
+    for (double x = 0; x <= size.width; x += 2) {
+      final y = baseY +
+          math.sin((x / size.width) * 2 * math.pi * freq + phase) * amp;
+      if (x == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    canvas.drawPath(path, paint);
+  }
+
+@override
+  bool shouldRepaint(covariant _PsychCardDecorPainter oldDelegate) => false;
 }

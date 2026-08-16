@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../services/suggestion_service.dart';
-import '../theme/app_theme.dart';
+import '../theme/resonance_colors.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SuggestionCard — Kartu reusable untuk menampilkan saran Big Five OCEAN
@@ -28,8 +29,8 @@ class SuggestionCard extends StatelessWidget {
     required this.title,
     this.suggestions = const [],
     this.traitSuggestions,
-    this.icon = Icons.lightbulb_rounded,
-    this.color = AppTheme.primaryDark,
+    this.icon = PhosphorIconsRegular.lightbulb,
+    this.color = const Color(0xFFA05A6B),
     this.isCollapsible = false,
   });
 
@@ -68,24 +69,24 @@ Color _traitColor(String trait) {
     case 'N':
       return const Color(0xFFEF4444); // Red
     default:
-      return AppTheme.primaryColor;
+      return const Color(0xFFC77E8C);
   }
 }
 
 IconData _traitIcon(String trait) {
   switch (trait) {
     case 'O':
-      return Icons.auto_awesome_rounded;
+      return PhosphorIconsRegular.sparkle;
     case 'C':
-      return Icons.check_circle_outline_rounded;
+      return PhosphorIconsRegular.checkCircle;
     case 'E':
-      return Icons.people_outline_rounded;
+      return PhosphorIconsRegular.usersThree;
     case 'A':
-      return Icons.favorite_outline_rounded;
+      return PhosphorIconsRegular.heart;
     case 'N':
-      return Icons.psychology_rounded;
+      return PhosphorIconsRegular.brain;
     default:
-      return Icons.lightbulb_outline_rounded;
+      return PhosphorIconsRegular.lightbulb;
   }
 }
 
@@ -109,16 +110,22 @@ class _StaticCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
     final hasTraits = traitSuggestions != null && traitSuggestions!.isNotEmpty;
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-        boxShadow: AppTheme.cardShadow,
+        color: c.surfaceLowest,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1424161C),
+            offset: Offset(2, 2),
+          ),
+        ],
         border: Border.all(
-          color: color.withValues(alpha: 0.18),
+          color: color.withValues(alpha: 0.22),
           width: 1,
         ),
       ),
@@ -132,8 +139,7 @@ class _StaticCard extends StatelessWidget {
             showArrow: false,
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-                AppTheme.spaceLg, 0, AppTheme.spaceLg, AppTheme.spaceLg),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             child: hasTraits
                 ? _buildTraitSections(traitSuggestions!, context)
                 : _buildFlatList(suggestions, context),
@@ -171,17 +177,23 @@ class _CollapsibleCardState extends State<_CollapsibleCard> {
 
   @override
   Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
     final hasTraits =
         widget.traitSuggestions != null && widget.traitSuggestions!.isNotEmpty;
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-        boxShadow: AppTheme.cardShadow,
+        color: c.surfaceLowest,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1424161C),
+            offset: Offset(2, 2),
+          ),
+        ],
         border: Border.all(
-          color: widget.color.withValues(alpha: 0.18),
+          color: widget.color.withValues(alpha: 0.22),
           width: 1,
         ),
       ),
@@ -189,7 +201,7 @@ class _CollapsibleCardState extends State<_CollapsibleCard> {
         children: [
           InkWell(
             onTap: () => setState(() => _expanded = !_expanded),
-            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            borderRadius: BorderRadius.circular(18),
             child: _CardHeader(
               title: widget.title,
               icon: widget.icon,
@@ -203,8 +215,7 @@ class _CollapsibleCardState extends State<_CollapsibleCard> {
             crossFadeState:
                 _expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
             firstChild: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  AppTheme.spaceLg, 0, AppTheme.spaceLg, AppTheme.spaceLg),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               child: hasTraits
                   ? _buildTraitSections(widget.traitSuggestions!, context)
                   : _buildFlatList(widget.suggestions, context),
@@ -231,10 +242,10 @@ Widget _buildTraitSections(List<TraitSuggestion> traits, BuildContext context) {
           padding: const EdgeInsets.only(bottom: 12),
           child: Container(
             decoration: BoxDecoration(
-              color: tc.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(12),
+              color: tc.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: tc.withValues(alpha: 0.12),
+                color: tc.withValues(alpha: 0.18),
                 width: 1,
               ),
             ),
@@ -245,23 +256,23 @@ Widget _buildTraitSections(List<TraitSuggestion> traits, BuildContext context) {
                 Container(
                   width: double.infinity,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: tc.withValues(alpha: 0.08),
+                    color: tc.withValues(alpha: 0.1),
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(11),
-                      topRight: Radius.circular(11),
+                      topLeft: Radius.circular(13),
+                      topRight: Radius.circular(13),
                     ),
                   ),
                   child: Row(
                     children: [
-                      Icon(_traitIcon(trait.trait), size: 14, color: tc),
-                      const SizedBox(width: 6),
+                      Icon(_traitIcon(trait.trait), size: 15, color: tc),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           trait.traitName,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: tc,
                           ),
@@ -269,14 +280,14 @@ Widget _buildTraitSections(List<TraitSuggestion> traits, BuildContext context) {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                            horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(
-                          color: tc.withValues(alpha: 0.15),
+                          color: tc.withValues(alpha: 0.16),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           trait.level,
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.jetBrainsMono(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: tc,
@@ -288,7 +299,7 @@ Widget _buildTraitSections(List<TraitSuggestion> traits, BuildContext context) {
                 ),
                 // Suggestions
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
                   child: Column(
                     children: trait.suggestions
                         .asMap()
@@ -315,13 +326,15 @@ Widget _buildFlatList(List<String> suggestions, BuildContext context) {
         .asMap()
         .entries
         .map((e) => _SuggestionItem(
-            number: e.key + 1, text: e.value, color: AppTheme.primaryColor))
+            number: e.key + 1,
+            text: e.value,
+            color: const Color(0xFFC77E8C)))
         .toList(),
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// _CardHeader — Header strip dengan gradien tipis + ikon + judul
+// _CardHeader — Header strip dengan ikon well + judul
 // ─────────────────────────────────────────────────────────────────────────────
 class _CardHeader extends StatelessWidget {
   final String title;
@@ -340,46 +353,45 @@ class _CardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(
-          AppTheme.spaceLg, 14, AppTheme.spaceLg, 14),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: 0.12),
-            color.withValues(alpha: 0.04),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: color.withValues(alpha: 0.07),
         borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(AppTheme.radiusXl),
-          topRight: const Radius.circular(AppTheme.radiusXl),
+          topLeft: const Radius.circular(18),
+          topRight: const Radius.circular(18),
           bottomLeft: Radius.circular(
-              !showArrow || isExpanded ? 0 : AppTheme.radiusXl),
+              !showArrow || isExpanded ? 0 : 18),
           bottomRight: Radius.circular(
-              !showArrow || isExpanded ? 0 : AppTheme.radiusXl),
+              !showArrow || isExpanded ? 0 : 18),
+        ),
+        border: Border(
+          bottom: showArrow && isExpanded
+              ? BorderSide(color: color.withValues(alpha: 0.15))
+              : BorderSide.none,
         ),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+              color: color.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: color, size: 18),
+            child: Icon(icon, color: color, size: 17),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               title,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textP(context),
+                color: c.onSurface,
                 height: 1.3,
               ),
             ),
@@ -389,9 +401,9 @@ class _CardHeader extends StatelessWidget {
               turns: isExpanded ? 0.5 : 0,
               duration: const Duration(milliseconds: 250),
               child: Icon(
-                Icons.keyboard_arrow_down_rounded,
+                PhosphorIconsRegular.caretDown,
                 color: color,
-                size: 22,
+                size: 20,
               ),
             ),
         ],
@@ -416,6 +428,7 @@ class _SuggestionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = ResonanceColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -432,7 +445,7 @@ class _SuggestionItem extends StatelessWidget {
             child: Center(
               child: Text(
                 '$number',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.jetBrainsMono(
                   color: color,
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
@@ -440,14 +453,14 @@ class _SuggestionItem extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
-              style: GoogleFonts.poppins(
-                fontSize: 12.5,
+              style: GoogleFonts.inter(
+                fontSize: 13,
                 fontWeight: FontWeight.w400,
-                color: AppTheme.textP(context),
+                color: c.onSurface,
                 height: 1.5,
               ),
             ),
