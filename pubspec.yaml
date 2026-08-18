@@ -57,6 +57,9 @@ dependencies:
   pdf: ^3.11.3
   printing: ^5.13.4
   phosphor_flutter: ^2.1.0
+  flutter_local_notifications: ^19.4.0
+  timezone: ^0.10.1
+  flutter_timezone: ^4.1.0
 
 dev_dependencies:
   flutter_test:
@@ -103,6 +106,7 @@ flutter:
     - assets/emotion_en.json
     - assets/icon/emosi/
     - assets/icon/level mental/
+    - assets/icon/icon_greeting/
     - assets/bgimage/
     - assets/fonts/
 

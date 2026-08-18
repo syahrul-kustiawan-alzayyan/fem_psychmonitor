@@ -20,6 +20,7 @@ import 'services/ad_service.dart';
 import 'services/subscription_service.dart';
 import 'services/database_service.dart';
 import 'services/config_service.dart';
+import 'services/notification_service.dart';
 import 'services/storage_service.dart';
 import 'services/whisper_init_service.dart';
 import 'screens/auth_screen.dart';
@@ -40,6 +41,13 @@ void main() async {
 
   await ConfigService.load();
   await Firebase.initializeApp();
+
+  // Notifikasi pengingat harian (aman di-skip bila platform tidak mendukung)
+  try {
+    await NotificationService.instance.init();
+  } catch (e) {
+    debugPrint('Notification init error: $e');
+  }
 
   final localeProvider = LocaleProvider();
   final themeProvider = ThemeProvider();

@@ -102,20 +102,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return AppLocalizations.tr('greeting_night');
   }
 
-  IconData get _greetingIcon {
+String get _greetingAsset {
     final h = DateTime.now().hour;
-    if (h < 11) return PhosphorIconsRegular.sun;
-    if (h < 15) return PhosphorIconsRegular.sunDim;
-    if (h < 18) return PhosphorIconsRegular.sunDim;
-    return PhosphorIconsRegular.moonStars;
+    if (h < 11) return 'assets/icon/icon_greeting/pagi.png';
+    if (h < 15) return 'assets/icon/icon_greeting/siang.png';
+    if (h < 18) return 'assets/icon/icon_greeting/sore.png';
+    return 'assets/icon/icon_greeting/malam.png';
   }
 
+  // ── Time-based greeting accent color ─────────────────────────
   Color get _greetingColor {
     final h = DateTime.now().hour;
-    if (h < 11) return const Color(0xFFF59E0B);
-    if (h < 15) return const Color(0xFFF97316);
-    if (h < 18) return const Color(0xFFD97706);
-    return const Color(0xFF6366F1);
+    if (h < 11) return const Color(0xFFE8A33D);
+    if (h < 15) return const Color(0xFF4E97D9);
+    if (h < 18) return const Color(0xFFF0793C);
+    return const Color(0xFF7C6FE8);
   }
 
   // ── Formatted date ───────────────────────────────────────────
@@ -308,29 +309,37 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
               ),
               const SizedBox(height: 6),
-              // Greeting + nama
+// Greeting + nama
               Row(
                 children: [
                   Container(
-                    width: 28,
-                    height: 28,
+                    padding: const EdgeInsets.fromLTRB(8, 4, 11, 4),
                     decoration: BoxDecoration(
                       color: _greetingColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(9),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: _greetingColor.withValues(alpha: 0.28),
+                      ),
                     ),
-                    child: Icon(
-                      _greetingIcon,
-                      color: _greetingColor,
-                      size: 15,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _greeting,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: c.onSurfaceVariant,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          _greetingAsset,
+                          width: 15,
+                          height: 15,
+                          fit: BoxFit.contain,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _greeting,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: _greetingColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

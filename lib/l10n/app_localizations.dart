@@ -172,6 +172,18 @@ class AppLocalizations {
       'general': 'Umum',
       'about': 'Tentang',
       'account': 'Akun',
+      'notifications': 'Notifikasi',
+      'routine_reminder': 'Pengingat Rutin',
+      'routine_reminder_desc': 'Ingatkan deteksi emosi setiap 3 jam sekali',
+      'reminder_time': 'Waktu Mulai',
+      'reminder_disabled': 'Nonaktif',
+      'reminder_notification_title': 'Pengingat Fem-Psych Monitor',
+      'reminder_notification_body':
+          'Halo, saatnya mengecek perasaanmu hari ini. Rekam beberapa kalimat untuk melihat kondisi psikismu.',
+      'notification_permission_denied':
+          'Izin notifikasi ditolak. Aktifkan dari pengaturan perangkat.',
+      'reminder_scheduled': 'Pengingat rutin diaktifkan (setiap 3 jam)',
+      'reminder_cancelled': 'Pengingat rutin dinonaktifkan',
 
       // ── Auth Screen ──
       'login': 'Masuk',
@@ -759,6 +771,18 @@ class AppLocalizations {
       'general': 'General',
       'about': 'About',
       'account': 'Account',
+      'notifications': 'Notifications',
+      'routine_reminder': 'Regular Reminder',
+      'routine_reminder_desc': 'Remind to check in with your emotions every 3 hours',
+      'reminder_time': 'Start Time',
+      'reminder_disabled': 'Disabled',
+      'reminder_notification_title': 'Fem-Psych Monitor Reminder',
+      'reminder_notification_body':
+          'Hi, it\'s time to check in with your feelings today. Record a few sentences to see how you\'re doing.',
+      'notification_permission_denied':
+          'Notification permission denied. Enable it in your device settings.',
+      'reminder_scheduled': 'Regular reminder enabled (every 3 hours)',
+      'reminder_cancelled': 'Regular reminder disabled',
 
       // ── Auth Screen ──
       'login': 'Login',

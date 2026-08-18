@@ -16,6 +16,7 @@ import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
 import '../services/database_service.dart';
+import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import '../theme/resonance_colors.dart';
 import 'premium_screen.dart';
@@ -27,13 +28,117 @@ import 'profile_screen.dart';
 // Fitur:
 //   • Bahasa (ID / EN)
 //   • Tema Tampilan (Light / Dark)
+//   • Pengingat Harian (notifikasi)
 //   • Panduan Aplikasi
 //   • Terms & Services
 //   • License
 //   • Logout
 // ─────────────────────────────────────────────────────────────────────────────
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _reminderEnabled = false;
+  int _reminderHour = 19;
+  int _reminderMinute = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReminderPrefs();
+  }
+
+  Future<void> _loadReminderPrefs() async {
+    final prefs = await NotificationService.instance.getReminderPrefs();
+    if (!mounted) return;
+    setState(() {
+      _reminderEnabled = prefs.enabled;
+      _reminderHour = prefs.hour;
+      _reminderMinute = prefs.minute;
+    });
+  }
+
+  Future<void> _onReminderToggle(bool value) async {
+    if (value) {
+      final granted = await NotificationService.instance.requestPermission();
+      if (!granted) {
+        if (mounted) {
+          _showSnack(AppLocalizations.tr('notification_permission_denied'));
+        }
+        return;
+      }
+      await NotificationService.instance
+          .scheduleRoutine(startHour: _reminderHour, startMinute: _reminderMinute);
+      await NotificationService.instance.saveEnabled(true);
+      if (!mounted) return;
+      setState(() => _reminderEnabled = true);
+      _showSnack(AppLocalizations.tr('reminder_scheduled'));
+    } else {
+      await NotificationService.instance.cancelReminder();
+      await NotificationService.instance.saveEnabled(false);
+      if (!mounted) return;
+      setState(() => _reminderEnabled = false);
+    }
+  }
+
+  Future<void> _pickReminderTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: _reminderHour, minute: _reminderMinute),
+      builder: (ctx, child) => Theme(
+        data: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: ResonanceColors.of(ctx).primary,
+            brightness: Theme.of(ctx).brightness,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _reminderHour = picked.hour;
+      _reminderMinute = picked.minute;
+    });
+    await NotificationService.instance
+        .saveTime(hour: picked.hour, minute: picked.minute);
+    if (_reminderEnabled) {
+      await NotificationService.instance
+          .scheduleRoutine(startHour: picked.hour, startMinute: picked.minute);
+      if (mounted) _showSnack(AppLocalizations.tr('reminder_scheduled'));
+    }
+  }
+
+  String _formatReminderTime() {
+    final h = _reminderHour.toString().padLeft(2, '0');
+    final m = _reminderMinute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  void _showSnack(String message) {
+    final c = ResonanceColors.of(context);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            message,
+            style: GoogleFonts.inter(fontSize: 13, color: c.onSurface),
+          ),
+          backgroundColor: c.surfaceLowest,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(color: c.outlineVariant),
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,6 +286,67 @@ class SettingsScreen extends StatelessWidget {
                       },
                     ),
                   ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // ── Section: Notifikasi ─────────────────────────
+              _buildSectionLabel(context, AppLocalizations.tr('notifications')),
+              const SizedBox(height: 10),
+
+              _buildSettingsCard(
+                context,
+                children: [
+                  // Pengingat Harian
+                  _buildSettingsTile(
+                    context,
+                    icon: PhosphorIconsRegular.bell,
+                    iconColor: c.primary,
+                    title: AppLocalizations.tr('routine_reminder'),
+                    subtitle: _reminderEnabled
+                        ? '${AppLocalizations.tr('reminder_time')} ${_formatReminderTime()}'
+                        : AppLocalizations.tr('reminder_disabled'),
+                    trailing: Switch(
+                      value: _reminderEnabled,
+                      onChanged: _onReminderToggle,
+                      activeThumbColor: c.primary,
+                      activeTrackColor: c.primary.withValues(alpha: 0.35),
+                      inactiveTrackColor: c.outlineVariant,
+                    ),
+                  ),
+                  if (_reminderEnabled) ...[
+                    _buildDivider(context),
+                    // Waktu Pengingat
+                    _buildSettingsTile(
+                      context,
+                      icon: PhosphorIconsRegular.clock,
+                      iconColor: c.primary,
+                      title: AppLocalizations.tr('reminder_time'),
+                      trailing: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: c.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: c.primary.withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Text(
+                          _formatReminderTime(),
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: c.primary,
+                          ),
+                        ),
+                      ),
+                      onTap: _pickReminderTime,
+                    ),
+                  ],
                 ],
               ),
 

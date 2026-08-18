@@ -2,21 +2,22 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../providers/premium_provider.dart';
 import '../services/subscription_service.dart';
 
-// ── Midnight Blush Palette ──────────────────────────────────
+// ── Midnight Blush Palette (dark standalone) ────────────────
 const _primary = Color(0xFFFFC5D3);
 const _secondary = Color(0xFF9D4EDD);
-const _bg = Color(0xFF000000);
-const _surface = Color(0xFF2D1B33);
-const _onSurface = Color(0xFFE5E1E4);
+const _bg = Color(0xFF0A0410);
+const _surface = Color(0xFF1D1124);
+const _onSurface = Color(0xFFEDE6EE);
 const _onSurfaceVariant = Color(0xFFE2BDC6);
-const _outline = Color(0xFFAA8890);
-const _outlineVariant = Color(0xFF5A3F47);
+const _outline = Color(0xFFB08A96);
+const _outlineVariant = Color(0xFF4A3040);
 
 class PremiumScreen extends StatefulWidget {
   const PremiumScreen({super.key});
@@ -29,7 +30,9 @@ class _PremiumScreenState extends State<PremiumScreen>
     with TickerProviderStateMixin {
   final _subscriptionService = SubscriptionService();
   bool _isLoading = false;
-  int _selectedIndex = 1;
+  int _selectedIndex = 2;
+
+  late final AnimationController _glowCtrl;
 
   final List<_SubscriptionPlan> _plans = [
     _SubscriptionPlan(
@@ -39,6 +42,10 @@ class _PremiumScreenState extends State<PremiumScreen>
       price: 'Rp 7.000',
       period: '/mgg',
       periodEn: '/wk',
+      tag: 'Coba dulu',
+      tagEn: 'Try first',
+      effective: '',
+      effectiveEn: '',
       savings: '',
       savingsEn: '',
       isPopular: false,
@@ -50,6 +57,10 @@ class _PremiumScreenState extends State<PremiumScreen>
       price: 'Rp 20.000',
       period: '/bln',
       periodEn: '/mo',
+      tag: 'Paling fleksibel',
+      tagEn: 'Most flexible',
+      effective: '',
+      effectiveEn: '',
       savings: '',
       savingsEn: '',
       isPopular: false,
@@ -61,11 +72,30 @@ class _PremiumScreenState extends State<PremiumScreen>
       price: 'Rp 99.000',
       period: '/thn',
       periodEn: '/yr',
+      tag: 'Nilai terbaik',
+      tagEn: 'Best value',
+      effective: '± Rp 8.250/bln',
+      effectiveEn: '± Rp 8,250/mo',
       savings: 'Hemat 59%',
       savingsEn: 'Save 59%',
       isPopular: true,
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _glowCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _glowCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _purchase() async {
     setState(() => _isLoading = true);
@@ -93,14 +123,13 @@ class _PremiumScreenState extends State<PremiumScreen>
   }
 
   Future<void> _showPurchaseResult(bool success) async {
-    final isEn = AppLocalizations.locale.startsWith('en');
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: _surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Icon(
-          success ? Icons.check_circle_rounded : Icons.error_rounded,
+          success ? PhosphorIconsFill.checkCircle : PhosphorIconsFill.xCircle,
           color: success ? Colors.green.shade400 : Colors.red.shade400,
           size: 48,
         ),
@@ -138,7 +167,7 @@ class _PremiumScreenState extends State<PremiumScreen>
               if (success && context.mounted) Navigator.pop(context);
             },
             child: Text(
-              isEn ? 'OK' : 'OK',
+              'OK',
               style: GoogleFonts.inter(color: _primary, fontWeight: FontWeight.w600),
             ),
           ),
@@ -157,14 +186,13 @@ class _PremiumScreenState extends State<PremiumScreen>
   }
 
   Future<void> _showRestoreResult(bool success) async {
-    final isEn = AppLocalizations.locale.startsWith('en');
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: _surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Icon(
-          success ? Icons.check_circle_rounded : Icons.info_rounded,
+          success ? PhosphorIconsFill.checkCircle : PhosphorIconsFill.info,
           color: success ? Colors.green.shade400 : Colors.orange.shade400,
           size: 48,
         ),
@@ -199,7 +227,7 @@ class _PremiumScreenState extends State<PremiumScreen>
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
-              isEn ? 'OK' : 'OK',
+              'OK',
               style: GoogleFonts.inter(color: _primary, fontWeight: FontWeight.w600),
             ),
           ),
@@ -222,32 +250,35 @@ class _PremiumScreenState extends State<PremiumScreen>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: _bg.withValues(alpha: 0.8),
+              color: _surface.withValues(alpha: 0.8),
               shape: BoxShape.circle,
+              border: Border.all(color: _outlineVariant.withValues(alpha: 0.4)),
             ),
-            child: Icon(Icons.close_rounded, color: _primary, size: 20),
+            child: Icon(PhosphorIconsRegular.x, color: _primary, size: 18),
           ),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           Container(
             decoration: BoxDecoration(
-              color: _bg.withValues(alpha: 0.8),
+              color: _surface.withValues(alpha: 0.8),
               shape: BoxShape.circle,
+              border: Border.all(color: _outlineVariant.withValues(alpha: 0.4)),
             ),
             child: IconButton(
-              icon: Icon(Icons.refresh_rounded, size: 20, color: _primary),
+              icon: Icon(PhosphorIconsRegular.arrowsClockwise, size: 18, color: _primary),
               onPressed: _restore,
             ),
           ),
           const SizedBox(width: 8),
           Container(
             decoration: BoxDecoration(
-              color: _bg.withValues(alpha: 0.8),
+              color: _surface.withValues(alpha: 0.8),
               shape: BoxShape.circle,
+              border: Border.all(color: _outlineVariant.withValues(alpha: 0.4)),
             ),
             child: IconButton(
-              icon: Icon(Icons.power_settings_new_rounded, size: 20, color: _primary),
+              icon: Icon(PhosphorIconsRegular.power, size: 18, color: _primary),
               onPressed: () => _resetPremium(context),
             ),
           ),
@@ -272,13 +303,14 @@ class _PremiumScreenState extends State<PremiumScreen>
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        _primary.withValues(alpha: 0.04),
+                        _primary.withValues(alpha: 0.05),
                         _bg,
                       ],
                     ),
                   ),
                 ),
               ),
+              _buildAmbientGlow(),
               Column(
                 children: [
                   Padding(
@@ -288,36 +320,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                       left: 24,
                       right: 24,
                     ),
-                    child: Column(
-                      children: [
-                        Text(
-                          isPremiumActive
-                              ? (isEn ? 'Premium Active' : 'Premium Aktif')
-                              : (isEn ? 'Unlock Premium' : 'Buka Akses Premium'),
-                          style: GoogleFonts.syne(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: -0.5,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          isPremiumActive
-                              ? (isEn ? 'You\'re enjoying all premium features' : 'Anda menikmati semua fitur premium')
-                              : (isEn
-                                  ? 'Unlimited emotion detection & ad-free experience'
-                                  : 'Deteksi emosi tanpa batas & bebas iklan'),
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: _onSurfaceVariant,
-                            height: 1.5,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
+                    child: _buildHero(context, isEn, isPremiumActive),
                   ),
                   Expanded(
                     child: isPremiumActive && premium.expiryDate != null
@@ -334,18 +337,181 @@ class _PremiumScreenState extends State<PremiumScreen>
     );
   }
 
+  Widget _buildAmbientGlow() {
+    return AnimatedBuilder(
+      animation: _glowCtrl,
+      builder: (context, child) {
+        final t = 0.55 + 0.45 * _glowCtrl.value;
+        return IgnorePointer(
+          child: Stack(
+            children: [
+              Positioned(
+                top: -80,
+                right: -60,
+                child: Opacity(
+                  opacity: t,
+                  child: _glowCircle(
+                    size: 280,
+                    color: _primary.withValues(alpha: 0.14),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -60,
+                left: -70,
+                child: Opacity(
+                  opacity: 1 - t * 0.5,
+                  child: _glowCircle(
+                    size: 260,
+                    color: _secondary.withValues(alpha: 0.12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _glowCircle({required double size, required Color color}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [color, color.withValues(alpha: 0)],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHero(BuildContext context, bool isEn, bool isPremiumActive) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: _primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: _primary.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isPremiumActive ? PhosphorIconsFill.crown : PhosphorIconsFill.sparkle,
+                size: 14,
+                color: _primary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                isPremiumActive
+                    ? (isEn ? 'PREMIUM ACTIVE' : 'PREMIUM AKTIF')
+                    : 'PREMIUM',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2,
+                  color: _primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          isPremiumActive
+              ? (isEn ? 'Enjoying Premium' : 'Premium Aktif')
+              : (isEn ? 'Unlock Premium' : 'Buka Akses Premium'),
+          style: GoogleFonts.syne(
+            fontSize: 30,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: -0.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 10),
+        Text(
+          isPremiumActive
+              ? (isEn ? 'You\'re enjoying all premium features' : 'Anda menikmati semua fitur premium')
+              : (isEn
+                  ? 'Unlimited emotion detection & ad-free experience'
+                  : 'Deteksi emosi tanpa batas & bebas iklan'),
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: _onSurfaceVariant,
+            height: 1.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        if (!isPremiumActive) ...[
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: _heroChips(isEn),
+          ),
+        ],
+      ],
+    );
+  }
+
+  List<Widget> _heroChips(bool isEn) {
+    final items = isEn
+        ? [
+            (PhosphorIconsRegular.infinity, 'Unlimited detection'),
+            (PhosphorIconsRegular.megaphoneSimple, 'Ad-free'),
+            (PhosphorIconsRegular.shieldCheck, 'Private & secure'),
+          ]
+        : [
+            (PhosphorIconsRegular.infinity, 'Deteksi tanpa batas'),
+            (PhosphorIconsRegular.megaphoneSimple, 'Bebas iklan'),
+            (PhosphorIconsRegular.shieldCheck, 'Aman & pribadi'),
+          ];
+    return items.map((item) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: _surface.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: _outlineVariant.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(item.$1, size: 12, color: _primary),
+            const SizedBox(width: 6),
+            Text(
+              item.$2,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: _onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList();
+  }
+
   Future<void> _resetPremium(BuildContext context) async {
+    final isEn = AppLocalizations.locale.startsWith('en');
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: _surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          AppLocalizations.locale.startsWith('en') ? 'Reset Premium' : 'Reset Premium',
+          'Reset Premium',
           style: GoogleFonts.syne(fontWeight: FontWeight.w700, color: _onSurface),
         ),
         content: Text(
-          AppLocalizations.locale.startsWith('en')
+          isEn
               ? 'This will clear your premium status and sign out from RevenueCat. Continue?'
               : 'Ini akan menghapus status premium Anda dan keluar dari RevenueCat. Lanjutkan?',
           style: GoogleFonts.inter(fontSize: 14, color: _onSurfaceVariant),
@@ -354,14 +520,14 @@ class _PremiumScreenState extends State<PremiumScreen>
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text(
-              AppLocalizations.locale.startsWith('en') ? 'Cancel' : 'Batal',
+              isEn ? 'Cancel' : 'Batal',
               style: GoogleFonts.inter(color: _onSurfaceVariant),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
-              AppLocalizations.locale.startsWith('en') ? 'Reset' : 'Reset',
+              isEn ? 'Reset' : 'Reset',
               style: GoogleFonts.inter(color: _primary),
             ),
           ),
@@ -392,13 +558,32 @@ class _PremiumScreenState extends State<PremiumScreen>
             padding: 20,
             child: Column(
               children: [
-                Text(
-                  isEn ? 'Active' : 'Aktif',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.green.shade300,
-                    letterSpacing: 0.1,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade400.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: Colors.green.shade400.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        PhosphorIconsFill.checkCircle,
+                        size: 13,
+                        color: Colors.green.shade300,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        isEn ? 'Active' : 'Aktif',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.green.shade300,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -413,7 +598,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                 const SizedBox(height: 10),
                 Text(
                   '${isEn ? 'Expiry' : 'Berakhir'}: ${_formatDate(expiryDate)}',
-                  style: GoogleFonts.inter(fontSize: 12, color: _onSurfaceVariant),
+                  style: GoogleFonts.jetBrainsMono(fontSize: 11, color: _onSurfaceVariant),
                 ),
               ],
             ),
@@ -424,15 +609,21 @@ class _PremiumScreenState extends State<PremiumScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  isEn ? 'Your Premium Benefits' : 'Manfaat Premium Anda',
-                  style: GoogleFonts.syne(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: _onSurface,
-                  ),
+                Row(
+                  children: [
+                    Icon(PhosphorIconsFill.sparkle, size: 15, color: _primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      isEn ? 'Your Premium Benefits' : 'Manfaat Premium Anda',
+                      style: GoogleFonts.syne(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: _onSurface,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 ..._buildBenefits(isEn),
               ],
             ),
@@ -452,7 +643,6 @@ class _PremiumScreenState extends State<PremiumScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Spacer(),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -460,7 +650,7 @@ class _PremiumScreenState extends State<PremiumScreen>
               Text(
                 isEn ? 'Choose your plan' : 'Pilih paket',
                 style: GoogleFonts.syne(
-                  fontSize: 16,
+                  fontSize: 17,
                   fontWeight: FontWeight.w700,
                   color: _onSurface,
                 ),
@@ -468,31 +658,49 @@ class _PremiumScreenState extends State<PremiumScreen>
               Text(
                 isEn ? 'Cancel anytime' : 'Batalkan kapan saja',
                 style: GoogleFonts.inter(
-                  fontSize: 10,
+                  fontSize: 10.5,
                   color: _onSurfaceVariant,
                   letterSpacing: 0.05,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
 
           ...List.generate(_plans.length, (i) => _buildPlanCard(i, isEn)),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
 
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(PhosphorIconsRegular.lockKey, size: 13, color: _outline),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  isEn
+                      ? 'Secure checkout. Cancel anytime.'
+                      : 'Pembayaran aman. Batalkan kapan saja.',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: _outline,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Text(
             isEn
                 ? 'By subscribing, you agree to our Terms of Service and Privacy Policy. Subscriptions auto-renew unless canceled.'
                 : 'Dengan berlangganan, Anda menyetujui Syarat & Ketentuan dan Kebijakan Privasi kami. Langganan diperpanjang otomatis kecuali dibatalkan.',
             style: GoogleFonts.inter(
               fontSize: 10,
-              color: _outline,
+              color: _outline.withValues(alpha: 0.85),
               height: 1.4,
             ),
             textAlign: TextAlign.center,
           ),
-
           const SizedBox(height: 8),
         ],
       ),
@@ -506,19 +714,32 @@ class _PremiumScreenState extends State<PremiumScreen>
     final isSelected = _selectedIndex == index;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
         onTap: () => setState(() => _selectedIndex = index),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
-            color: isSelected ? _primary.withValues(alpha: 0.08) : _surface.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(12),
+            color: isSelected
+                ? _primary.withValues(alpha: 0.09)
+                : _surface.withValues(alpha: 0.55),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? _primary.withValues(alpha: 0.5) : _outlineVariant.withValues(alpha: 0.3),
-              width: 1,
+              color: isSelected
+                  ? _primary.withValues(alpha: 0.55)
+                  : _outlineVariant.withValues(alpha: 0.35),
+              width: isSelected ? 1.4 : 1,
             ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: _primary.withValues(alpha: 0.18),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ]
+                : null,
           ),
           child: Stack(
             clipBehavior: Clip.none,
@@ -535,22 +756,51 @@ class _PremiumScreenState extends State<PremiumScreen>
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: isSelected ? _primary : _outline,
-                          width: isSelected ? 6 : 1.5,
+                          width: 1.5,
                         ),
+                        color: isSelected
+                            ? _primary.withValues(alpha: 0.15)
+                            : Colors.transparent,
                       ),
+                      child: isSelected
+                          ? Padding(
+                              padding: const EdgeInsets.all(5),
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: _primary,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            )
+                          : null,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            isEn ? plan.labelEn : plan.label,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                              color: _onSurface,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                isEn ? plan.labelEn : plan.label,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                  color: _onSurface,
+                                ),
+                              ),
+                              if (plan.tag.isNotEmpty) ...[
+                                const SizedBox(width: 6),
+                                Text(
+                                  isEn ? plan.tagEn : plan.tag,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: _onSurfaceVariant.withValues(alpha: 0.75),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                           const SizedBox(height: 2),
                           Row(
@@ -559,7 +809,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                             children: [
                               Text(
                                 plan.price,
-                                style: GoogleFonts.inter(
+                                style: GoogleFonts.jetBrainsMono(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                   color: isSelected ? _primary : _onSurfaceVariant,
@@ -575,6 +825,16 @@ class _PremiumScreenState extends State<PremiumScreen>
                                 ),
                             ],
                           ),
+                          if (plan.effective.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              isEn ? plan.effectiveEn : plan.effective,
+                              style: GoogleFonts.inter(
+                                fontSize: 10.5,
+                                color: _onSurfaceVariant.withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -583,7 +843,10 @@ class _PremiumScreenState extends State<PremiumScreen>
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: _secondary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: _secondary.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Text(
                           isEn ? plan.savingsEn : plan.savings,
@@ -601,22 +864,36 @@ class _PremiumScreenState extends State<PremiumScreen>
 
               if (plan.isPopular)
                 Positioned(
-                  top: -10,
+                  top: -11,
                   right: 20,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                     decoration: BoxDecoration(
                       color: _primary,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(999),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _primary.withValues(alpha: 0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      isEn ? 'POPULAR' : 'POPULER',
-                      style: GoogleFonts.inter(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        color: _surface,
-                        letterSpacing: 0.08,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(PhosphorIconsFill.star, size: 10, color: _surface),
+                        const SizedBox(width: 5),
+                        Text(
+                          isEn ? 'POPULAR' : 'POPULER',
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: _surface,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -641,33 +918,74 @@ class _PremiumScreenState extends State<PremiumScreen>
       ),
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _purchase,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: _isLoading
-                ? const SizedBox(
-                    width: 22, height: 22,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                  )
-                : Text(
-                    isEn ? 'Subscribe Now' : 'Langganan Sekarang',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(PhosphorIconsRegular.lockKey, size: 12, color: _outline),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    isEn
+                        ? 'Secure payment · Cancel anytime'
+                        : 'Pembayaran aman · Batalkan kapan saja',
                     style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.05,
+                      fontSize: 10.5,
+                      color: _outline,
                     ),
                   ),
-          ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              height: 56,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: _primary.withValues(alpha: 0.35),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _purchase,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primary,
+                  foregroundColor: const Color(0xFF3A1020),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 22, height: 22,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(PhosphorIconsFill.crown, size: 16),
+                          const SizedBox(width: 8),
+                          Text(
+                            isEn ? 'Subscribe Now' : 'Langganan Sekarang',
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -680,15 +998,15 @@ class _PremiumScreenState extends State<PremiumScreen>
     required Widget child,
   }) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           width: double.infinity,
           padding: EdgeInsets.all(padding),
           decoration: BoxDecoration(
-            color: _surface.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(16),
+            color: _surface.withValues(alpha: 0.55),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: _outlineVariant.withValues(alpha: 0.2),
             ),
@@ -719,17 +1037,22 @@ class _PremiumScreenState extends State<PremiumScreen>
 
     return benefits.map((b) {
       return Padding(
-        padding: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.only(bottom: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: const EdgeInsets.only(top: 6),
-              width: 4,
-              height: 4,
+              width: 22,
+              height: 22,
               decoration: BoxDecoration(
+                color: _primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(7),
+                border: Border.all(color: _primary.withValues(alpha: 0.25)),
+              ),
+              child: Icon(
+                PhosphorIconsFill.check,
+                size: 12,
                 color: _primary,
-                shape: BoxShape.circle,
               ),
             ),
             const SizedBox(width: 10),
@@ -827,19 +1150,19 @@ class _PremiumCountdownState extends State<_PremiumCountdown> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 50,
-          height: 50,
+          width: 52,
+          height: 52,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: _primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: _primary.withValues(alpha: 0.2),
+              color: _primary.withValues(alpha: 0.25),
             ),
           ),
           child: Text(
             value.toString().padLeft(2, '0'),
-            style: GoogleFonts.inter(
+            style: GoogleFonts.jetBrainsMono(
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: _primary,
@@ -865,7 +1188,7 @@ class _PremiumCountdownState extends State<_PremiumCountdown> {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Text(
         ':',
-        style: GoogleFonts.inter(
+        style: GoogleFonts.jetBrainsMono(
           fontSize: 20,
           fontWeight: FontWeight.w800,
           color: _outline,
@@ -882,6 +1205,10 @@ class _SubscriptionPlan {
   final String price;
   final String period;
   final String periodEn;
+  final String tag;
+  final String tagEn;
+  final String effective;
+  final String effectiveEn;
   final String savings;
   final String savingsEn;
   final bool isPopular;
@@ -893,6 +1220,10 @@ class _SubscriptionPlan {
     required this.price,
     required this.period,
     required this.periodEn,
+    required this.tag,
+    required this.tagEn,
+    required this.effective,
+    required this.effectiveEn,
     required this.savings,
     required this.savingsEn,
     required this.isPopular,

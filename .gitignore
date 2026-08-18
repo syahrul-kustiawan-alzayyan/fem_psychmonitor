@@ -42,6 +42,9 @@ app.*.map.json
 # Environment variables
 .env
 
+# Backend config (berisi kredensial MySQL + API key) — jangan di-commit
+cpanel_api/api/config.php
+
 # Firebase service account (secret)
 *firebase-adminsdk*.json
 tools/migrate_firebase_to_cpanel/migration_state.json

@@ -28,7 +28,14 @@ class _BigFiveSectionState extends State<BigFiveSection> {
     'N': Color(0xFFEF4444),
   };
 
-  void _nextPage() => setState(() => _pageIndex++);
+  void _nextPage() {
+    final state = context.read<OnboardingState>();
+    final maxPage = state.bigFiveQuestions.length; // 0 = intro, 1..N = soal
+    if (_pageIndex < maxPage) {
+      setState(() => _pageIndex++);
+    }
+  }
+
   void _prevPage() => setState(() => _pageIndex--);
 
   @override
@@ -310,6 +317,10 @@ class _BigFiveSectionState extends State<BigFiveSection> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    if (qIndex < 0 || qIndex >= state.bigFiveQuestions.length) {
+      return const SizedBox.shrink();
+    }
+
     final c = ResonanceColors.of(context);
     final q = state.bigFiveQuestions[qIndex];
     final selected = state.bigFiveAnswers[qIndex];
@@ -431,6 +442,7 @@ class _BigFiveSectionState extends State<BigFiveSection> {
                     );
                   } else {
                     state.calculateBigFiveResult();
+                    _pageIndex = 0;
                     widget.onNext();
                   }
                 },
