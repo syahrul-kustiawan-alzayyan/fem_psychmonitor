@@ -13,7 +13,11 @@ class ResultSection extends StatelessWidget {
   final VoidCallback onComplete;
   final String userName;
 
-  const ResultSection({super.key, required this.onComplete, required this.userName});
+  const ResultSection({
+    super.key,
+    required this.onComplete,
+    required this.userName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,72 +43,29 @@ class ResultSection extends StatelessWidget {
             const SizedBox(height: 8),
             ResonanceEyebrow(c: c, label: isEn ? '04 / RESULT' : '04 / HASIL'),
             const SizedBox(height: 16),
-            // HEADER
-            ResonanceCard(
-              c: c,
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: c.primaryContainer,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: c.outlineVariant),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x1424161C),
-                          offset: Offset(1.5, 1.5),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      PhosphorIconsRegular.sparkle,
-                      color: c.primary,
-                      size: 26,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    loc('result_title'),
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 25,
-                      fontWeight: FontWeight.w700,
-                      color: c.onSurface,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Halo ${user.name.isEmpty ? loc('user') : user.name}${loc('result_subtitle')}',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 13.5,
-                      color: c.onSurfaceVariant,
-                      height: 1.6,
-                    ),
-                  ),
-                ],
-              ),
+            _buildHeader(
+              c,
+              loc('result_title'),
+              user.name,
+              loc('user'),
+              loc('result_subtitle'),
             ),
             const SizedBox(height: 24),
 
-            // BIG FIVE RESULT CARD
+            _buildPsyHero(c, state.psyScore, loc),
+
             if (state.bigFiveScores.isNotEmpty) ...[
-              _buildBigFiveResultCard(context, state),
               const SizedBox(height: 24),
+              _buildBigFiveCard(context, state),
             ],
 
-            // PSYCHOLOGICAL RESULT
-            _buildPsyResultCard(context, state.psyScore),
+            const SizedBox(height: 24),
+            _buildRecommendationsCard(context, state.psyScore, loc),
 
             const SizedBox(height: 30),
             ResonancePillButton(
               c: c,
               label: loc('completed'),
-              trailingIcon: PhosphorIconsRegular.check,
               loading: state.isSaving,
               onTap: state.isSaving ? null : onComplete,
             ),
@@ -115,7 +76,255 @@ class ResultSection extends StatelessWidget {
     );
   }
 
-  Widget _buildBigFiveResultCard(BuildContext context, OnboardingState state) {
+  Widget _buildHeader(
+    ResonanceColors c,
+    String title,
+    String name,
+    String userLabel,
+    String subtitle,
+  ) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: Transform.translate(
+          offset: Offset(0, 10 * (1 - t)),
+          child: child,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: c.primaryContainer.withValues(alpha: 0.35),
+              shape: BoxShape.circle,
+              border: Border.all(color: c.primary.withValues(alpha: 0.4)),
+              boxShadow: const [
+                BoxShadow(color: Color(0x1424161C), offset: Offset(2, 2)),
+              ],
+            ),
+            child: Icon(
+              PhosphorIconsRegular.sparkle,
+              color: c.primary,
+              size: 26,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 25,
+              fontWeight: FontWeight.w700,
+              color: c.onSurface,
+              height: 1.2,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Halo ${name.isEmpty ? userLabel : name}$subtitle',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 13.5,
+              color: c.onSurfaceVariant,
+              height: 1.6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPsyHero(
+    ResonanceColors c,
+    int psyScore,
+    String Function(String) loc,
+  ) {
+    final displayScore100 = ((60 - psyScore) / 60 * 100).round().clamp(0, 100);
+
+    final (
+      category,
+      advice,
+      cardColor,
+      categoryIcon,
+    ) = switch (displayScore100) {
+      >= 76 => (
+        loc('psych_excellent'),
+        loc('overall_exc_1'),
+        const Color(0xFF22C55E),
+        PhosphorIconsRegular.checkCircle,
+      ),
+      >= 51 => (
+        loc('psych_good'),
+        loc('overall_good_2'),
+        const Color(0xFF84CC16),
+        PhosphorIconsRegular.info,
+      ),
+      >= 26 => (
+        loc('psych_fair'),
+        loc('overall_fair_2'),
+        const Color(0xFFF59E0B),
+        PhosphorIconsRegular.warning,
+      ),
+      _ => (
+        loc('psych_needs_attention'),
+        loc('overall_attn_2'),
+        const Color(0xFFEF4444),
+        PhosphorIconsRegular.warningCircle,
+      ),
+    };
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutCubic,
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: Transform.translate(
+          offset: Offset(0, 14 * (1 - t)),
+          child: child,
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
+        decoration: BoxDecoration(
+          color: c.surfaceLowest,
+          border: Border.all(color: c.outlineVariant),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(color: Color(0x1424161C), offset: Offset(2, 2)),
+          ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  PhosphorIconsRegular.heart,
+                  size: 15,
+                  color: c.onSurfaceVariant,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  loc('result_mental_health').toUpperCase(),
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.4,
+                    color: c.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            _buildScoreRing(c, displayScore100, cardColor),
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              decoration: BoxDecoration(
+                color: cardColor.withValues(alpha: 0.1),
+                border: Border.all(color: cardColor.withValues(alpha: 0.3)),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(categoryIcon, size: 15, color: cardColor),
+                  const SizedBox(width: 7),
+                  Text(
+                    category,
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
+                      color: cardColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              advice,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 13.5,
+                color: c.onSurface,
+                height: 1.6,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScoreRing(ResonanceColors c, int score, Color color) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: score.toDouble()),
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        final shown = value.round();
+        return Container(
+          width: 168,
+          height: 168,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: c.surfaceLowest,
+            shape: BoxShape.circle,
+            border: Border.all(color: c.outlineVariant),
+            boxShadow: const [
+              BoxShadow(color: Color(0x1424161C), offset: Offset(2, 2)),
+            ],
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox.expand(
+                child: CircularProgressIndicator(
+                  value: (value / 100).clamp(0.0, 1.0),
+                  strokeWidth: 11,
+                  strokeCap: StrokeCap.round,
+                  backgroundColor: color.withValues(alpha: 0.12),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$shown',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 42,
+                      fontWeight: FontWeight.w800,
+                      color: c.onSurface,
+                      height: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '/ 100',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: c.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBigFiveCard(BuildContext context, OnboardingState state) {
     final c = ResonanceColors.of(context);
     final dimLabels = {
       'O': (AppLocalizations.tr('bigfive_dim_o'), const Color(0xFF8B5CF6)),
@@ -127,329 +336,328 @@ class ResultSection extends StatelessWidget {
 
     final dimensions = ['O', 'C', 'E', 'A', 'N'];
     final highestDim = dimensions.reduce(
-      (a, b) => (state.bigFiveScores[a] ?? 0) >= (state.bigFiveScores[b] ?? 0) ? a : b,
+      (a, b) => (state.bigFiveScores[a] ?? 0) >= (state.bigFiveScores[b] ?? 0)
+          ? a
+          : b,
     );
+    final topInfo = dimLabels[highestDim]!;
+    final topScore = state.bigFiveScores[highestDim] ?? 0;
 
-    return ResonanceCard(
-      c: c,
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: c.primaryContainer,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: c.outlineVariant),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 550),
+      curve: Curves.easeOutCubic,
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: Transform.translate(
+          offset: Offset(0, 12 * (1 - t)),
+          child: child,
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: c.surfaceLowest,
+          border: Border.all(color: c.outlineVariant),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(color: Color(0x1424161C), offset: Offset(2, 2)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: c.primaryContainer.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    PhosphorIconsRegular.fingerprint,
+                    size: 17,
+                    color: c.primary,
+                  ),
                 ),
-                child: Icon(
-                  PhosphorIconsRegular.fingerprint,
-                  size: 20,
-                  color: c.primary,
+                const SizedBox(width: 10),
+                Text(
+                  AppLocalizations.tr('result_bigfive'),
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: c.onSurface,
+                  ),
                 ),
+                const Spacer(),
+                Text(
+                  'OCEAN',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2,
+                    color: c.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: topInfo.$2.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: topInfo.$2.withValues(alpha: 0.28)),
               ),
-              const SizedBox(width: 12),
-              Text(
-                AppLocalizations.tr('result_bigfive'),
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: c.onSurface,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: dimLabels[highestDim]!.$2,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                dimLabels[highestDim]!.$1,
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: c.onSurface,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Container(height: 1, color: c.outlineVariant),
-          const SizedBox(height: 18),
-          ...dimensions.map((d) {
-            final info = dimLabels[d]!;
-            final color = info.$2;
-            final score = state.bigFiveScores[d] ?? 0;
-            final level = score >= 3.5
-                ? AppLocalizations.tr('bigfive_high')
-                : (score <= 2.5
-                    ? AppLocalizations.tr('bigfive_low')
-                    : AppLocalizations.tr('bigfive_moderate'));
-            final ratio = (score - 1) / 4;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: topInfo.$2,
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    child: Center(
+                      child: Text(
+                        highestDim,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 13),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocalizations.tr('bigfive_dominant'),
+                          style: GoogleFonts.inter(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.8,
+                            color: c.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          topInfo.$1,
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w700,
+                            color: c.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    topScore.toStringAsFixed(1),
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: topInfo.$2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            ...dimensions.map((d) {
+              final info = dimLabels[d]!;
+              final color = info.$2;
+              final score = state.bigFiveScores[d] ?? 0;
+              final ratio = ((score - 1) / 4).clamp(0.0, 1.0);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(
+                              d,
+                              style: GoogleFonts.jetBrainsMono(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: color,
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
                             info.$1,
-                            style: GoogleFonts.spaceGrotesk(
+                            style: GoogleFonts.inter(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: c.onSurface,
                             ),
                           ),
-                        ],
-                      ),
-                      Text(
-                        '$score $level',
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: color,
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: LinearProgressIndicator(
-                      value: ratio.clamp(0.0, 1.0),
-                      minHeight: 7,
-                      backgroundColor: color.withValues(alpha: 0.12),
-                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                        Text(
+                          score.toStringAsFixed(1),
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: color,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
+                    const SizedBox(height: 7),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: LinearProgressIndicator(
+                        value: ratio,
+                        minHeight: 6,
+                        backgroundColor: color.withValues(alpha: 0.12),
+                        valueColor: AlwaysStoppedAnimation<Color>(color),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildPsyResultCard(BuildContext context, int psyScore) {
+  Widget _buildRecommendationsCard(
+    BuildContext context,
+    int psyScore,
+    String Function(String) loc,
+  ) {
     final c = ResonanceColors.of(context);
-    final loc = AppLocalizations.tr;
-    String category;
-    String advice;
-    Color cardColor;
-    IconData categoryIcon;
-    List<String> recommendations;
 
-    final displayScore100 = ((60 - psyScore) / 60 * 100).round();
+    final (cardColor, recommendations) = switch (((60 - psyScore) / 60 * 100)
+        .round()
+        .clamp(0, 100)) {
+      >= 76 => (
+        const Color(0xFF22C55E),
+        [loc('result_rec_1'), loc('result_rec_2'), loc('result_rec_3')],
+      ),
+      >= 51 => (
+        const Color(0xFF84CC16),
+        [loc('result_rec_4'), loc('result_rec_5'), loc('result_rec_6')],
+      ),
+      >= 26 => (
+        const Color(0xFFF59E0B),
+        [loc('result_rec_7'), loc('result_rec_8'), loc('result_rec_9')],
+      ),
+      _ => (
+        const Color(0xFFEF4444),
+        [loc('result_rec_10'), loc('result_rec_11'), loc('result_rec_12')],
+      ),
+    };
 
-    if (displayScore100 >= 76) {
-      category = AppLocalizations.tr('psych_excellent');
-      advice = AppLocalizations.tr('overall_exc_1');
-      cardColor = const Color(0xFF22C55E);
-      categoryIcon = PhosphorIconsRegular.checkCircle;
-      recommendations = [
-        AppLocalizations.tr('result_rec_1'),
-        AppLocalizations.tr('result_rec_2'),
-        AppLocalizations.tr('result_rec_3'),
-      ];
-    } else if (displayScore100 >= 51) {
-      category = AppLocalizations.tr('psych_good');
-      advice = AppLocalizations.tr('overall_good_2');
-      cardColor = const Color(0xFF84CC16);
-      categoryIcon = PhosphorIconsRegular.info;
-      recommendations = [
-        AppLocalizations.tr('result_rec_4'),
-        AppLocalizations.tr('result_rec_5'),
-        AppLocalizations.tr('result_rec_6'),
-      ];
-    } else if (displayScore100 >= 26) {
-      category = AppLocalizations.tr('psych_fair');
-      advice = AppLocalizations.tr('overall_fair_2');
-      cardColor = const Color(0xFFF59E0B);
-      categoryIcon = PhosphorIconsRegular.warning;
-      recommendations = [
-        AppLocalizations.tr('result_rec_7'),
-        AppLocalizations.tr('result_rec_8'),
-        AppLocalizations.tr('result_rec_9'),
-      ];
-    } else {
-      category = AppLocalizations.tr('psych_needs_attention');
-      advice = AppLocalizations.tr('overall_attn_2');
-      cardColor = const Color(0xFFEF4444);
-      categoryIcon = PhosphorIconsRegular.warningCircle;
-      recommendations = [
-        AppLocalizations.tr('result_rec_10'),
-        AppLocalizations.tr('result_rec_11'),
-        AppLocalizations.tr('result_rec_12'),
-      ];
-    }
-
-    return ResonanceCard(
-      c: c,
-      padding: const EdgeInsets.all(24),
-      accent: cardColor,
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: cardColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: cardColor.withValues(alpha: 0.25)),
-                ),
-                child: Icon(categoryIcon, size: 20, color: cardColor),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                loc('result_mental_health'),
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: c.onSurface,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 22),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: 140,
-                height: 140,
-                child: CircularProgressIndicator(
-                  value: displayScore100 / 100,
-                  strokeWidth: 12,
-                  backgroundColor: cardColor.withValues(alpha: 0.12),
-                  valueColor: AlwaysStoppedAnimation<Color>(cardColor),
-                ),
-              ),
-              Column(
-                children: [
-                  Text(
-                    '$displayScore100',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 42,
-                      fontWeight: FontWeight.w900,
-                      color: cardColor,
-                    ),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutCubic,
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: Transform.translate(
+          offset: Offset(0, 12 * (1 - t)),
+          child: child,
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: c.surfaceLowest,
+          border: Border.all(color: c.outlineVariant),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(color: Color(0x1424161C), offset: Offset(2, 2)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: cardColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  Text(
-                    '/ 100',
-                    style: GoogleFonts.inter(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                      color: c.onSurfaceVariant,
-                    ),
+                  child: Icon(
+                    PhosphorIconsRegular.lightbulb,
+                    size: 17,
+                    color: cardColor,
                   ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
-            decoration: BoxDecoration(
-              border: Border.all(color: cardColor.withValues(alpha: 0.35)),
-              borderRadius: BorderRadius.circular(999),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  loc('result_recommendations'),
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: c.onSurface,
+                  ),
+                ),
+              ],
             ),
-            child: Text(
-              category,
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: cardColor,
-              ),
-            ),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            advice,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 13.5,
-              color: c.onSurface,
-              height: 1.6,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Container(height: 1, color: c.outlineVariant),
-          const SizedBox(height: 18),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              loc('result_recommendations'),
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: c.onSurface,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...recommendations.map(
-            (rec) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Container(
-                      width: 6,
-                      height: 6,
+            const SizedBox(height: 16),
+            ...recommendations.map(
+              (rec) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 22,
+                      height: 22,
                       decoration: BoxDecoration(
-                        color: cardColor,
+                        color: cardColor.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      rec,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: c.onSurface,
-                        height: 1.5,
+                      child: Icon(
+                        PhosphorIconsRegular.check,
+                        size: 12,
+                        color: cardColor,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          rec,
+                          style: GoogleFonts.inter(
+                            fontSize: 13.5,
+                            color: c.onSurface,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

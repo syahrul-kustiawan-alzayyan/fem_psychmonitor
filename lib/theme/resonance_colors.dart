@@ -177,8 +177,10 @@ class ResonanceCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final bool layered;
+  final bool softShadow;
   final Color? accent;
   final double radius;
+  final double layerOffset;
 
   const ResonanceCard({
     super.key,
@@ -186,8 +188,10 @@ class ResonanceCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(20),
     this.layered = true,
+    this.softShadow = false,
     this.accent,
     this.radius = 24,
+    this.layerOffset = 4,
   });
 
   @override
@@ -205,15 +209,30 @@ class ResonanceCard extends StatelessWidget {
       padding: padding,
       child: child,
     );
-    if (!layered) return card;
+    if (!layered && !softShadow) return card;
+    if (softShadow) {
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(radius),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF24161C).withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: card,
+      );
+    }
     return Stack(
       clipBehavior: Clip.none,
       children: [
         Positioned(
           left: 0,
           right: 0,
-          top: 4,
-          bottom: -4,
+          top: layerOffset,
+          bottom: -layerOffset,
           child: Container(
             decoration: BoxDecoration(
               color: c.primaryContainer,

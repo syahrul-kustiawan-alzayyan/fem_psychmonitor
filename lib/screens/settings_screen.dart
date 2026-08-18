@@ -71,8 +71,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
         return;
       }
-      await NotificationService.instance
-          .scheduleRoutine(startHour: _reminderHour, startMinute: _reminderMinute);
+      await NotificationService.instance.scheduleRoutine(
+        startHour: _reminderHour,
+        startMinute: _reminderMinute,
+      );
       await NotificationService.instance.saveEnabled(true);
       if (!mounted) return;
       setState(() => _reminderEnabled = true);
@@ -104,11 +106,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _reminderHour = picked.hour;
       _reminderMinute = picked.minute;
     });
-    await NotificationService.instance
-        .saveTime(hour: picked.hour, minute: picked.minute);
+    await NotificationService.instance.saveTime(
+      hour: picked.hour,
+      minute: picked.minute,
+    );
     if (_reminderEnabled) {
-      await NotificationService.instance
-          .scheduleRoutine(startHour: picked.hour, startMinute: picked.minute);
+      await NotificationService.instance.scheduleRoutine(
+        startHour: picked.hour,
+        startMinute: picked.minute,
+      );
       if (mounted) _showSnack(AppLocalizations.tr('reminder_scheduled'));
     }
   }
@@ -190,10 +196,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 16,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -378,6 +381,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle: AppLocalizations.tr('terms_desc'),
                     onTap: () => _showTerms(context),
                   ),
+                  _buildDivider(context),
+                  // Privacy Policy
+                  _buildSettingsTile(
+                    context,
+                    icon: PhosphorIconsRegular.shieldCheck,
+                    iconColor: c.primary,
+                    title: AppLocalizations.tr('privacy_policy'),
+                    subtitle: AppLocalizations.tr('privacy_policy_desc'),
+                    onTap: () => _showPrivacy(context),
+                  ),
                 ],
               ),
 
@@ -469,10 +482,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: c.outlineVariant),
         boxShadow: const [
-          BoxShadow(
-            color: Color(0x1424161C),
-            offset: Offset(2, 2),
-          ),
+          BoxShadow(color: Color(0x1424161C), offset: Offset(2, 2)),
         ],
       ),
       child: Column(children: children),
@@ -532,11 +542,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             ?trailing,
             if (onTap != null && trailing == null)
-              Icon(
-                PhosphorIconsRegular.caretRight,
-                color: c.outline,
-                size: 18,
-              ),
+              Icon(PhosphorIconsRegular.caretRight, color: c.outline, size: 18),
           ],
         ),
       ),
@@ -640,8 +646,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     premium.expiryDate != null
                         ? _formatRemainingTime(premium.expiryDate!)
                         : (AppLocalizations.locale.startsWith('en')
-                            ? 'Lifetime'
-                            : 'Seumur Hidup'),
+                              ? 'Lifetime'
+                              : 'Seumur Hidup'),
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: c.onSurfaceVariant,
@@ -881,6 +887,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _showPrivacy(BuildContext context) {
+    final c = ResonanceColors.of(context);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: c.surfaceLowest,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (ctx, scrollCtrl) => Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: c.outline.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                AppLocalizations.tr('privacy_title'),
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: c.onSurface,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollCtrl,
+                  child: Text(
+                    AppLocalizations.tr('privacy_content'),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: c.onSurfaceVariant,
+                      height: 1.7,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _handleBackupData(BuildContext context) async {
     final c = ResonanceColors.of(context);
     try {
@@ -1064,9 +1126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: c.primary,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: c.primary),
               onPressed: () => Navigator.pop(ctx, true),
               child: Text(
                 AppLocalizations.tr('restore'),
@@ -1175,9 +1235,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surfaceLowest,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text(
           AppLocalizations.tr('delete_account_title'),
           style: GoogleFonts.spaceGrotesk(

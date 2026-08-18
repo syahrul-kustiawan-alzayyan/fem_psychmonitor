@@ -5,7 +5,7 @@ class AppLocalizations {
   static String _currentLocale = 'id';
 
   static String get currentLocale => _currentLocale;
-  
+
   /// Getter shorthand untuk locale (digunakan oleh services dan screens)
   static String get locale => _currentLocale;
 
@@ -266,8 +266,7 @@ class AppLocalizations {
       'verif_resend_countdown': 'Kirim Ulang ({count})',
       'verif_resend_button': 'Kirim Email Verifikasi',
       'verif_success_title': 'Verifikasi Berhasil!',
-      'verif_success_desc':
-          'Email Anda telah terverifikasi. Mengalihkan...',
+      'verif_success_desc': 'Email Anda telah terverifikasi. Mengalihkan...',
       'verif_processing': 'Memproses masuk...',
       'setpass_title': 'Buat Password',
       'auth_onboarding_title': 'Lengkapi Data Diri',
@@ -278,6 +277,7 @@ class AppLocalizations {
           'Buat password untuk akun Google Anda agar bisa login juga menggunakan email dan password.',
       'setpass_failed': 'Gagal menyimpan password. Coba lagi.',
       'setpass_button': 'Simpan Password',
+      'bigfive_dominant': 'Dimensi Dominan',
 
       // ── App Guide ──
       'guide_title': 'Panduan Aplikasi',
@@ -307,6 +307,29 @@ class AppLocalizations {
           '3. Pengguna bertanggung jawab atas penggunaan aplikasi sesuai ketentuan.\n\n'
           '4. Pengembang tidak bertanggung jawab atas keputusan yang diambil '
           'berdasarkan hasil analisis aplikasi.',
+
+      // ── Privacy Policy ──
+      'privacy_policy': 'Kebijakan Privasi',
+      'privacy_policy_desc': 'Baca kebijakan privasi aplikasi',
+      'privacy_title': 'Kebijakan Privasi',
+      'privacy_content':
+          'Kebijakan privasi Fem-Psych Monitor menjelaskan bagaimana kami '
+          'mengumpulkan, menggunakan, dan melindungi data Anda.\n\n'
+          '1. Data yang Dikumpulkan\n'
+          'Rekaman suara, transkrip, hasil analisis emosi, skor Big Five, '
+          'dan skor kesehatan psikis yang Anda input melalui aplikasi.\n\n'
+          '2. Penggunaan Data\n'
+          'Data digunakan untuk memberikan analisis emosi, rekomendasi, '
+          'dan pemantauan kesehatan psikis Anda secara personal.\n\n'
+          '3. Penyimpanan & Keamanan\n'
+          'Rekaman dan hasil analisis disimpan secara aman dan tidak dibagikan '
+          'kepada pihak ketiga tanpa persetujuan Anda.\n\n'
+          '4. Hak Anda\n'
+          'Anda dapat menghapus data Anda kapan saja melalui menu pengaturan '
+          'aplikasi.\n\n'
+          '5. Kontak\n'
+          'Jika Anda memiliki pertanyaan tentang kebijakan privasi ini, '
+          'hubungi kami melalui email resmi aplikasi.',
 
       // ── Days & Months ──
       'mon': 'Senin', 'tue': 'Selasa', 'wed': 'Rabu', 'thu': 'Kamis',
@@ -481,9 +504,11 @@ class AppLocalizations {
       'name_required': 'Nama wajib diisi',
       'password_mismatch': 'Password tidak cocok',
       'email_verification_sent': 'Email Verifikasi Terkirim',
-      'email_verification_desc': 'Silakan cek inbox email Anda dan klik link verifikasi sebelum login. Periksa juga folder Spam.',
+      'email_verification_desc':
+          'Silakan cek inbox email Anda dan klik link verifikasi sebelum login. Periksa juga folder Spam.',
       'email_not_verified': 'Email Belum Diverifikasi',
-      'email_not_verified_desc': 'Silakan verifikasi email Anda terlebih dahulu dengan mengklik link yang telah dikirim ke inbox Anda.',
+      'email_not_verified_desc':
+          'Silakan verifikasi email Anda terlebih dahulu dengan mengklik link yang telah dikirim ke inbox Anda.',
       'resend_verification': 'Kirim Ulang Email Verifikasi',
       'verification_resent': 'Email verifikasi telah dikirim ulang!',
       'resend_failed': 'Gagal mengirim ulang email verifikasi',
@@ -499,7 +524,8 @@ class AppLocalizations {
       'yes_delete': 'Ya, Hapus',
       'show_onboarding_title': 'Tampilkan Onboarding Lagi?',
       'delete_account_title': 'Hapus Akun & Data?',
-      'delete_account_message': 'Semua data rekaman dan profil Anda akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.',
+      'delete_account_message':
+          'Semua data rekaman dan profil Anda akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.',
       'backup_data': 'Backup Data',
       'backup_data_desc': 'Cadangkan data rekaman ke penyimpanan lokal',
       'restore_data': 'Restore Data',
@@ -507,7 +533,8 @@ class AppLocalizations {
       'backup_success': 'Backup Berhasil',
       'restore_no_backup': 'Tidak ada file backup ditemukan',
       'restore_confirm': 'Pulihkan Data?',
-      'restore_confirm_desc': 'Data saat ini akan ditimpa dengan data dari file backup. Lanjutkan?',
+      'restore_confirm_desc':
+          'Data saat ini akan ditimpa dengan data dari file backup. Lanjutkan?',
       'restore': 'Pulihkan',
       'save_backup': 'Simpan Backup',
       'select_backup_file': 'Pilih File Backup',
@@ -524,26 +551,38 @@ class AppLocalizations {
       // ── Onboarding ──
       'user': 'Pengguna',
       'start_now': 'Mulai Sekarang',
-      'welcome_desc': 'Aplikasi kesehatan mental khusus perempuan yang menggabungkan analisis emosi berbasis AI dengan pemahaman kepribadian Big Five (OCEAN) untuk mendukung perkembangan diri Anda.',
+      'welcome_desc':
+          'Aplikasi kesehatan mental khusus perempuan yang menggabungkan analisis emosi berbasis AI dengan pemahaman kepribadian Big Five (OCEAN) untuk mendukung perkembangan diri Anda.',
       'feature_voice_title': 'Analisis Suara & Emosi',
-      'feature_voice_desc': 'Deteksi emosi secara real-time menggunakan AI canggih. Rekam suara Anda dan dapatkan analisis mendalam tentang state emosi saat ini.',
+      'feature_voice_desc':
+          'Deteksi emosi secara real-time menggunakan AI canggih. Rekam suara Anda dan dapatkan analisis mendalam tentang state emosi saat ini.',
       'feature_self_title': 'Pemahaman Diri',
-      'feature_self_desc': 'Kenali tipe kepribadian Big Five (OCEAN) dan pantau kesehatan mental dengan asesmen terstruktur berbasis sains.',
+      'feature_self_desc':
+          'Kenali tipe kepribadian Big Five (OCEAN) dan pantau kesehatan mental dengan asesmen terstruktur berbasis sains.',
       'feature_growth_title': 'Pengembangan Diri',
-      'feature_growth_desc': 'Dapatkan rekomendasi dan saran tindakan yang dipersonalisasi untuk setiap fase kehidupan dan kondisi mental Anda.',
+      'feature_growth_desc':
+          'Dapatkan rekomendasi dan saran tindakan yang dipersonalisasi untuk setiap fase kehidupan dan kondisi mental Anda.',
       'psy_intro_title': 'Kesehatan Mental\nPerempuan',
-      'psy_intro_desc': 'Pahami kesehatan mental Anda dengan pendekatan saintifik yang disesuaikan untuk kebutuhan perempuan.',
+      'psy_intro_desc':
+          'Pahami kesehatan mental Anda dengan pendekatan saintifik yang disesuaikan untuk kebutuhan perempuan.',
       'psy_about_title': 'Tentang Asesmen Kesehatan Mental',
-      'psy_about_desc': 'Kuesioner ini dirancang khusus untuk mengukur kesejahteraan mental perempuan, menggunakan standar klinis yang telah divalidasi. Asesmen ini mencakup 4 aspek utama yang seringkali unik bagi pengalaman perempuan:',
-      'psy_point_1': '💼 Beban Peran & Stres: Menilai tekanan dari peran sosial, pekerjaan, dan keluarga',
-      'psy_point_2': '💭 Regulasi Emosi & Hormonal: Memahami dampak fluktuasi hormon terhadap stabilitas emosi',
-      'psy_point_3': '🪞 Citra Tubuh (Body Image): Mengukur persepsi diri dan kepuasan terhadap fisik',
-      'psy_point_4': '🌙 Kualitas Tidur & Energi: Evaluasi pola tidur dan tingkat vitalitas harian',
+      'psy_about_desc':
+          'Kuesioner ini dirancang khusus untuk mengukur kesejahteraan mental perempuan, menggunakan standar klinis yang telah divalidasi. Asesmen ini mencakup 4 aspek utama yang seringkali unik bagi pengalaman perempuan:',
+      'psy_point_1':
+          '💼 Beban Peran & Stres: Menilai tekanan dari peran sosial, pekerjaan, dan keluarga',
+      'psy_point_2':
+          '💭 Regulasi Emosi & Hormonal: Memahami dampak fluktuasi hormon terhadap stabilitas emosi',
+      'psy_point_3':
+          '🪞 Citra Tubuh (Body Image): Mengukur persepsi diri dan kepuasan terhadap fisik',
+      'psy_point_4':
+          '🌙 Kualitas Tidur & Energi: Evaluasi pola tidur dan tingkat vitalitas harian',
       'psy_note_title': 'Catatan Penting',
-      'psy_note_desc': 'Jawablah dengan jujur sesuai kondisi Anda selama ini. Hasil asesmen ini bersifat rahasia dan hanya akan digunakan untuk memberikan rekomendasi yang dipersonalisasi.',
+      'psy_note_desc':
+          'Jawablah dengan jujur sesuai kondisi Anda selama ini. Hasil asesmen ini bersifat rahasia dan hanya akan digunakan untuk memberikan rekomendasi yang dipersonalisasi.',
       'start_assessment': 'Mulai Asesmen',
       'result_title': 'Hasil Asesmen Anda',
-      'result_subtitle': ', berikut adalah hasil analisis kepribadian dan kesehatan mental Anda.',
+      'result_subtitle':
+          ', berikut adalah hasil analisis kepribadian dan kesehatan mental Anda.',
       'result_mental_health': 'Kesehatan Mental',
       'result_recommendations': 'Rekomendasi:',
       'completed': 'Selesai 🚀',
@@ -556,7 +595,8 @@ class AppLocalizations {
       'result_rec_7': 'Pertimbangkan untuk berkonsultasi dengan profesional',
       'result_rec_8': 'Tingkatkan pola tidur dan istirahat yang cukup',
       'result_rec_9': 'Cari dukungan dari orang terdekat',
-      'result_rec_10': 'Segera konsultasikan dengan profesional kesehatan mental',
+      'result_rec_10':
+          'Segera konsultasikan dengan profesional kesehatan mental',
       'result_rec_11': 'Jangan ragu untuk mencari dukungan sosial',
       'result_rec_12': 'Prioritaskan aktivitas yang memulihkan energi',
       'mental_health_questionnaire': 'Kuesioner Kesehatan Mental',
@@ -567,18 +607,24 @@ class AppLocalizations {
 
       // ── Big Five ──
       'bigfive_what_is': 'Psikologi Big Five',
-      'bigfive_what_is_desc': 'Model Big Five Personality (OCEAN) adalah teori kepribadian yang mengelompokkan sifat manusia ke dalam 5 dimensi utama yang luas. Setiap orang memiliki kombinasi unik dari kelima dimensi ini yang membentuk kepribadian mereka.',
+      'bigfive_what_is_desc':
+          'Model Big Five Personality (OCEAN) adalah teori kepribadian yang mengelompokkan sifat manusia ke dalam 5 dimensi utama yang luas. Setiap orang memiliki kombinasi unik dari kelima dimensi ini yang membentuk kepribadian mereka.',
       'bigfive_5dimensions': '5 Dimensi Utama:',
       'bigfive_dim_o': 'Keterbukaan',
-      'bigfive_dim_o_desc': 'Imajinatif, ingin tahu, dan terbuka terhadap hal-hal baru vs. konservatif dan suka rutinitas',
+      'bigfive_dim_o_desc':
+          'Imajinatif, ingin tahu, dan terbuka terhadap hal-hal baru vs. konservatif dan suka rutinitas',
       'bigfive_dim_c': 'Kehati-hatian',
-      'bigfive_dim_c_desc': 'Terorganisir, disiplin, dan bertanggung jawab vs. spontan dan kurang terstruktur',
+      'bigfive_dim_c_desc':
+          'Terorganisir, disiplin, dan bertanggung jawab vs. spontan dan kurang terstruktur',
       'bigfive_dim_e': 'Ekstraversi',
-      'bigfive_dim_e_desc': 'Bersemangat, suka bergaul, dan energik vs. pendiam dan lebih suka menyendiri',
+      'bigfive_dim_e_desc':
+          'Bersemangat, suka bergaul, dan energik vs. pendiam dan lebih suka menyendiri',
       'bigfive_dim_a': 'Keramahan',
-      'bigfive_dim_a_desc': 'Percaya, kooperatif, dan penuh empati vs. kompetitif dan skeptis',
+      'bigfive_dim_a_desc':
+          'Percaya, kooperatif, dan penuh empati vs. kompetitif dan skeptis',
       'bigfive_dim_n': 'Neurotisisme',
-      'bigfive_dim_n_desc': 'Cemas, sensitif, dan mudah khawatir vs. stabil emosi dan tenang',
+      'bigfive_dim_n_desc':
+          'Cemas, sensitif, dan mudah khawatir vs. stabil emosi dan tenang',
       'bigfive_ready': 'Siap mulai mengenali kepribadian Anda?',
       'result_bigfive': 'Skor Big Five Anda',
       'bigfive_high': 'Tinggi',
@@ -587,11 +633,14 @@ class AppLocalizations {
 
       // ── Home ──
       'not_assessed': 'Belum Dinilai',
-      'fill_questionnaire_to_see_score': 'Isi kuesioner kesehatan mental untuk melihat skor Anda',
+      'fill_questionnaire_to_see_score':
+          'Isi kuesioner kesehatan mental untuk melihat skor Anda',
       'mental_health_score': 'Skor Kesehatan Mental',
       'emotion_impact_on_score': 'Dampak Emosi terhadap Skor',
-      'positive_emotions_increase': 'Emosi positif (Happy, Neutral) meningkatkan skor',
-      'negative_emotions_decrease': 'Emosi negatif (Sad, Fear, Angry, Disgust) menurunkannya',
+      'positive_emotions_increase':
+          'Emosi positif (Happy, Neutral) meningkatkan skor',
+      'negative_emotions_decrease':
+          'Emosi negatif (Sad, Fear, Angry, Disgust) menurunkannya',
       'info': 'Info',
 
       // ── Record Detail ──
@@ -602,15 +651,18 @@ class AppLocalizations {
       'detail_weighted_score': 'Skor Berbobot',
       'detail_scale_5': '(skala -5 s/d +5)',
       'detail_emotion_distribution': 'Distribusi Emosi',
-      'detail_radar_desc': 'Grafik radar distribusi intensitas 6 jenis emosi dari rekaman suara',
+      'detail_radar_desc':
+          'Grafik radar distribusi intensitas 6 jenis emosi dari rekaman suara',
       'detail_emotion_scale': '📊 Skala Nilai Emosi',
       'detail_suggestion_emotion': '💡 Saran Berdasarkan Emosi',
 
       // ── Live Detection ──
       'analyzing_voice': 'Menganalisis Suara Live...',
       'ready_to_listen': 'Siap Mendengarkan',
-      'story_prompt_proud': 'Ceritakan hal yang membuatmu bangga akhir-akhir ini',
-      'story_prompt_supporter': 'Siapa yang selalu mendukungmu? Ceritakan tentang mereka',
+      'story_prompt_proud':
+          'Ceritakan hal yang membuatmu bangga akhir-akhir ini',
+      'story_prompt_supporter':
+          'Siapa yang selalu mendukungmu? Ceritakan tentang mereka',
 
       // ── Emotion Detection Screen ──
       'emotion_detection': 'Deteksi Emosi',
@@ -622,13 +674,15 @@ class AppLocalizations {
           'Memproses transkripsi...\n(Pertama kali muat model bisa lebih lama)',
       'analyzing_text_emotion': 'Menganalisis emosi dari teks...',
       'failed_start_recording_detail': 'Gagal memulai rekaman: {error}',
-      'emotion_data_unavailable': 'Data emosi tidak tersedia. Silakan coba rekam ulang.',
+      'emotion_data_unavailable':
+          'Data emosi tidak tersedia. Silakan coba rekam ulang.',
       'emotion_score': 'Skor Emosi',
       'top_emotions': 'Top Emosi',
       'available': 'Tersedia',
       'none': 'Tidak ada',
       'dominant_badge': 'DOMINAN',
-      'combined_source_desc': 'Gabungan deteksi suara (60%) + analisis teks (40%)',
+      'combined_source_desc':
+          'Gabungan deteksi suara (60%) + analisis teks (40%)',
       'suggestion_for_emotion_name': 'Saran untuk Emosi {emotion}',
       'detected': 'Terdeteksi',
       'transcript_unavailable': 'Transkrip tidak tersedia',
@@ -662,7 +716,8 @@ class AppLocalizations {
 
       // ── Premium Purchase ──
       'purchase_success_title': 'Pembelian Berhasil',
-      'purchase_success_desc': 'Selamat! Anda sekarang menikmati semua fitur premium.',
+      'purchase_success_desc':
+          'Selamat! Anda sekarang menikmati semua fitur premium.',
       'purchase_failed_title': 'Pembelian Gagal',
       'purchase_failed_desc': 'Terjadi kesalahan. Silakan coba lagi.',
       'restore_success_title': 'Pemulihan Berhasil',
@@ -672,20 +727,24 @@ class AppLocalizations {
 
       // ── Daily Detection Limit ──
       'daily_limit_title': 'Batas Harian Tercapai',
-      'daily_limit_message': 'Kamu telah menggunakan 5 deteksi gratis hari ini. Tonton iklan untuk mendapatkan 1 deteksi tambahan?',
+      'daily_limit_message':
+          'Kamu telah menggunakan 5 deteksi gratis hari ini. Tonton iklan untuk mendapatkan 1 deteksi tambahan?',
       'watch_ad': 'Tonton Iklan',
       'remaining_detections': 'Sisa Deteksi Hari Ini',
       'remaining_unlimited': 'Tak Terbatas',
       'remaining_prefix': 'Sisa',
       'big_five_retake_title': 'Tes Big Five',
-      'big_five_retake_desc': 'Jawab 20 pertanyaan singkat untuk mengetahui profil kepribadian Big Five-mu.',
+      'big_five_retake_desc':
+          'Jawab 20 pertanyaan singkat untuk mengetahui profil kepribadian Big Five-mu.',
       'big_five_saved': 'Skor Big Five berhasil disimpan!',
       'reset_onboarding': 'Tampilkan Onboarding',
       'reset_onboarding_desc': 'Ulangi asesmen awal aplikasi',
-      'reset_onboarding_message': 'Anda akan kembali ke asesmen awal. Semua data yang sudah tersimpan tetap aman. Lanjutkan?',
+      'reset_onboarding_message':
+          'Anda akan kembali ke asesmen awal. Semua data yang sudah tersimpan tetap aman. Lanjutkan?',
       'reset': 'Reset',
       'reward_earned_title': 'Reward Didapatkan!',
-      'reward_earned_message': 'Terima kasih telah menonton iklan. Kamu bisa melakukan 1 deteksi emosi tambahan sekarang.',
+      'reward_earned_message':
+          'Terima kasih telah menonton iklan. Kamu bisa melakukan 1 deteksi emosi tambahan sekarang.',
       'login_successful': 'Login Berhasil',
     },
 
@@ -844,7 +903,8 @@ class AppLocalizations {
       'account': 'Account',
       'notifications': 'Notifications',
       'routine_reminder': 'Regular Reminder',
-      'routine_reminder_desc': 'Remind to check in with your emotions every 3 hours',
+      'routine_reminder_desc':
+          'Remind to check in with your emotions every 3 hours',
       'reminder_time': 'Start Time',
       'reminder_disabled': 'Disabled',
       'reminder_notification_title': 'Fem-Psych Monitor Reminder',
@@ -947,6 +1007,7 @@ class AppLocalizations {
           'Create a password for your Google account so you can also log in with email and password.',
       'setpass_failed': 'Failed to save password. Please try again.',
       'setpass_button': 'Save Password',
+      'bigfive_dominant': 'Dominant Trait',
 
       // ── App Guide ──
       'guide_title': 'App Guide',
@@ -976,6 +1037,28 @@ class AppLocalizations {
           '3. Users are responsible for using the app in accordance with these terms.\n\n'
           '4. Developers are not responsible for decisions made based on the '
           "app's analysis results.",
+
+      // ── Privacy Policy ──
+      'privacy_policy': 'Privacy Policy',
+      'privacy_policy_desc': 'Read the app privacy policy',
+      'privacy_title': 'Privacy Policy',
+      'privacy_content':
+          'The Fem-Psych Monitor privacy policy explains how we collect, '
+          'use, and protect your data.\n\n'
+          '1. Data Collected\n'
+          'Voice recordings, transcripts, emotion analysis results, Big Five '
+          'scores, and psychological health scores you provide through the app.\n\n'
+          '2. Data Usage\n'
+          'Data is used to provide personalized emotion analysis, '
+          'recommendations, and mental health monitoring.\n\n'
+          '3. Storage & Security\n'
+          'Recordings and analysis results are stored securely and are not '
+          'shared with third parties without your consent.\n\n'
+          '4. Your Rights\n'
+          'You can delete your data at any time through the app settings menu.\n\n'
+          '5. Contact\n'
+          'If you have questions about this privacy policy, contact us via '
+          'the official app email.',
 
       // ── Days & Months ──
       'mon': 'Monday', 'tue': 'Tuesday', 'wed': 'Wednesday', 'thu': 'Thursday',
@@ -1143,9 +1226,11 @@ class AppLocalizations {
       'name_required': 'Name is required',
       'password_mismatch': 'Password does not match',
       'email_verification_sent': 'Verification Email Sent',
-      'email_verification_desc': 'Please check your email inbox and click the verification link before logging in. Also check your Spam folder.',
+      'email_verification_desc':
+          'Please check your email inbox and click the verification link before logging in. Also check your Spam folder.',
       'email_not_verified': 'Email Not Verified',
-      'email_not_verified_desc': 'Please verify your email first by clicking the link sent to your inbox.',
+      'email_not_verified_desc':
+          'Please verify your email first by clicking the link sent to your inbox.',
       'resend_verification': 'Resend Verification Email',
       'verification_resent': 'Verification email has been resent!',
       'resend_failed': 'Failed to resend verification email',
@@ -1161,7 +1246,8 @@ class AppLocalizations {
       'yes_delete': 'Yes, Delete',
       'show_onboarding_title': 'Show Onboarding Again?',
       'delete_account_title': 'Delete Account & Data?',
-      'delete_account_message': 'All your recording data and profile will be permanently deleted. This action cannot be undone.',
+      'delete_account_message':
+          'All your recording data and profile will be permanently deleted. This action cannot be undone.',
       'backup_data': 'Backup Data',
       'backup_data_desc': 'Backup recording data to local storage',
       'restore_data': 'Restore Data',
@@ -1169,7 +1255,8 @@ class AppLocalizations {
       'backup_success': 'Backup Successful',
       'restore_no_backup': 'No backup file found',
       'restore_confirm': 'Restore Data?',
-      'restore_confirm_desc': 'Current data will be overwritten with data from the backup file. Continue?',
+      'restore_confirm_desc':
+          'Current data will be overwritten with data from the backup file. Continue?',
       'restore': 'Restore',
       'save_backup': 'Save Backup',
       'select_backup_file': 'Select Backup File',
@@ -1186,26 +1273,38 @@ class AppLocalizations {
       // ── Onboarding ──
       'user': 'User',
       'start_now': 'Start Now',
-      'welcome_desc': 'A mental health app specifically for women that combines AI-based emotion analysis with Big Five (OCEAN) personality understanding to support your personal development.',
+      'welcome_desc':
+          'A mental health app specifically for women that combines AI-based emotion analysis with Big Five (OCEAN) personality understanding to support your personal development.',
       'feature_voice_title': 'Voice & Emotion Analysis',
-      'feature_voice_desc': 'Real-time emotion detection using advanced AI. Record your voice and get in-depth analysis of your current emotional state.',
+      'feature_voice_desc':
+          'Real-time emotion detection using advanced AI. Record your voice and get in-depth analysis of your current emotional state.',
       'feature_self_title': 'Self Understanding',
-      'feature_self_desc': 'Discover your Big Five (OCEAN) personality profile and monitor mental health with science-based structured assessments.',
+      'feature_self_desc':
+          'Discover your Big Five (OCEAN) personality profile and monitor mental health with science-based structured assessments.',
       'feature_growth_title': 'Personal Growth',
-      'feature_growth_desc': 'Get personalized recommendations and action suggestions for every phase of life and mental condition.',
+      'feature_growth_desc':
+          'Get personalized recommendations and action suggestions for every phase of life and mental condition.',
       'psy_intro_title': "Women's Mental\nHealth",
-      'psy_intro_desc': 'Understand your mental health with a scientific approach tailored for women\'s needs.',
+      'psy_intro_desc':
+          'Understand your mental health with a scientific approach tailored for women\'s needs.',
       'psy_about_title': 'About Mental Health Assessment',
-      'psy_about_desc': 'This questionnaire is specifically designed to measure women\'s mental well-being, using clinically validated standards. This assessment covers 4 main aspects that are often unique to women\'s experiences:',
-      'psy_point_1': '💼 Role & Stress: Assessing pressure from social roles, work, and family',
-      'psy_point_2': '💭 Emotional & Hormonal Regulation: Understanding hormonal fluctuations\' impact on emotional stability',
-      'psy_point_3': '🪞 Body Image: Measuring self-perception and satisfaction with physical appearance',
-      'psy_point_4': '🌙 Sleep Quality & Energy: Evaluating sleep patterns and daily vitality',
+      'psy_about_desc':
+          'This questionnaire is specifically designed to measure women\'s mental well-being, using clinically validated standards. This assessment covers 4 main aspects that are often unique to women\'s experiences:',
+      'psy_point_1':
+          '💼 Role & Stress: Assessing pressure from social roles, work, and family',
+      'psy_point_2':
+          '💭 Emotional & Hormonal Regulation: Understanding hormonal fluctuations\' impact on emotional stability',
+      'psy_point_3':
+          '🪞 Body Image: Measuring self-perception and satisfaction with physical appearance',
+      'psy_point_4':
+          '🌙 Sleep Quality & Energy: Evaluating sleep patterns and daily vitality',
       'psy_note_title': 'Important Note',
-      'psy_note_desc': 'Answer honestly according to your condition. The assessment results are confidential and will only be used to provide personalized recommendations.',
+      'psy_note_desc':
+          'Answer honestly according to your condition. The assessment results are confidential and will only be used to provide personalized recommendations.',
       'start_assessment': 'Start Assessment',
       'result_title': 'Your Assessment Results',
-      'result_subtitle': ', here are your personality and mental health analysis results.',
+      'result_subtitle':
+          ', here are your personality and mental health analysis results.',
       'result_mental_health': 'Mental Health',
       'result_recommendations': 'Recommendations:',
       'completed': 'Done 🚀',
@@ -1229,18 +1328,24 @@ class AppLocalizations {
 
       // ── Big Five ──
       'bigfive_what_is': 'Big Five Psychology',
-      'bigfive_what_is_desc': 'The Big Five Personality Model (OCEAN) is a personality theory that groups human traits into 5 broad dimensions. Each person has a unique combination of these five dimensions that shapes their personality.',
+      'bigfive_what_is_desc':
+          'The Big Five Personality Model (OCEAN) is a personality theory that groups human traits into 5 broad dimensions. Each person has a unique combination of these five dimensions that shapes their personality.',
       'bigfive_5dimensions': '5 Main Dimensions:',
       'bigfive_dim_o': 'Openness',
-      'bigfive_dim_o_desc': 'Imaginative, curious, and open to new experiences vs. conservative and prefers routine',
+      'bigfive_dim_o_desc':
+          'Imaginative, curious, and open to new experiences vs. conservative and prefers routine',
       'bigfive_dim_c': 'Conscientiousness',
-      'bigfive_dim_c_desc': 'Organized, disciplined, and responsible vs. spontaneous and less structured',
+      'bigfive_dim_c_desc':
+          'Organized, disciplined, and responsible vs. spontaneous and less structured',
       'bigfive_dim_e': 'Extraversion',
-      'bigfive_dim_e_desc': 'Enthusiastic, sociable, and energetic vs. reserved and prefers solitude',
+      'bigfive_dim_e_desc':
+          'Enthusiastic, sociable, and energetic vs. reserved and prefers solitude',
       'bigfive_dim_a': 'Agreeableness',
-      'bigfive_dim_a_desc': 'Trusting, cooperative, and empathetic vs. competitive and skeptical',
+      'bigfive_dim_a_desc':
+          'Trusting, cooperative, and empathetic vs. competitive and skeptical',
       'bigfive_dim_n': 'Neuroticism',
-      'bigfive_dim_n_desc': 'Anxious, sensitive, and prone to worry vs. emotionally stable and calm',
+      'bigfive_dim_n_desc':
+          'Anxious, sensitive, and prone to worry vs. emotionally stable and calm',
       'bigfive_ready': 'Ready to discover your personality?',
       'result_bigfive': 'Your Big Five Score',
       'bigfive_high': 'High',
@@ -1249,11 +1354,14 @@ class AppLocalizations {
 
       // ── Home ──
       'not_assessed': 'Not Assessed',
-      'fill_questionnaire_to_see_score': 'Fill mental health questionnaire to see your score',
+      'fill_questionnaire_to_see_score':
+          'Fill mental health questionnaire to see your score',
       'mental_health_score': 'Mental Health Score',
       'emotion_impact_on_score': 'Emotion Impact on Score',
-      'positive_emotions_increase': 'Positive emotions (Happy, Neutral) increase score',
-      'negative_emotions_decrease': 'Negative emotions (Sad, Fear, Angry, Disgust) decrease it',
+      'positive_emotions_increase':
+          'Positive emotions (Happy, Neutral) increase score',
+      'negative_emotions_decrease':
+          'Negative emotions (Sad, Fear, Angry, Disgust) decrease it',
       'info': 'Info',
 
       // ── Record Detail ──
@@ -1264,14 +1372,16 @@ class AppLocalizations {
       'detail_weighted_score': 'Weighted Score',
       'detail_scale_5': '(scale -5 to +5)',
       'detail_emotion_distribution': 'Emotion Distribution',
-      'detail_radar_desc': 'Radar chart of 6 emotion intensity distribution from voice recording',
+      'detail_radar_desc':
+          'Radar chart of 6 emotion intensity distribution from voice recording',
       'detail_emotion_scale': '📊 Emotion Value Scale',
       'detail_suggestion_emotion': '💡 Suggestions Based on Emotion',
 
       // ── Live Detection ──
       'analyzing_voice': 'Analyzing Voice Live...',
       'ready_to_listen': 'Ready to Listen',
-      'story_prompt_proud': 'Tell me about something that made you proud recently',
+      'story_prompt_proud':
+          'Tell me about something that made you proud recently',
       'story_prompt_supporter': 'Who always supports you? Tell me about them',
 
       // ── Emotion Detection Screen ──
@@ -1284,19 +1394,22 @@ class AppLocalizations {
           'Processing transcription...\n(First model load may take longer)',
       'analyzing_text_emotion': 'Analyzing emotion from text...',
       'failed_start_recording_detail': 'Failed to start recording: {error}',
-      'emotion_data_unavailable': 'Emotion data not available. Please try recording again.',
+      'emotion_data_unavailable':
+          'Emotion data not available. Please try recording again.',
       'emotion_score': 'Emotion Score',
       'top_emotions': 'Top Emotions',
       'available': 'Available',
       'none': 'None',
       'dominant_badge': 'DOMINANT',
-      'combined_source_desc': 'Combined voice detection (60%) + text analysis (40%)',
+      'combined_source_desc':
+          'Combined voice detection (60%) + text analysis (40%)',
       'suggestion_for_emotion_name': 'Suggestions for Emotion {emotion}',
       'detected': 'Detected',
       'transcript_unavailable': 'Transcript unavailable',
       'transcript_unavailable_desc':
           'Make sure you speak clearly and\nthe Gemini API key is correct in the .env file',
-      'transcript_not_recorded': 'Transcript was not recorded for this session.',
+      'transcript_not_recorded':
+          'Transcript was not recorded for this session.',
       'text_emotions_label': 'Emotions from text:',
       'detection_source': 'Detection Source',
       'voice_source': 'Voice',
@@ -1324,7 +1437,8 @@ class AppLocalizations {
 
       // ── Premium Purchase ──
       'purchase_success_title': 'Purchase Successful',
-      'purchase_success_desc': 'Congratulations! You now enjoy all premium features.',
+      'purchase_success_desc':
+          'Congratulations! You now enjoy all premium features.',
       'purchase_failed_title': 'Purchase Failed',
       'purchase_failed_desc': 'An error occurred. Please try again.',
       'restore_success_title': 'Restore Successful',
@@ -1334,20 +1448,24 @@ class AppLocalizations {
 
       // ── Daily Detection Limit ──
       'daily_limit_title': 'Daily Limit Reached',
-      'daily_limit_message': 'You\'ve used 5 free detections today. Watch an ad to unlock 1 more detection?',
+      'daily_limit_message':
+          'You\'ve used 5 free detections today. Watch an ad to unlock 1 more detection?',
       'watch_ad': 'Watch Ad',
       'remaining_detections': 'Remaining Today',
       'remaining_unlimited': 'Unlimited',
       'remaining_prefix': 'Remaining',
       'big_five_retake_title': 'Big Five Assessment',
-      'big_five_retake_desc': 'Answer 20 short questions to discover your Big Five personality profile.',
+      'big_five_retake_desc':
+          'Answer 20 short questions to discover your Big Five personality profile.',
       'big_five_saved': 'Big Five scores saved!',
       'reset_onboarding': 'Show Onboarding',
       'reset_onboarding_desc': 'Restart the initial app assessment',
-      'reset_onboarding_message': 'You will return to the initial assessment. All saved data remains safe. Continue?',
+      'reset_onboarding_message':
+          'You will return to the initial assessment. All saved data remains safe. Continue?',
       'reset': 'Reset',
       'reward_earned_title': 'Reward Earned!',
-      'reward_earned_message': 'Thank you for watching the ad. You can now do 1 additional emotion detection.',
+      'reward_earned_message':
+          'Thank you for watching the ad. You can now do 1 additional emotion detection.',
       'login_successful': 'Login Successful',
     },
   };

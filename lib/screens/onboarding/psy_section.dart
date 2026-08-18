@@ -42,7 +42,10 @@ class _PsySectionState extends State<PsySection> {
   /// Buang emoji di awal string i18n (mis. '💼 Beban Peran & Stres: ...')
   String _stripEmoji(String s) {
     return s.replaceFirst(
-      RegExp(r'^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}]+\s?', unicode: true),
+      RegExp(
+        r'^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}]+\s?',
+        unicode: true,
+      ),
       '',
     );
   }
@@ -87,7 +90,10 @@ class _PsySectionState extends State<PsySection> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 8),
-          ResonanceEyebrow(c: c, label: isEn ? '03 / ASSESSMENT' : '03 / ASESMEN'),
+          ResonanceEyebrow(
+            c: c,
+            label: isEn ? '03 / ASSESSMENT' : '03 / ASESMEN',
+          ),
           const SizedBox(height: 16),
           ResonanceCard(
             c: c,
@@ -140,7 +146,9 @@ class _PsySectionState extends State<PsySection> {
           const SizedBox(height: 20),
           ResonanceCard(
             c: c,
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
+            layered: false,
+            softShadow: true,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -232,10 +240,7 @@ class _PsySectionState extends State<PsySection> {
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: c.outlineVariant),
               boxShadow: const [
-                BoxShadow(
-                  color: Color(0x1424161C),
-                  offset: Offset(2, 2),
-                ),
+                BoxShadow(color: Color(0x1424161C), offset: Offset(2, 2)),
               ],
             ),
             child: Row(
@@ -303,159 +308,163 @@ class _PsySectionState extends State<PsySection> {
     final totalQuestions = state.psyQuestions.length;
     final progress = questionNum / totalQuestions;
 
-    return SingleChildScrollView(
-      key: ValueKey('psy-question-$qIndex'),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 8),
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        key: ValueKey('psy-question-$qIndex'),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ResonanceIconButton(
-                c: c,
-                icon: PhosphorIconsRegular.arrowLeft,
-                onTap: qIndex > 0 ? _prevPage : null,
-              ),
-              Expanded(
-                child: Center(
-                  child: ResonanceChip(
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  ResonanceIconButton(
                     c: c,
-                    label: '$questionNum/$totalQuestions',
-                    icon: PhosphorIconsRegular.heart,
+                    icon: PhosphorIconsRegular.arrowLeft,
+                    onTap: qIndex > 0 ? _prevPage : null,
                   ),
-                ),
-              ),
-              ResonanceIconButton(
-                c: c,
-                icon: PhosphorIconsRegular.house,
-                onTap: () {
-                  setState(() {
-                    _pageIndex = 0;
-                  });
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ResonanceProgressBar(c: c, progress: progress),
-          const SizedBox(height: 24),
-          ResonanceCard(
-            c: c,
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                ResonanceChip(
-                  c: c,
-                  label: q.category,
-                  icon: PhosphorIconsRegular.heart,
-                  textColor: c.primary,
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  q.question,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 17.5,
-                    fontWeight: FontWeight.w700,
-                    color: c.onSurface,
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 26),
-          ...List.generate(q.options.length, (i) {
-            final opt = q.options[i];
-            final color = _scaleColors[i % _scaleColors.length];
-            final isSelected = selected == opt.score;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: GestureDetector(
-                onTap: () {
-                  state.setPsyAnswer(qIndex, opt.score);
-                  if (qIndex < totalQuestions - 1) {
-                    Future.delayed(
-                      const Duration(milliseconds: 300),
-                      _nextPage,
-                    );
-                  } else {
-                    state.calculatePsyResult();
-                    widget.onNext();
-                  }
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? color.withValues(alpha: 0.06)
-                        : c.surfaceLowest,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isSelected ? color : c.outlineVariant,
-                      width: isSelected ? 1.5 : 1,
-                    ),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x1424161C),
-                        offset: Offset(2, 2),
+                  Expanded(
+                    child: Center(
+                      child: ResonanceChip(
+                        c: c,
+                        label: '$questionNum/$totalQuestions',
+                        icon: PhosphorIconsRegular.heart,
                       ),
-                    ],
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? color
-                              : c.surfaceVariant,
-                          borderRadius: BorderRadius.circular(14),
+                  ResonanceIconButton(
+                    c: c,
+                    icon: PhosphorIconsRegular.house,
+                    onTap: () {
+                      setState(() {
+                        _pageIndex = 0;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ResonanceProgressBar(c: c, progress: progress),
+              const SizedBox(height: 24),
+              ResonanceCard(
+                c: c,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    ResonanceChip(
+                      c: c,
+                      label: q.category,
+                      icon: PhosphorIconsRegular.heart,
+                      textColor: c.primary,
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      q.question,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 17.5,
+                        fontWeight: FontWeight.w700,
+                        color: c.onSurface,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 26),
+              ...List.generate(q.options.length, (i) {
+                final opt = q.options[i];
+                final color = _scaleColors[i % _scaleColors.length];
+                final isSelected = selected == opt.score;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: GestureDetector(
+                    onTap: () {
+                      state.setPsyAnswer(qIndex, opt.score);
+                      if (qIndex < totalQuestions - 1) {
+                        Future.delayed(
+                          const Duration(milliseconds: 300),
+                          _nextPage,
+                        );
+                      } else {
+                        state.calculatePsyResult();
+                        widget.onNext();
+                      }
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? color.withValues(alpha: 0.06)
+                            : c.surfaceLowest,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected ? color : c.outlineVariant,
+                          width: isSelected ? 1.5 : 1,
                         ),
-                        child: Center(
-                          child: Text(
-                            '${opt.score}',
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: isSelected
-                                  ? Colors.white
-                                  : c.onSurfaceVariant,
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x1424161C),
+                            offset: Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: isSelected ? color : c.surfaceVariant,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${opt.score}',
+                                style: GoogleFonts.jetBrainsMono(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : c.onSurfaceVariant,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          opt.answer,
-                          style: GoogleFonts.inter(
-                            fontSize: 14.5,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                            color: isSelected ? color : c.onSurface,
-                            height: 1.45,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              opt.answer,
+                              style: GoogleFonts.inter(
+                                fontSize: 14.5,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                                color: isSelected ? color : c.onSurface,
+                                height: 1.45,
+                              ),
+                            ),
                           ),
-                        ),
+                          if (isSelected)
+                            Icon(
+                              PhosphorIconsRegular.checkCircle,
+                              color: color,
+                              size: 20,
+                            ),
+                        ],
                       ),
-                      if (isSelected)
-                        Icon(
-                          PhosphorIconsRegular.checkCircle,
-                          color: color,
-                          size: 20,
-                        ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            );
-          }),
-          const SizedBox(height: 26),
-        ],
+                );
+              }),
+              const SizedBox(height: 26),
+            ],
+          ),
+        ),
       ),
     );
   }
