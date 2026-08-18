@@ -206,7 +206,78 @@ class AppLocalizations {
           'Silakan login terlebih dahulu untuk menggunakan fitur rekaman suara.',
       'login_now': 'Masuk Sekarang',
       'privacy_agree': 'Saya telah membaca dan menyetujui',
+      'privacy_agree_prefix': 'Saya menyetujui ',
+      'privacy_agree_connector': ' dan ',
       'privacy_link': 'Kebijakan Privasi',
+      'auth_pass_required': 'Password wajib diisi',
+      'auth_email_required': 'Email wajib diisi',
+      'auth_email_invalid_format': 'Format email tidak valid',
+      'auth_pass_min_length': 'Minimal 6 karakter',
+      'auth_confirm_required': 'Konfirmasi password wajib diisi',
+      'auth_pass_mismatch': 'Password tidak cocok',
+      'auth_invalid_email_first': 'Masukkan email yang valid terlebih dahulu',
+      'auth_already_verified': 'Sudah Verifikasi? Masuk',
+      'auth_email_exists_title': 'Email Sudah Terdaftar',
+      'auth_email_exists_desc':
+          'Email {email} sudah memiliki akun. Password yang Anda masukkan tidak cocok.',
+      'auth_reset_sent': 'Email reset password terkirim!',
+      'auth_reset_failed': 'Gagal mengirim email reset password',
+      'auth_reset_button': 'Kirim Reset Password',
+      'try_again': 'Coba Lagi',
+      'auth_google_account_title': 'Akun Terdaftar dengan Google',
+      'auth_google_account_desc':
+          'Email ini sudah terdaftar menggunakan Google. Silakan masuk dengan tombol Google di bawah.',
+      'auth_err_email_in_use':
+          'Email ini sudah memiliki akun. Silakan masuk dengan password yang benar.',
+      'auth_err_wrong_password_title': 'Password Salah',
+      'auth_err_wrong_password':
+          'Password yang Anda masukkan salah. Silakan coba lagi.',
+      'auth_err_invalid_email_title': 'Email Tidak Valid',
+      'auth_err_invalid_email': 'Format email yang Anda masukkan tidak valid.',
+      'auth_err_too_many_title': 'Terlalu Banyak Percobaan',
+      'auth_err_too_many':
+          'Terlalu banyak percobaan login. Silakan tunggu beberapa saat.',
+      'auth_err_network_title': 'Koneksi Gagal',
+      'auth_err_network':
+          'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',
+      'auth_err_invalid_credential_title': 'Email/Password Salah',
+      'auth_err_invalid_credential':
+          'Email atau password yang Anda masukkan salah. Silakan coba lagi.',
+      'auth_err_generic_title': 'Masuk Gagal',
+      'auth_err_generic': 'Terjadi kesalahan. Silakan coba lagi nanti.',
+      'auth_has_password_desc':
+          'Email ini sudah terdaftar menggunakan password. Silakan login menggunakan email dan password, bukan Google.',
+      'auth_login_with_password': 'Login dengan Password',
+      'auth_email_label': 'Email',
+      'password_label': 'Kata sandi',
+      'auth_privacy_required': 'Centang kebijakan privasi terlebih dahulu',
+      'auth_email_verif_note':
+          'Verifikasi email akan diperlukan sebelum akun bisa digunakan.',
+      'verif_gmail_hint': 'Cek inbox atau folder Promosi / Sosial',
+      'verif_yahoo_hint': 'Cek inbox atau folder Bulk / Spam',
+      'verif_outlook_hint': 'Cek inbox atau folder Junk Email',
+      'verif_other_hint': 'Cek inbox dan folder spam',
+      'verification_step': 'Verifikasi',
+      'verif_account_created': 'Akun Baru Berhasil Dibuat!',
+      'verif_email_sent_to': 'Email verifikasi telah dikirim ke:',
+      'verif_click_link':
+          'Klik link di email untuk verifikasi, lalu kembali ke aplikasi.',
+      'verif_resend_sent': 'Email verifikasi terkirim',
+      'verif_resend_countdown': 'Kirim Ulang ({count})',
+      'verif_resend_button': 'Kirim Email Verifikasi',
+      'verif_success_title': 'Verifikasi Berhasil!',
+      'verif_success_desc':
+          'Email Anda telah terverifikasi. Mengalihkan...',
+      'verif_processing': 'Memproses masuk...',
+      'setpass_title': 'Buat Password',
+      'auth_onboarding_title': 'Lengkapi Data Diri',
+      'auth_onboarding_desc':
+          'Sebelum menggunakan aplikasi, Anda perlu mengisi kuesioner psikis terlebih dahulu. Data ini akan membantu kami memberikan rekomendasi yang sesuai dengan kondisi Anda.',
+      'auth_onboarding_start': 'Mulai Sekarang',
+      'setpass_desc':
+          'Buat password untuk akun Google Anda agar bisa login juga menggunakan email dan password.',
+      'setpass_failed': 'Gagal menyimpan password. Coba lagi.',
+      'setpass_button': 'Simpan Password',
 
       // ── App Guide ──
       'guide_title': 'Panduan Aplikasi',
@@ -805,7 +876,77 @@ class AppLocalizations {
           'Please login first to use the voice recording feature.',
       'login_now': 'Login Now',
       'privacy_agree': 'I have read and agree to the',
+      'privacy_agree_prefix': 'I agree to the ',
+      'privacy_agree_connector': ' and ',
       'privacy_link': 'Privacy Policy',
+      'auth_pass_required': 'Password is required',
+      'auth_email_required': 'Email is required',
+      'auth_email_invalid_format': 'Invalid email format',
+      'auth_pass_min_length': 'At least 6 characters',
+      'auth_confirm_required': 'Password confirmation is required',
+      'auth_pass_mismatch': 'Passwords do not match',
+      'auth_invalid_email_first': 'Please enter a valid email first',
+      'auth_already_verified': 'Already verified? Log in',
+      'auth_email_exists_title': 'Email Already Registered',
+      'auth_email_exists_desc':
+          'The email {email} already has an account. The password you entered does not match.',
+      'auth_reset_sent': 'Password reset email sent!',
+      'auth_reset_failed': 'Failed to send password reset email',
+      'auth_reset_button': 'Send Reset Password',
+      'try_again': 'Try Again',
+      'auth_google_account_title': 'Account Registered with Google',
+      'auth_google_account_desc':
+          'This email is already registered with Google. Please sign in with the Google button below.',
+      'auth_err_email_in_use':
+          'This email already has an account. Please sign in with the correct password.',
+      'auth_err_wrong_password_title': 'Wrong Password',
+      'auth_err_wrong_password':
+          'The password you entered is incorrect. Please try again.',
+      'auth_err_invalid_email_title': 'Invalid Email',
+      'auth_err_invalid_email': 'The email format you entered is invalid.',
+      'auth_err_too_many_title': 'Too Many Attempts',
+      'auth_err_too_many':
+          'Too many login attempts. Please wait a moment before trying again.',
+      'auth_err_network_title': 'Connection Failed',
+      'auth_err_network':
+          'Unable to reach the server. Please check your internet connection.',
+      'auth_err_invalid_credential_title': 'Incorrect Email/Password',
+      'auth_err_invalid_credential':
+          'The email or password you entered is incorrect. Please try again.',
+      'auth_err_generic_title': 'Login Failed',
+      'auth_err_generic': 'Something went wrong. Please try again later.',
+      'auth_has_password_desc':
+          'This email is already registered with a password. Please log in with your email and password instead of Google.',
+      'auth_login_with_password': 'Log in with Password',
+      'auth_email_label': 'Email',
+      'password_label': 'Password',
+      'auth_privacy_required': 'Please check the privacy policy first',
+      'auth_email_verif_note':
+          'Email verification will be required before the account can be used.',
+      'verif_gmail_hint': 'Check your inbox or Promotions / Social folder',
+      'verif_yahoo_hint': 'Check your inbox or Bulk / Spam folder',
+      'verif_outlook_hint': 'Check your inbox or Junk Email folder',
+      'verif_other_hint': 'Check your inbox and spam folder',
+      'verification_step': 'Verification',
+      'verif_account_created': 'New Account Created!',
+      'verif_email_sent_to': 'A verification email has been sent to:',
+      'verif_click_link':
+          'Click the link in the email to verify, then return to the app.',
+      'verif_resend_sent': 'Verification email sent',
+      'verif_resend_countdown': 'Resend ({count})',
+      'verif_resend_button': 'Send Verification Email',
+      'verif_success_title': 'Verification Successful!',
+      'verif_success_desc': 'Your email has been verified. Redirecting...',
+      'verif_processing': 'Logging in...',
+      'setpass_title': 'Create Password',
+      'auth_onboarding_title': 'Complete Your Profile',
+      'auth_onboarding_desc':
+          'Before using the app, you need to complete the psychological questionnaire first. This data helps us provide recommendations that match your condition.',
+      'auth_onboarding_start': 'Start Now',
+      'setpass_desc':
+          'Create a password for your Google account so you can also log in with email and password.',
+      'setpass_failed': 'Failed to save password. Please try again.',
+      'setpass_button': 'Save Password',
 
       // ── App Guide ──
       'guide_title': 'App Guide',

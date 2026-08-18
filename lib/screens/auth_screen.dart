@@ -206,22 +206,24 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   String? _validateEmail(String? v) {
-    if (v == null || v.isEmpty) return 'Email wajib diisi';
+    if (v == null || v.isEmpty) return AppLocalizations.tr('auth_email_required');
     if (!v.contains('@') || !v.contains('.')) {
-      return 'Format email tidak valid';
+      return AppLocalizations.tr('auth_email_invalid_format');
     }
     return null;
   }
 
   String? _validatePassword(String? v) {
-    if (v == null || v.isEmpty) return 'Password wajib diisi';
-    if (v.length < 6) return 'Minimal 6 karakter';
+    if (v == null || v.isEmpty) return AppLocalizations.tr('auth_pass_required');
+    if (v.length < 6) return AppLocalizations.tr('auth_pass_min_length');
     return null;
   }
 
   String? _validateConfirm(String? v) {
-    if (v == null || v.isEmpty) return 'Konfirmasi password wajib diisi';
-    if (v != _password.text) return 'Password tidak cocok';
+    if (v == null || v.isEmpty) {
+      return AppLocalizations.tr('auth_confirm_required');
+    }
+    if (v != _password.text) return AppLocalizations.tr('auth_pass_mismatch');
     return null;
   }
 
@@ -230,7 +232,7 @@ class _AuthScreenState extends State<AuthScreen>
     if (!email.contains('@') || !email.contains('.')) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Masukkan email yang valid terlebih dahulu'),
+          content: Text(''),
           backgroundColor: Color(0xFFEF4444),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -246,8 +248,8 @@ class _AuthScreenState extends State<AuthScreen>
       SnackBar(
         content: Text(
           sent
-              ? 'Email reset password terkirim!'
-              : 'Gagal mengirim email reset password',
+              ? AppLocalizations.tr('auth_reset_sent')
+              : AppLocalizations.tr('auth_reset_failed'),
         ),
         backgroundColor:
             sent ? const Color(0xFF10B981) : const Color(0xFFEF4444),
@@ -449,7 +451,7 @@ class _AuthScreenState extends State<AuthScreen>
                 minimumSize: const Size(double.infinity, 48),
               ),
               child: Text(
-                'Sudah Verifikasi? Masuk',
+                AppLocalizations.tr('auth_already_verified'),
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -460,7 +462,7 @@ class _AuthScreenState extends State<AuthScreen>
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
               child: Text(
-                'Tutup',
+                AppLocalizations.tr('close'),
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   color: AppTheme.textS(ctx),
@@ -504,7 +506,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             const SizedBox(height: 20),
             Text(
-              'Email Sudah Terdaftar',
+              AppLocalizations.tr('auth_email_exists_title'),
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -514,8 +516,10 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             const SizedBox(height: 10),
             Text(
-              'Email ${_email.text.trim()} sudah memiliki akun. '
-              'Password yang Anda masukkan tidak cocok.',
+              AppLocalizations.tr('auth_email_exists_desc').replaceAll(
+                '{email}',
+                _email.text.trim(),
+              ),
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 color: AppTheme.textS(ctx),
@@ -538,8 +542,8 @@ class _AuthScreenState extends State<AuthScreen>
                     SnackBar(
                       content: Text(
                         sent
-                            ? 'Email reset password terkirim!'
-                            : 'Gagal mengirim email reset password',
+                            ? AppLocalizations.tr('auth_reset_sent')
+                            : AppLocalizations.tr('auth_reset_failed'),
                       ),
                       backgroundColor: sent
                           ? const Color(0xFF10B981)
@@ -553,7 +557,7 @@ class _AuthScreenState extends State<AuthScreen>
                 },
                 icon: const Icon(Icons.lock_reset_rounded, size: 18),
                 label: Text(
-                  'Kirim Reset Password',
+                  AppLocalizations.tr('auth_reset_button'),
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -586,7 +590,7 @@ class _AuthScreenState extends State<AuthScreen>
                   ),
                 ),
                 child: Text(
-                  'Coba Lagi',
+                  AppLocalizations.tr('try_again'),
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -631,7 +635,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             const SizedBox(height: 20),
             Text(
-              'Akun Terdaftar dengan Google',
+              AppLocalizations.tr('auth_google_account_title'),
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -641,7 +645,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             const SizedBox(height: 10),
             Text(
-              'Email ini sudah terdaftar menggunakan Google. Silakan masuk dengan tombol Google di bawah.',
+              AppLocalizations.tr('auth_google_account_desc'),
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 color: AppTheme.textS(ctx),
@@ -664,7 +668,7 @@ class _AuthScreenState extends State<AuthScreen>
                   elevation: 0,
                 ),
                 child: Text(
-                  'Tutup',
+                  AppLocalizations.tr('close'),
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -681,32 +685,32 @@ class _AuthScreenState extends State<AuthScreen>
   void _showErrorDialog(String result) {
     final (title, message) = switch (result) {
       'email-already-in-use' => (
-        'Email Sudah Terdaftar',
-        'Email ini sudah memiliki akun. Silakan masuk dengan password yang benar.'
+        AppLocalizations.tr('auth_email_exists_title'),
+        AppLocalizations.tr('auth_err_email_in_use')
       ),
       'wrong-password' => (
-        'Password Salah',
-        'Password yang Anda masukkan salah. Silakan coba lagi.'
+        AppLocalizations.tr('auth_err_wrong_password_title'),
+        AppLocalizations.tr('auth_err_wrong_password')
       ),
       'invalid-email' => (
-        'Email Tidak Valid',
-        'Format email yang Anda masukkan tidak valid.'
+        AppLocalizations.tr('auth_err_invalid_email_title'),
+        AppLocalizations.tr('auth_err_invalid_email')
       ),
       'too-many-requests' => (
-        'Terlalu Banyak Percobaan',
-        'Terlalu banyak percobaan login. Silakan tunggu beberapa saat.'
+        AppLocalizations.tr('auth_err_too_many_title'),
+        AppLocalizations.tr('auth_err_too_many')
       ),
       'network-request-failed' => (
-        'Koneksi Gagal',
-        'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.'
+        AppLocalizations.tr('auth_err_network_title'),
+        AppLocalizations.tr('auth_err_network')
       ),
       'invalid-credential' => (
-        'Email/Password Salah',
-        'Email atau password yang Anda masukkan salah. Silakan coba lagi.'
+        AppLocalizations.tr('auth_err_invalid_credential_title'),
+        AppLocalizations.tr('auth_err_invalid_credential')
       ),
       _ => (
-        'Masuk Gagal',
-        'Terjadi kesalahan. Silakan coba lagi nanti.'
+        AppLocalizations.tr('auth_err_generic_title'),
+        AppLocalizations.tr('auth_err_generic')
       ),
     };
 
@@ -773,7 +777,7 @@ class _AuthScreenState extends State<AuthScreen>
                   elevation: 0,
                 ),
                 child: Text(
-                  'Tutup',
+                  AppLocalizations.tr('close'),
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -819,7 +823,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             const SizedBox(height: 20),
             Text(
-              'Lengkapi Data Diri',
+              AppLocalizations.tr('auth_onboarding_title'),
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -829,7 +833,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             const SizedBox(height: 10),
             Text(
-              'Sebelum menggunakan aplikasi, Anda perlu mengisi kuesioner psikis terlebih dahulu. Data ini akan membantu kami memberikan rekomendasi yang sesuai dengan kondisi Anda.',
+              AppLocalizations.tr('auth_onboarding_desc'),
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 color: AppTheme.textS(context),
@@ -855,7 +859,7 @@ class _AuthScreenState extends State<AuthScreen>
                   elevation: 0,
                 ),
                 child: Text(
-                  'Mulai Sekarang',
+                  AppLocalizations.tr('auth_onboarding_start'),
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -909,7 +913,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             const SizedBox(height: 20),
             Text(
-              'Email Sudah Terdaftar',
+              AppLocalizations.tr('auth_email_exists_title'),
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -919,7 +923,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             const SizedBox(height: 10),
             Text(
-              'Email ini sudah terdaftar menggunakan password. Silakan login menggunakan email dan password, bukan Google.',
+              AppLocalizations.tr('auth_has_password_desc'),
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 color: AppTheme.textS(context),
@@ -942,7 +946,7 @@ class _AuthScreenState extends State<AuthScreen>
                   elevation: 0,
                 ),
                 child: Text(
-                  'Login dengan Password',
+                  AppLocalizations.tr('auth_login_with_password'),
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -1064,7 +1068,9 @@ class _AuthScreenState extends State<AuthScreen>
 
   Widget _buildEyebrow(ResonanceColors c) {
     final index = _isRegister ? '02' : '01';
-    final label = _isRegister ? 'DAFTAR' : 'MASUK';
+    final label = _isRegister
+        ? AppLocalizations.tr('register').toUpperCase()
+        : AppLocalizations.tr('login').toUpperCase();
     return Center(
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1110,8 +1116,8 @@ class _AuthScreenState extends State<AuthScreen>
   Widget _buildSubtitle(ResonanceColors c) {
     return Text(
       _isRegister
-          ? 'Mulai perjalanan kesehatan mentalmu'
-          : 'Pantau kesehatan mentalmu lewat suara',
+          ? AppLocalizations.tr('register_subtitle')
+          : AppLocalizations.tr('login_subtitle'),
       textAlign: TextAlign.center,
       style: GoogleFonts.inter(
         fontSize: 15,
@@ -1179,7 +1185,7 @@ class _AuthScreenState extends State<AuthScreen>
               if (_isRegister) ...[
                 _buildField(
                   controller: _name,
-                  label: 'Nama Lengkap',
+                  label: AppLocalizations.tr('username_hint'),
                   icon: Icons.person_outline_rounded,
                   textCapitalization: TextCapitalization.words,
                 ),
@@ -1187,7 +1193,7 @@ class _AuthScreenState extends State<AuthScreen>
               ],
               _buildField(
                 controller: _email,
-                label: 'Email',
+                label: AppLocalizations.tr('auth_email_label'),
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 validator: _validateEmail,
@@ -1195,7 +1201,7 @@ class _AuthScreenState extends State<AuthScreen>
               const SizedBox(height: 14),
               _buildField(
                 controller: _password,
-                label: 'Kata sandi',
+                label: AppLocalizations.tr('password_label'),
                 icon: Icons.lock_outlined,
                 obscure: _obscure,
                 suffix: IconButton(
@@ -1214,7 +1220,7 @@ class _AuthScreenState extends State<AuthScreen>
               if (_isRegister) ...[
                 _buildField(
                   controller: _confirm,
-                  label: 'Konfirmasi kata sandi',
+                  label: AppLocalizations.tr('confirm_password'),
                   icon: Icons.lock_outlined,
                   obscure: _obscureConfirm,
                   suffix: IconButton(
@@ -1266,7 +1272,7 @@ class _AuthScreenState extends State<AuthScreen>
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Centang kebijakan privasi terlebih dahulu',
+                                AppLocalizations.tr('auth_privacy_required'),
                                 style: GoogleFonts.inter(fontSize: 13),
                               ),
                             ),
@@ -1292,7 +1298,7 @@ class _AuthScreenState extends State<AuthScreen>
               if (_isRegister) ...[
                 const SizedBox(height: 14),
                 Text(
-                  'Verifikasi email akan diperlukan sebelum akun bisa digunakan.',
+                  AppLocalizations.tr('auth_email_verif_note'),
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     color: c.onSurfaceVariant,
@@ -1512,7 +1518,7 @@ class _AuthScreenState extends State<AuthScreen>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Text(
-            'atau lanjutkan dengan',
+            AppLocalizations.tr('or_continue_with'),
             style: GoogleFonts.inter(
               fontSize: 13,
               color: c.onSurfaceVariant,
@@ -1563,9 +1569,9 @@ class _AuthScreenState extends State<AuthScreen>
                   height: 1.3,
                 ),
                 children: [
-                  TextSpan(text: 'Saya menyetujui '),
+                  TextSpan(text: AppLocalizations.tr('privacy_agree_prefix')),
                   TextSpan(
-                    text: 'Kebijakan Privasi',
+                    text: AppLocalizations.tr('privacy_link'),
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -1575,9 +1581,9 @@ class _AuthScreenState extends State<AuthScreen>
                     recognizer: TapGestureRecognizer()
                       ..onTap = _openPrivacyPolicy,
                   ),
-                  TextSpan(text: ' dan '),
+                  TextSpan(text: AppLocalizations.tr('privacy_agree_connector')),
                   TextSpan(
-                    text: 'Ketentuan Layanan',
+                    text: AppLocalizations.tr('terms_services'),
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -1614,7 +1620,7 @@ class _AuthScreenState extends State<AuthScreen>
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Centang kebijakan privasi terlebih dahulu',
+                              AppLocalizations.tr('auth_privacy_required'),
                               style: GoogleFonts.inter(fontSize: 13),
                             ),
                           ),
@@ -1660,7 +1666,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             const SizedBox(width: 14),
             Text(
-              'Lanjutkan dengan Google',
+              AppLocalizations.tr('google_signin'),
               style: GoogleFonts.inter(
                 fontWeight: FontWeight.w500,
                 fontSize: 15,
@@ -1731,12 +1737,12 @@ class _VerificationDialogState extends State<_VerificationDialog>
 
   String get _emailSuggestion {
     final domain = widget.email.split('@').last.toLowerCase();
-    if (domain.contains('gmail')) return 'Cek inbox atau folder Promosi / Sosial';
-    if (domain.contains('yahoo')) return 'Cek inbox atau folder Bulk / Spam';
+    if (domain.contains('gmail')) return AppLocalizations.tr('verif_gmail_hint');
+    if (domain.contains('yahoo')) return AppLocalizations.tr('verif_yahoo_hint');
     if (domain.contains('outlook') || domain.contains('hotmail')) {
-      return 'Cek inbox atau folder Junk Email';
+      return AppLocalizations.tr('verif_outlook_hint');
     }
-    return 'Cek inbox dan folder spam';
+    return AppLocalizations.tr('verif_other_hint');
   }
 
   void _startCooldown() {
@@ -1898,11 +1904,11 @@ class _VerificationDialogState extends State<_VerificationDialog>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          step(1, 'Daftar', completed: current > 1),
+          step(1, AppLocalizations.tr('register'), completed: current > 1),
           line(current > 1),
-          step(2, 'Verifikasi', completed: current > 2, isCurrent: current == 2),
+          step(2, AppLocalizations.tr('verification_step'), completed: current > 2, isCurrent: current == 2),
           line(current > 2),
-          step(3, 'Masuk', isCurrent: current == 3),
+          step(3, AppLocalizations.tr('login'), isCurrent: current == 3),
         ],
       ),
     );
@@ -1935,7 +1941,7 @@ class _VerificationDialogState extends State<_VerificationDialog>
         ),
         const SizedBox(height: 16),
         Text(
-          'Akun Baru Berhasil Dibuat!',
+          AppLocalizations.tr('verif_account_created'),
           style: GoogleFonts.poppins(
             fontSize: 17,
             fontWeight: FontWeight.w700,
@@ -1945,7 +1951,7 @@ class _VerificationDialogState extends State<_VerificationDialog>
         ),
         const SizedBox(height: 8),
         Text(
-          'Email verifikasi telah dikirim ke:',
+          AppLocalizations.tr('verif_email_sent_to'),
           style: GoogleFonts.poppins(
             fontSize: 12.5,
             color: AppTheme.textS(context),
@@ -1997,7 +2003,7 @@ class _VerificationDialogState extends State<_VerificationDialog>
         ),
         const SizedBox(height: 6),
         Text(
-          'Klik link di email untuk verifikasi, lalu kembali ke aplikasi.',
+          AppLocalizations.tr('verif_click_link'),
           style: GoogleFonts.poppins(
             fontSize: 10.5,
             color: AppTheme.textH(context),
@@ -2021,7 +2027,9 @@ class _VerificationDialogState extends State<_VerificationDialog>
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('Email verifikasi terkirim'),
+                        content: Text(
+                          AppLocalizations.tr('verif_resend_sent'),
+                        ),
                         backgroundColor: const Color(0xFF10B981),
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
@@ -2036,7 +2044,10 @@ class _VerificationDialogState extends State<_VerificationDialog>
               size: 18,
             ),
             label: Text(
-              isCooldown ? 'Kirim Ulang ($_cooldown)' : 'Kirim Email Verifikasi',
+              isCooldown
+                  ? AppLocalizations.tr('verif_resend_countdown')
+                      .replaceAll('{count}', '$_cooldown')
+                  : AppLocalizations.tr('verif_resend_button'),
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -2066,7 +2077,7 @@ class _VerificationDialogState extends State<_VerificationDialog>
               widget.onLogin();
             },
             child: Text(
-              'Sudah Verifikasi? Masuk',
+              AppLocalizations.tr('auth_already_verified'),
               style: GoogleFonts.poppins(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
@@ -2100,7 +2111,7 @@ class _VerificationDialogState extends State<_VerificationDialog>
         ),
         const SizedBox(height: 16),
         Text(
-          'Verifikasi Berhasil!',
+          AppLocalizations.tr('verif_success_title'),
           style: GoogleFonts.poppins(
             fontSize: 17,
             fontWeight: FontWeight.w700,
@@ -2110,7 +2121,7 @@ class _VerificationDialogState extends State<_VerificationDialog>
         ),
         const SizedBox(height: 8),
         Text(
-          'Email Anda telah terverifikasi. Mengalihkan...',
+          AppLocalizations.tr('verif_success_desc'),
           style: GoogleFonts.poppins(
             fontSize: 13,
             color: AppTheme.textS(context),
@@ -2138,7 +2149,7 @@ class _VerificationDialogState extends State<_VerificationDialog>
         ),
         const SizedBox(height: 20),
         Text(
-          'Memproses masuk...',
+          AppLocalizations.tr('verif_processing'),
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -2205,7 +2216,7 @@ class _SetPasswordDialogState extends State<_SetPasswordDialog> {
           ),
           const SizedBox(height: 20),
           Text(
-            'Buat Password',
+            AppLocalizations.tr('setpass_title'),
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -2215,7 +2226,7 @@ class _SetPasswordDialogState extends State<_SetPasswordDialog> {
           ),
           const SizedBox(height: 10),
           Text(
-            'Buat password untuk akun Google Anda agar bisa login juga menggunakan email dan password.',
+            AppLocalizations.tr('setpass_desc'),
             style: GoogleFonts.poppins(
               fontSize: 13,
               color: AppTheme.textS(context),
@@ -2232,7 +2243,7 @@ class _SetPasswordDialogState extends State<_SetPasswordDialog> {
               color: AppTheme.textP(context),
             ),
             decoration: InputDecoration(
-              hintText: 'Password minimal 6 karakter',
+              hintText: AppLocalizations.tr('auth_pass_min_length'),
               hintStyle: GoogleFonts.poppins(
                 fontSize: 13,
                 color: AppTheme.textH(context),
@@ -2276,7 +2287,7 @@ class _SetPasswordDialogState extends State<_SetPasswordDialog> {
               color: AppTheme.textP(context),
             ),
             decoration: InputDecoration(
-              hintText: 'Konfirmasi password',
+              hintText: AppLocalizations.tr('confirm_password'),
               hintStyle: GoogleFonts.poppins(
                 fontSize: 13,
                 color: AppTheme.textH(context),
@@ -2326,7 +2337,9 @@ class _SetPasswordDialogState extends State<_SetPasswordDialog> {
                       if (pass.length < 6) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Text('Password minimal 6 karakter'),
+                            content: Text(
+                              AppLocalizations.tr('auth_pass_min_length'),
+                            ),
                             backgroundColor: const Color(0xFFEF4444),
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
@@ -2339,7 +2352,9 @@ class _SetPasswordDialogState extends State<_SetPasswordDialog> {
                       if (pass != confirm) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Text('Password tidak cocok'),
+                            content: Text(
+                              AppLocalizations.tr('auth_pass_mismatch'),
+                            ),
                             backgroundColor: const Color(0xFFEF4444),
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
@@ -2388,8 +2403,8 @@ class _SetPasswordDialogState extends State<_SetPasswordDialog> {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Text(
-                              'Gagal menyimpan password. Coba lagi.',
+                            content: Text(
+                              AppLocalizations.tr('setpass_failed'),
                             ),
                             backgroundColor: const Color(0xFFEF4444),
                             behavior: SnackBarBehavior.floating,
@@ -2418,7 +2433,7 @@ class _SetPasswordDialogState extends State<_SetPasswordDialog> {
                       ),
                     )
                   : Text(
-                      'Simpan Password',
+                      AppLocalizations.tr('setpass_button'),
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
