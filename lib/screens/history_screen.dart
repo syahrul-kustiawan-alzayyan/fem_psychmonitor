@@ -637,7 +637,7 @@ class _HistoryScreenState extends State<HistoryScreen>
             decoration: BoxDecoration(
               color: AppTheme.surface(context),
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              boxShadow: AppTheme.cardShadow,
+              boxShadow: AppTheme.cardShadow(context),
               border: Border.all(
                 color: s.color.withValues(alpha: 0.15),
                 width: 1,
@@ -1468,7 +1468,7 @@ class _HistoryScreenState extends State<HistoryScreen>
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: AppTheme.cardShadow(context),
       ),
       child: Column(
         children: EmotionType.values.map((emotion) {
@@ -1547,7 +1547,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         decoration: BoxDecoration(
           color: AppTheme.surface(context),
           borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-          boxShadow: AppTheme.cardShadow,
+          boxShadow: AppTheme.cardShadow(context),
         ),
         child: Column(
           children: [
@@ -1576,7 +1576,7 @@ class _HistoryScreenState extends State<HistoryScreen>
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: AppTheme.cardShadow(context),
       ),
       child: Column(
         children: sorted.map((e) {
@@ -1707,7 +1707,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         decoration: BoxDecoration(
           color: AppTheme.surface(context),
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          boxShadow: AppTheme.cardShadow,
+          boxShadow: AppTheme.cardShadow(context),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -1986,7 +1986,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                       decoration: BoxDecoration(
                         color: AppTheme.surface(context),
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                        boxShadow: AppTheme.cardShadow,
+                        boxShadow: AppTheme.cardShadow(context),
                       ),
                       child: TextField(
                         onChanged: (v) => setState(() => _searchQuery = v),
@@ -2012,7 +2012,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
                       decoration: BoxDecoration(
                         color: AppTheme.surface(context),
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                        boxShadow: AppTheme.cardShadow,
+                        boxShadow: AppTheme.cardShadow(context),
                       ),
                       child: Row(
                         children: [
@@ -2142,7 +2142,7 @@ class _FullDetectionLogScreenState extends State<_FullDetectionLogScreen> {
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: AppTheme.cardShadow(context),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),

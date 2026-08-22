@@ -7,7 +7,8 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
-import '../services/audio_recorder_detection.dart' show AudioRecorderWithDetection, DetectionResult;
+import '../services/audio_recorder_detection.dart'
+    show AudioRecorderWithDetection, DetectionResult;
 import '../theme/resonance_colors.dart';
 import 'emotion_detection_screen.dart';
 
@@ -20,7 +21,7 @@ class LiveDetectionScreen extends StatefulWidget {
 
 class _LiveDetectionScreenState extends State<LiveDetectionScreen>
     with TickerProviderStateMixin {
-  bool _isRecording = false;
+  final bool _isRecording = false;
   bool _isModelLoading = true;
 
   late AnimationController _pulseCtrl;
@@ -301,6 +302,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
 
   Widget _buildRecordingSection(BuildContext context) {
     final c = ResonanceColors.of(context);
+
     return Column(
       children: [
         AnimatedBuilder(
@@ -345,10 +347,12 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: c.primary,
-                        boxShadow: const [
+                        boxShadow: [
                           BoxShadow(
-                            color: Color(0x4024161C),
-                            offset: Offset(4, 4),
+                            color: c.shadowColorStrong,
+                            offset: const Offset(4, 4),
+                            blurRadius: 12,
+                            spreadRadius: -3,
                           ),
                         ],
                       ),
@@ -609,19 +613,11 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
 
   Widget _buildIdleGuide(BuildContext context) {
     final c = ResonanceColors.of(context);
-    return Container(
+
+    return ResonanceCard(
+      c: c,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: c.surfaceLowest,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: c.outlineVariant),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1424161C),
-            offset: Offset(2, 2),
-          ),
-        ],
-      ),
+      softShadow: true,
       child: Column(
         children: [
           Container(
@@ -661,6 +657,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
 
   Widget _buildGuideStep(BuildContext context, String number, String text) {
     final c = ResonanceColors.of(context);
+
     return Row(
       children: [
         Container(
@@ -669,10 +666,11 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
           decoration: BoxDecoration(
             color: c.primary,
             shape: BoxShape.circle,
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Color(0x1424161C),
-                offset: Offset(1.5, 1.5),
+                color: c.shadowColor,
+                offset: const Offset(1.5, 1.5),
+                blurRadius: 4,
               ),
             ],
           ),

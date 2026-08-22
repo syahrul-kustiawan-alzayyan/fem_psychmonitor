@@ -106,8 +106,39 @@ class AppTheme {
     stops: [0.0, 0.5, 1.0],
   );
 
-  // ── Shadow Reusable (taktil ala Resonance) ───────────────────
-  static List<BoxShadow> get cardShadow => [
+  // ── Shadow Reusable (theme-aware) ─────────────────────────────
+  static List<BoxShadow> cardShadow(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final shadowColor = isDark
+        ? const Color(0x4D000000) // Darker, more visible shadow for dark mode
+        : const Color(0x1424161C);
+    return [
+      BoxShadow(
+        color: shadowColor,
+        blurRadius: isDark ? 8 : 0,
+        spreadRadius: isDark ? -2 : 0,
+        offset: const Offset(2, 2),
+      ),
+    ];
+  }
+
+  static List<BoxShadow> primaryShadow(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final shadowColor = isDark
+        ? const Color(0x66000000)
+        : const Color(0x4024161C);
+    return [
+      BoxShadow(
+        color: shadowColor,
+        blurRadius: isDark ? 12 : 0,
+        spreadRadius: isDark ? -3 : 0,
+        offset: const Offset(4, 4),
+      ),
+    ];
+  }
+
+  // Legacy getters for backward compatibility (default to light mode)
+  static List<BoxShadow> get cardShadowLight => [
     BoxShadow(
       color: const Color(0x1424161C),
       blurRadius: 0,
@@ -116,7 +147,7 @@ class AppTheme {
     ),
   ];
 
-  static List<BoxShadow> get primaryShadow => [
+  static List<BoxShadow> get primaryShadowLight => [
     BoxShadow(
       color: const Color(0x4024161C),
       blurRadius: 0,

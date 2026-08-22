@@ -24,6 +24,7 @@ import '../services/text_emotion_service.dart';
 import '../services/whisper_init_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/resonance_colors.dart';
+import '../widgets/painters.dart';
 import 'result_screen.dart';
 
 class EmotionDetectionScreen extends StatefulWidget {
@@ -55,10 +56,12 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
   Timer? _waveformTimer;
   final _rand = Random();
   final List<double> _waveHeights = List.generate(30, (_) => 0.3);
+  final List<double> _waveTargets = List.generate(30, (_) => 0.4);
   int _waveformFrame = 0;
 
   late AnimationController _pulseCtrl;
   late Animation<double> _pulseAnim;
+  late AnimationController _rippleCtrl;
 
   @override
   void initState() {
@@ -72,6 +75,11 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
       begin: 1.0,
       end: 1.22,
     ).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
+
+    _rippleCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat();
 
     _startRecording();
   }
@@ -221,8 +229,21 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
           if (_isRecording && mounted) {
             setState(() {
               _waveformFrame++;
+              // Gelombang organik: lerping menuju target, bukan lompatan
+              // acak murni, agar bergerak seperti gelombang suara nyata.
               for (int i = 0; i < _waveHeights.length; i++) {
-                _waveHeights[i] = 0.2 + (_rand.nextDouble() * 0.6);
+                _waveHeights[i] +=
+                    (_waveTargets[i] - _waveHeights[i]) * 0.45;
+              }
+              if (_waveformFrame % 3 == 0) {
+                final mid = (_waveTargets.length - 1) / 2;
+                for (int i = 0; i < _waveTargets.length; i++) {
+                  // Envelope: batang tengah cenderung lebih tinggi.
+                  final centerBias =
+                      1.0 - ((i - mid).abs() / mid).clamp(0.0, 1.0);
+                  _waveTargets[i] = 0.15 +
+                      _rand.nextDouble() * 0.6 * (0.35 + 0.65 * centerBias);
+                }
               }
             });
           }
@@ -353,6 +374,10 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         _finalAudioScores.isNotEmpty && _finalAudioScores.values.any((v) => v > 0);
 
     if (hasAudioData) {
+      if (mounted) {
+        setState(() =>
+            _processingMessage = AppLocalizations.tr('processing_result'));
+      }
       final combined = GeminiService.combineResults(
         _finalAudioScores,
         textScores,
@@ -432,7 +457,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         triggerTag: record.triggerTag,
       );
 
-      if (!context.read<PremiumProvider>().isPremium) {
+      if (mounted && !context.read<PremiumProvider>().isPremium) {
         final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
         await StorageService.incrementDetectionCount(uid);
       }
@@ -464,6 +489,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     _emotionUpdateTimer?.cancel();
     _waveformTimer?.cancel();
     _pulseCtrl.dispose();
+    _rippleCtrl.dispose();
     _audioRecorder.dispose();
     super.dispose();
   }
@@ -596,60 +622,17 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
             ),
             if (!_isProcessing) _buildFloatingStopButton(),
             if (_isProcessing)
-              Positioned(
-                bottom: MediaQuery.of(context).padding.bottom + 40,
-                left: 20,
-                right: 20,
-                child: Material(
-                  color: Colors.transparent,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface(context),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                        width: 1.5,
+              Positioned.fill(
+                child: AnimatedOpacity(
+                  opacity: 1,
+                  duration: const Duration(milliseconds: 250),
+                  child: ColoredBox(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 28),
+                        child: _buildProcessingCard(context),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.08),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 28,
-                          height: 28,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppTheme.primaryColor,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 250),
-                            child: Text(
-                              key: ValueKey(_processingMessage),
-                              _processingMessage.isNotEmpty
-                                  ? _processingMessage
-                                  : AppLocalizations.tr('processing_result'),
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: AppTheme.textS(context),
-                                height: 1.4,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ),
@@ -659,95 +642,240 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     );
   }
 
-  String _formatDuration(Duration d) {
-    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
+  /// Kartu pemrosesan gaya "stepper" — menunjukkan urutan tahapan
+  /// transkripsi → analisis → penyimpanan, bukan spinner generik.
+  Widget _buildProcessingCard(BuildContext context) {
+    final c = ResonanceColors.of(context);
+    final isEn = AppLocalizations.locale.startsWith('en');
+    final steps = isEn
+        ? ['Transcribing audio', 'Analyzing text emotion', 'Preparing results']
+        : [
+            'Transkripsi audio',
+            'Analisis emosi teks',
+            'Menyiapkan hasil',
+          ];
+    final current = _processingStep;
+
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.surface(context),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppTheme.primaryColor.withValues(alpha: 0.15),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.35),
+              blurRadius: 30,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    AppLocalizations.tr('processing_result'),
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textP(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            ...List.generate(steps.length, (i) {
+              final done = i < current;
+              final active = i == current;
+              final color = done
+                  ? const Color(0xFF10B981)
+                  : active
+                      ? AppTheme.primaryColor
+                      : c.outlineVariant;
+              final icon = done
+                  ? Icons.check_rounded
+                  : active
+                      ? null
+                      : null;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: IntrinsicHeight(
+                  child: Row(
+                    children: [
+                      Column(
+                        children: [
+                          Container(
+                            width: 26,
+                            height: 26,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: done
+                                  ? color.withValues(alpha: 0.15)
+                                  : Colors.transparent,
+                              border: Border.all(color: color, width: 1.5),
+                            ),
+                            child: icon != null
+                                ? Icon(icon, size: 15, color: color)
+                                : active
+                                    ? Padding(
+                                        padding: const EdgeInsets.all(6),
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                            color,
+                                          ),
+                                        ),
+                                      )
+                                    : null,
+                          ),
+                          if (i < steps.length - 1)
+                            Expanded(
+                              child: Container(
+                                width: 2,
+                                margin:
+                                    const EdgeInsets.symmetric(vertical: 3),
+                                color: i < current
+                                    ? const Color(0xFF10B981)
+                                        .withValues(alpha: 0.4)
+                                    : c.outlineVariant,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 4, bottom: 14),
+                          child: Text(
+                            steps[i],
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: active
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: done || active
+                                  ? AppTheme.textP(context)
+                                  : AppTheme.textH(context),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Tahapan pemrosesan aktif (0=transkripsi, 1=analisis teks, 2=finalisasi).
+  int get _processingStep {
+    final m = _processingMessage.toLowerCase();
+    if (m.contains('analisis') ||
+        m.contains('analyz') ||
+        m.contains('emosi teks')) {
+      return 1;
+    }
+    if (m.contains('hasil') || m.contains('result') || m.isEmpty) return 2;
+    return 0;
   }
 
   Widget _buildTimerIndicator() {
+    final c = ResonanceColors.of(context);
     final elapsed = _recordingStartTime != null
         ? DateTime.now().difference(_recordingStartTime!)
         : Duration.zero;
-    final dotCount = (_waveformFrame ~/ 5) % 4;
-    final dots = '.' * dotCount;
+    final minutes = elapsed.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = elapsed.inSeconds.remainder(60).toString().padLeft(2, '0');
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // Titik REC berdenyut
+        AnimatedBuilder(
+          animation: _pulseAnim,
+          builder: (context, child) => Transform.scale(
+            scale: 0.9 + (_pulseAnim.value - 1.0) * 1.6,
+            child: child,
+          ),
+          child: Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFFEF4444),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFEF4444).withValues(alpha: 0.5),
+                  blurRadius: 8,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'REC',
+          style: GoogleFonts.jetBrainsMono(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 3,
+            color: const Color(0xFFEF4444),
+          ),
+        ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.red.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 8, height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                '${AppLocalizations.tr('listening_label')}$dots',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.red.shade700,
-                ),
-              ),
-            ],
-          ),
+          margin: const EdgeInsets.symmetric(horizontal: 14),
+          width: 1,
+          height: 22,
+          color: c.outlineVariant,
         ),
-        const SizedBox(width: 10),
-        _buildChip(
-          Icons.timer_outlined,
-          _formatDuration(elapsed),
-          AppTheme.primaryColor,
-        ),
-        const SizedBox(width: 10),
-        _buildChip(
-          Icons.mood_outlined,
-          _currentEmotion?.displayName ?? '-',
-          _currentEmotion?.color ?? AppTheme.textHint,
+        // Timer besar gaya HUD
+        Text(
+          '$minutes:$seconds',
+          style: GoogleFonts.jetBrainsMono(
+            fontSize: 30,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.5,
+            color: c.onSurface,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildChip(IconData icon, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildWaveform() {
+    final c = ResonanceColors.of(context);
     return Container(
       width: double.infinity,
-      height: 140,
+      height: 150,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
@@ -758,35 +886,80 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.06),
+            color: c.shadowColor,
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(30, (index) {
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 100),
-              margin: const EdgeInsets.symmetric(horizontal: 2.5),
-              width: 5,
-              height: 20 + (_waveHeights[index] * 80),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Cahaya ambient di belakang gelombang
+            IgnorePointer(
+              child: AnimatedBuilder(
+                animation: _pulseAnim,
+                builder: (context, _) => Container(
+                  width: 260,
+                  height: 90 * _pulseAnim.value,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(60),
+                    gradient: RadialGradient(
+                      colors: [
+                        AppTheme.primaryColor.withValues(alpha: 0.14),
+                        AppTheme.primaryColor.withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(6),
               ),
-            );
-          }),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: List.generate(30, (index) {
+                final mid = 29 / 2;
+                final centerBias =
+                    (1.0 - ((index - mid).abs() / mid)).clamp(0.35, 1.0);
+                final isCenter = (index - mid).abs() < 3;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  curve: Curves.easeOut,
+                  margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                  width: isCenter ? 6 : 4.5,
+                  height:
+                      14 + (_waveHeights[index] * 90 * centerBias).clamp(6, 92),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        index == _currentPeakIndex
+                            ? const Color(0xFFF59E0B)
+                            : AppTheme.primaryColor,
+                        AppTheme.secondaryColor,
+                      ],
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                    ),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                );
+              }),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  /// Batang tertinggi saat ini — diberi aksen amber agar terasa hidup.
+  int get _currentPeakIndex {
+    int peak = 0;
+    for (int i = 1; i < _waveHeights.length; i++) {
+      if (_waveHeights[i] > _waveHeights[peak]) peak = i;
+    }
+    return peak;
   }
 
   Widget _buildEmotionRow() {
@@ -826,26 +999,75 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            AppLocalizations.tr('emotion_score'),
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.textS(context),
-            ),
+          Row(
+            children: [
+              Text(
+                AppLocalizations.tr('emotion_score').toUpperCase(),
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2,
+                  color: AppTheme.textS(context),
+                ),
+              ),
+              const Spacer(),
+              AnimatedBuilder(
+                animation: _rippleCtrl,
+                builder: (context, _) => Opacity(
+                  opacity: 0.4 + 0.6 * _rippleCtrl.value.abs(),
+                  child: Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'LIVE',
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
-          ...sorted.map((e) => _buildScoreBarRow(e.key, e.value)),
+          ...sorted.asMap().entries.map(
+                (entry) => _buildScoreBarRow(
+                  entry.value.key,
+                  entry.value.value,
+                  entry.key + 1,
+                ),
+              ),
         ],
       ),
     );
   }
 
-  Widget _buildScoreBarRow(EmotionType emotion, double score) {
+  Widget _buildScoreBarRow(EmotionType emotion, double score, int rank) {
+    final isTop = rank == 1;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
+          SizedBox(
+            width: 18,
+            child: Text(
+              rank.toString().padLeft(2, '0'),
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: isTop ? emotion.color : AppTheme.textH(context),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
           SizedBox(
             width: 16, height: 16,
             child: ClipRRect(
@@ -866,21 +1088,21 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
               emotion.displayName,
               style: GoogleFonts.poppins(
                 fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.textP(context),
+                fontWeight: isTop ? FontWeight.w700 : FontWeight.w500,
+                color: isTop ? emotion.color : AppTheme.textP(context),
               ),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(3),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                height: 8,
+                height: isTop ? 8 : 6,
                 decoration: BoxDecoration(
                   color: AppTheme.surfVar(context),
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(3),
                 ),
                 child: FractionallySizedBox(
                   alignment: Alignment.centerLeft,
@@ -888,9 +1110,12 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [emotion.color, emotion.color.withValues(alpha: 0.7)],
+                        colors: [
+                          emotion.color,
+                          emotion.color.withValues(alpha: 0.7),
+                        ],
                       ),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(3),
                     ),
                   ),
                 ),
@@ -899,14 +1124,14 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
           ),
           const SizedBox(width: 8),
           SizedBox(
-            width: 36,
+            width: 38,
             child: Text(
               '${(score * 100).toStringAsFixed(0)}%',
               textAlign: TextAlign.right,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.jetBrainsMono(
                 fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: emotion.color,
+                fontWeight: FontWeight.w700,
+                color: isTop ? emotion.color : AppTheme.textS(context),
               ),
             ),
           ),
@@ -931,7 +1156,10 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     return Container(
       height: 200,
       decoration: BoxDecoration(
-        color: AppTheme.surface(context),
+        color: Color.alphaBlend(
+          e.color.withValues(alpha: 0.06),
+          AppTheme.surface(context),
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: e.color.withValues(alpha: 0.25),
@@ -939,68 +1167,79 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: e.color.withValues(alpha: 0.08),
+            color: ResonanceColors.of(context).shadowColor,
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: bgColor,
-              shape: BoxShape.circle,
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(36),
-              child: Image.asset(
-                e.assetIconPath,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => Icon(
-                  e.icon,
-                  size: 32,
-                  color: e.color,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 350),
+        switchInCurve: Curves.easeOutBack,
+        transitionBuilder: (child, anim) => FadeTransition(
+          opacity: anim,
+          child: ScaleTransition(scale: anim, child: child),
+        ),
+        child: Column(
+          key: ValueKey(e),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ConfidenceRing(
+              progress: conf,
+              size: 96,
+              strokeWidth: 5,
+              color: e.color,
+              trackColor: AppTheme.surfVar(context),
+              child: Container(
+                width: 66,
+                height: 66,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  shape: BoxShape.circle,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(33),
+                  child: Image.asset(
+                    e.assetIconPath,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Icon(
+                      e.icon,
+                      size: 30,
+                      color: e.color,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            e.displayName,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: e.color,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-            decoration: BoxDecoration(
-              color: e.color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              '${(conf * 100).toStringAsFixed(0)}%',
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+            const SizedBox(height: 10),
+            Text(
+              e.displayName,
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
                 color: e.color,
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              '${(conf * 100).toStringAsFixed(0)}%',
+              style: GoogleFonts.jetBrainsMono(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1,
+                color: AppTheme.textS(context),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildRadarChart() {
     final scores = _currentScores;
+    final dom = _currentEmotion ?? EmotionType.neutral;
     final entries = EmotionType.values
         .map((e) => RadarEntry(value: (scores[e] ?? 0) * 100))
         .toList();
@@ -1012,7 +1251,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppTheme.primaryColor.withValues(alpha: 0.12),
+          color: dom.color.withValues(alpha: 0.2),
           width: 1.5,
         ),
       ),
@@ -1036,12 +1275,12 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
           ),
           getTitle: (index, _) {
             final e = EmotionType.values[index];
-            return RadarChartTitle(text: e.name);
+            return RadarChartTitle(text: e.displayName);
           },
           dataSets: [
             RadarDataSet(
-              fillColor: AppTheme.primaryColor.withValues(alpha: 0.12),
-              borderColor: AppTheme.primaryColor,
+              fillColor: dom.color.withValues(alpha: 0.14),
+              borderColor: dom.color,
               borderWidth: 2,
               entryRadius: 3,
               dataEntries: entries,
@@ -1054,42 +1293,87 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
   }
 
   Widget _buildFloatingStopButton() {
+    final isEn = AppLocalizations.locale.startsWith('en');
     return Positioned(
-      bottom: MediaQuery.of(context).padding.bottom + 24,
+      bottom: MediaQuery.of(context).padding.bottom + 20,
       left: 0,
       right: 0,
       child: Center(
         child: GestureDetector(
           onTap: _stopRecording,
-          child: AnimatedBuilder(
-            animation: _pulseAnim,
-            builder: (context, child) {
-              return Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF5252), Color(0xFFD32F2F)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.withValues(alpha: 0.4),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedBuilder(
+                animation: _rippleCtrl,
+                builder: (context, child) {
+                  return SizedBox(
+                    width: 150,
+                    height: 150,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Dua ripple ring bergantian — kesan "sonar".
+                        for (final phase in [0.0, 0.5])
+                          Builder(builder: (context) {
+                            final t = (_rippleCtrl.value - phase) % 1.0;
+                            final ringSize = 76 + (t * 66);
+                            return Container(
+                              width: ringSize,
+                              height: ringSize,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color(0xFFFF5252)
+                                      .withValues(alpha: 0.45 * (1 - t)),
+                                  width: 2,
+                                ),
+                              ),
+                            );
+                          }),
+                        child!,
+                      ],
                     ),
-                  ],
+                  );
+                },
+                child: Container(
+                  width: 76,
+                  height: 76,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFF5252), Color(0xFFD32F2F)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.red.withValues(alpha: 0.4),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.stop_rounded,
+                    color: Colors.white,
+                    size: 38,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.stop_rounded,
-                  color: Colors.white,
-                  size: 36,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                isEn
+                    ? 'Tap to finish & see results'
+                    : 'Ketuk untuk selesai & lihat hasil',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textS(context),
                 ),
-              );
-            },
+              ),
+            ],
           ),
         ),
       ),

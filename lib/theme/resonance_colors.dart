@@ -19,6 +19,8 @@ class ResonanceColors {
   final Color onSurfaceVariant;
   final Color primary;
   final Color primaryContainer;
+  final Color shadowColor;
+  final Color shadowColorStrong;
 
   const ResonanceColors({
     required this.background,
@@ -31,6 +33,8 @@ class ResonanceColors {
     required this.onSurfaceVariant,
     required this.primary,
     required this.primaryContainer,
+    required this.shadowColor,
+    required this.shadowColorStrong,
   });
 
   static const light = ResonanceColors(
@@ -44,6 +48,8 @@ class ResonanceColors {
     onSurfaceVariant: Color(0xFF5E4B53),
     primary: Color(0xFFC77E8C),
     primaryContainer: Color(0xFFF0D9DE),
+    shadowColor: Color(0x1424161C),
+    shadowColorStrong: Color(0x4024161C),
   );
 
   static const dark = ResonanceColors(
@@ -57,6 +63,8 @@ class ResonanceColors {
     onSurfaceVariant: Color(0xFFCBBBC1),
     primary: Color(0xFFDFAAB6),
     primaryContainer: Color(0xFF6E3A46),
+    shadowColor: Color(0x4D000000),
+    shadowColorStrong: Color(0x66000000),
   );
 
   static ResonanceColors of(BuildContext context) =>
@@ -80,7 +88,7 @@ class FloatingChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF24161C).withValues(alpha: 0.1),
+            color: color.shadowColor,
             offset: const Offset(2, 2),
           ),
         ],
@@ -216,7 +224,7 @@ class ResonanceCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(radius),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF24161C).withValues(alpha: 0.1),
+              color: c.shadowColor,
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -295,10 +303,10 @@ class _ResonancePillButtonState extends State<ResonancePillButton> {
             borderRadius: BorderRadius.circular(999),
             boxShadow: (!_enabled || _pressed)
                 ? []
-                : const [
+                : [
                     BoxShadow(
-                      color: Color(0x4024161C),
-                      offset: Offset(4, 4),
+                      color: c.shadowColorStrong,
+                      offset: const Offset(4, 4),
                     ),
                   ],
           ),
@@ -373,10 +381,10 @@ class ResonanceIconButton extends StatelessWidget {
                 : Border.all(color: c.outlineVariant),
             boxShadow: disabled
                 ? []
-                : const [
+                : [
                     BoxShadow(
-                      color: Color(0x1424161C),
-                      offset: Offset(2, 2),
+                      color: c.shadowColor,
+                      offset: const Offset(2, 2),
                     ),
                   ],
           ),
@@ -462,10 +470,10 @@ class ResonanceChip extends StatelessWidget {
         color: c.surfaceLowest,
         border: Border.all(color: c.outlineVariant),
         borderRadius: BorderRadius.circular(999),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x1424161C),
-            offset: Offset(1.5, 1.5),
+            color: c.shadowColor,
+            offset: const Offset(1.5, 1.5),
           ),
         ],
       ),
