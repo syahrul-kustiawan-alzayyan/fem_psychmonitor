@@ -433,14 +433,20 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         }
       }
 
-      // Update psychological score di Firebase dengan adjustment emosi
+      // Update psychological score di Firebase dengan adjustment emosi.
+      // Dominan netral -> tidak ada perubahan sama sekali; selain itu
+      // jumlah berbobot semua emosi (lihat computeMentalHealthAdjustment).
       final currentUser = await DatabaseService.getUser();
-      if (currentUser?.psychologicalScore != null) {
-        final emotionScore = dominant.key.emotionValue * dominant.value;
+      if (currentUser?.psychologicalScore != null &&
+          dominant.key != EmotionType.neutral) {
+        final emotionScore =
+            computeMentalHealthAdjustment(combined, dominant: dominant.key);
         final newScore = ((currentUser!.psychologicalScore! + emotionScore).clamp(0, 100)).round();
-        await DatabaseService.updateUser(
-          currentUser.copyWith(psychologicalScore: newScore),
-        );
+        if (newScore != currentUser.psychologicalScore) {
+          await DatabaseService.updateUser(
+            currentUser.copyWith(psychologicalScore: newScore),
+          );
+        }
       }
 
       final savedRecord = RecordingData(

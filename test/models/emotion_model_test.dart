@@ -157,6 +157,61 @@ void main() {
     });
   });
 
+  group('computeMentalHealthAdjustment', () {
+    test('dominan netral -> selalu 0 walau distribusi tidak murni netral', () {
+      // Kasus nyata: servis teks mengembalikan {neutral:0.5, sisanya 0.1}.
+      final scores = {
+        EmotionType.happy: 0.052,
+        EmotionType.sad: 0.052,
+        EmotionType.angry: 0.052,
+        EmotionType.disgust: 0.052,
+        EmotionType.neutral: 0.74,
+        EmotionType.fear: 0.052,
+      };
+      expect(
+        computeMentalHealthAdjustment(scores, dominant: EmotionType.neutral),
+        0.0,
+      );
+    });
+
+    test('distribusi seragam dengan dominan netral -> 0', () {
+      final uniform = {
+        for (final e in EmotionType.values) e: 1 / EmotionType.values.length,
+      };
+      expect(
+        computeMentalHealthAdjustment(uniform, dominant: EmotionType.neutral),
+        0.0,
+      );
+    });
+
+    test('dominan bukan netral -> jumlah berbobot semua emosi', () {
+      final scores = {
+        EmotionType.happy: 0.6,
+        EmotionType.sad: 0.2,
+        EmotionType.angry: 0.1,
+        EmotionType.disgust: 0.0,
+        EmotionType.neutral: 0.1,
+        EmotionType.fear: 0.0,
+      };
+      final expected =
+          10 * 0.6 + (-6) * 0.2 + (-8) * 0.1 + 0 * 0.0 + 0 * 0.1 + 0 * 0.0;
+      expect(
+        computeMentalHealthAdjustment(scores, dominant: EmotionType.happy),
+        closeTo(expected, 1e-9),
+      );
+    });
+
+    test('murni satu emosi -> sama dengan emotionValue penuh', () {
+      final pure = {
+        for (final e in EmotionType.values) e: e == EmotionType.sad ? 1.0 : 0.0,
+      };
+      expect(
+        computeMentalHealthAdjustment(pure, dominant: EmotionType.sad),
+        EmotionType.sad.emotionValue.toDouble(),
+      );
+    });
+  });
+
   group('DummyData', () {
     test('latestEmotion valid', () {
       expect(DummyData.latestEmotion.confidence, inInclusiveRange(0.0, 1.0));

@@ -187,6 +187,27 @@ extension EmotionTypeExtension on EmotionType {
 }
 
 // ==========================================
+// FUNGSI: Penyesuaian skor kesehatan mental
+// ==========================================
+
+/// Penyesuaian skor kesehatan mental (0-100) dari distribusi emosi gabungan.
+///
+/// Aturan:
+/// - Dominan netral -> 0. Distribusi bawaan servis teks memuat massa
+///   probabilitas latar pada emosi negatif; tanpa gerbang ini rekaman
+///   netral akan terus mengikis skor secara sistematis.
+/// - Selain itu -> jumlah berbobot semua emosi, sehingga rekaman ambigu
+///   otomatis dampaknya kecil.
+double computeMentalHealthAdjustment(
+  Map<EmotionType, double> scores, {
+  required EmotionType dominant,
+}) {
+  if (dominant == EmotionType.neutral) return 0;
+  return scores.entries
+      .fold<double>(0, (sum, e) => sum + e.key.emotionValue * e.value);
+}
+
+// ==========================================
 // MODEL: Record/log satu deteksi emosi
 // ==========================================
 class EmotionRecord {
@@ -214,7 +235,7 @@ class EmotionRecord {
   String get confidencePercent => '${(confidence * 100).toStringAsFixed(0)}%';
 
   /// Skor emosi berbobot: emotionValue × confidence
-  /// Contoh: Happy 87% → 5 × 0.87 = 4.35
+  /// Contoh: Happy 87% → 10 × 0.87 = +8.7
   double get emotionScore => emotion.emotionValue * confidence;
 
   /// Label skor emosi: "+4.4" atau "-2.1"

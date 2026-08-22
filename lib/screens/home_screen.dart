@@ -879,8 +879,8 @@ const SizedBox(height: 16),
                         ),
                         child: Text(
                           history.first.emotionScore >= 0
-                              ? '+${(history.first.emotionScore.abs() / 5 * 17).round()}'
-                              : '-${(history.first.emotionScore.abs() / 5 * 17).round()}',
+                              ? '+${history.first.emotionScore.toStringAsFixed(1)}'
+                              : history.first.emotionScore.toStringAsFixed(1),
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,

@@ -900,11 +900,26 @@ class _HistoryScreenState extends State<HistoryScreen>
 
     final baseScore100 = _psychScore!.toDouble();
 
+    // Rekonstruksi evolusi skor secara kumulatif: mulai dari
+    // (skor tersimpan − total adjustment semua record), lalu akumulasi
+    // tiap rekaman secara kronologis sehingga titik terakhir = skor asli.
+    double totalAdjAll =
+        _dbHistory.fold(0.0, (sum, r) => sum + r.emotionScore);
+    final startBase = (baseScore100 - totalAdjAll).clamp(0.0, 100.0);
+
+    final chronological = List<EmotionRecord>.from(_dbHistory)
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final runValues = <EmotionRecord, double>{};
+    double running = startBase;
+    for (final r in chronological) {
+      running = (running + r.emotionScore).clamp(0.0, 100.0);
+      runValues[r] = running;
+    }
+
     final spots = List.generate(
       history.length,
       (i) {
-        final adjustment = history[i].emotionScore;
-        final score = (baseScore100 + adjustment).clamp(0.0, 100.0);
+        final score = runValues[history[i]] ?? startBase;
         return FlSpot(i.toDouble(), score);
       },
     );
