@@ -13,7 +13,7 @@ import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
 import '../services/database_service.dart';
 import '../services/storage_service.dart';
-import '../services/subscription_service.dart';
+import '../services/billing_service.dart';
 import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../theme/app_theme.dart';
@@ -125,8 +125,8 @@ class _AuthScreenState extends State<AuthScreen>
       case 'success':
         final uid = FirebaseAuth.instance.currentUser?.uid;
         if (uid != null) {
-          await SubscriptionService()
-              .identifyUser(uid, context.read<PremiumProvider>());
+          await BillingService()
+              .refreshFromServer(context.read<PremiumProvider>());
         }
         await StorageService.setOnboardingComplete('');
         if (!mounted) return;
@@ -177,8 +177,8 @@ class _AuthScreenState extends State<AuthScreen>
       case 'new_user':
         final uid = FirebaseAuth.instance.currentUser?.uid;
         if (uid != null) {
-          await SubscriptionService()
-              .identifyUser(uid, context.read<PremiumProvider>());
+          await BillingService()
+              .refreshFromServer(context.read<PremiumProvider>());
         }
         if (!mounted) return;
         _showOnboardingRequiredDialog();
@@ -275,8 +275,8 @@ class _AuthScreenState extends State<AuthScreen>
       case 'success':
         final uid = FirebaseAuth.instance.currentUser?.uid;
         if (uid != null) {
-          await SubscriptionService()
-              .identifyUser(uid, context.read<PremiumProvider>());
+          await BillingService()
+              .refreshFromServer(context.read<PremiumProvider>());
         }
         await StorageService.setOnboardingComplete('');
         if (!mounted) return;
@@ -304,8 +304,8 @@ class _AuthScreenState extends State<AuthScreen>
       case 'new_user':
         final uid = FirebaseAuth.instance.currentUser?.uid;
         if (uid != null) {
-          await SubscriptionService()
-              .identifyUser(uid, context.read<PremiumProvider>());
+          await BillingService()
+              .refreshFromServer(context.read<PremiumProvider>());
         }
         if (!mounted) return;
         _showOnboardingRequiredDialog();

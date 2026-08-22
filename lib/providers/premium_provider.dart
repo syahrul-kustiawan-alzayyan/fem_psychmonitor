@@ -10,7 +10,8 @@ class PremiumProvider extends ChangeNotifier {
 
   void init() {
     // Premium status di-reset setiap app start.
-    // RevenueCat akan mengecek ulang entitlement via SubscriptionService.init()
+    // BillingService akan mengecek ulang purchase via Play Billing
+    // + verifikasi server (Play Developer API).
     _isPremium = false;
     _expiryDate = null;
   }

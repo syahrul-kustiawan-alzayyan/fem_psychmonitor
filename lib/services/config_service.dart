@@ -7,8 +7,10 @@ class ConfigService {
 
   static Future<void> load() => dotenv.load();
 
-  // RevenueCat
-  static String get revenueCatApiKey => _get('REVENUECAT_API_KEY');
+  // Google Play Billing - Subscription product IDs
+  static String get billingProductWeekly => _get('BILLING_PRODUCT_WEEKLY');
+  static String get billingProductMonthly => _get('BILLING_PRODUCT_MONTHLY');
+  static String get billingProductYearly => _get('BILLING_PRODUCT_YEARLY');
 
   // AdMob Production IDs
   static String get admobBannerTop => _get('ADMOB_BANNER_TOP');

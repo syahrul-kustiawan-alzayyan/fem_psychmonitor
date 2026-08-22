@@ -1,13 +1,17 @@
 import 'dart:async';
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../providers/premium_provider.dart';
-import '../services/subscription_service.dart';
+import '../services/billing_service.dart';
+import '../services/config_service.dart';
 
 // ── Midnight Blush Palette (dark standalone) ────────────────
 const _primary = Color(0xFFFFC5D3);
@@ -28,56 +32,29 @@ class PremiumScreen extends StatefulWidget {
 
 class _PremiumScreenState extends State<PremiumScreen>
     with TickerProviderStateMixin {
-  final _subscriptionService = SubscriptionService();
-  bool _isLoading = false;
-  int _selectedIndex = 2;
+  final _billing = BillingService();
+  bool _isRestoring = false;
+  int _selectedIndex = 0;
 
   late final AnimationController _glowCtrl;
 
   final List<_SubscriptionPlan> _plans = [
     _SubscriptionPlan(
-      id: 'weekly',
-      label: 'Mingguan',
-      labelEn: 'Weekly',
-      price: 'Rp 7.000',
-      period: '/mgg',
-      periodEn: '/wk',
-      tag: 'Coba dulu',
-      tagEn: 'Try first',
-      effective: '',
-      effectiveEn: '',
-      savings: '',
-      savingsEn: '',
+      productId: ConfigService.billingProductWeekly,
+      labelKey: 'premium_plan_weekly',
+      tagKey: 'premium_tag_weekly',
       isPopular: false,
     ),
     _SubscriptionPlan(
-      id: 'monthly',
-      label: 'Bulanan',
-      labelEn: 'Monthly',
-      price: 'Rp 20.000',
-      period: '/bln',
-      periodEn: '/mo',
-      tag: 'Paling fleksibel',
-      tagEn: 'Most flexible',
-      effective: '',
-      effectiveEn: '',
-      savings: '',
-      savingsEn: '',
+      productId: ConfigService.billingProductMonthly,
+      labelKey: 'premium_plan_monthly',
+      tagKey: 'premium_tag_monthly',
       isPopular: false,
     ),
     _SubscriptionPlan(
-      id: 'yearly',
-      label: 'Tahunan',
-      labelEn: 'Yearly',
-      price: 'Rp 99.000',
-      period: '/thn',
-      periodEn: '/yr',
-      tag: 'Nilai terbaik',
-      tagEn: 'Best value',
-      effective: '± Rp 8.250/bln',
-      effectiveEn: '± Rp 8,250/mo',
-      savings: 'Hemat 59%',
-      savingsEn: 'Save 59%',
+      productId: ConfigService.billingProductYearly,
+      labelKey: 'premium_plan_yearly',
+      tagKey: 'premium_tag_yearly',
       isPopular: true,
     ),
   ];
@@ -89,38 +66,89 @@ class _PremiumScreenState extends State<PremiumScreen>
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
+    _billing.addListener(_onBillingStateChanged);
+    _billing.addListener(_onProductsLoaded);
   }
 
   @override
   void dispose() {
+    _billing
+      ..removeListener(_onBillingStateChanged)
+      ..removeListener(_onProductsLoaded);
     _glowCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _purchase() async {
-    setState(() => _isLoading = true);
-    bool success = false;
-    try {
-      await _subscriptionService.fetchOfferings();
-      if (!mounted) return;
-      if (_subscriptionService.offerings.isNotEmpty) {
-        final offering = _subscriptionService.offerings.first;
-        final packages = offering.availablePackages;
-        if (_selectedIndex < packages.length) {
-          final premium = context.read<PremiumProvider>();
-          success = await _subscriptionService.purchasePackage(
-            packages[_selectedIndex],
-            premium,
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('Purchase error: $e');
-    }
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    _showPurchaseResult(success);
+  void _onProductsLoaded() {
+    if (mounted) setState(() {});
   }
+
+  /// Handle hasil pembelian / restore (sekali pakai via consumeState).
+  void _onBillingStateChanged() {
+    if (!mounted) return;
+    final state = _billing.consumeState();
+    // Refresh UI (spinner tombol) setelah state dikonsumsi → idle.
+    setState(() {});
+    switch (state) {
+      case PurchaseState.success:
+        _showPurchaseResult(true);
+        break;
+      case PurchaseState.error:
+        _showPurchaseResult(false);
+        break;
+      case PurchaseState.canceled:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.tr('premium_purchase_canceled')),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: _surface,
+          ),
+        );
+        break;
+      case PurchaseState.pending:
+      case PurchaseState.idle:
+        break;
+    }
+  }
+
+  Future<void> _purchase() async {
+    if (_billing.state == PurchaseState.pending) return;
+    final available = _availablePlans();
+    if (_selectedIndex >= available.length) return;
+    await _billing.purchase(available[_selectedIndex].productId);
+  }
+
+  Future<void> _restore() async {
+    if (_isRestoring) return;
+    setState(() => _isRestoring = true);
+    // Selama restore, hasil dikelola di sini (bukan dialog pembelian global).
+    _billing.removeListener(_onBillingStateChanged);
+    final done = Completer<bool>();
+    late VoidCallback listener;
+    listener = () {
+      final s = _billing.consumeState();
+      if (s == PurchaseState.success || s == PurchaseState.error) {
+        _billing.removeListener(listener);
+        if (!done.isCompleted) done.complete(s == PurchaseState.success);
+      }
+    };
+    _billing.addListener(listener);
+    try {
+      await _billing.restore();
+      // Jika tidak ada pembelian sama sekali, stream tidak memancarkan apa pun.
+      final result = await done.future
+          .timeout(const Duration(seconds: 4), onTimeout: () => false);
+      _billing.removeListener(listener);
+      if (!mounted) return;
+      setState(() => _isRestoring = false);
+      _showRestoreResult(result);
+    } finally {
+      _billing.addListener(_onBillingStateChanged);
+    }
+  }
+
+  List<_SubscriptionPlan> _availablePlans() =>
+      _plans.where((p) => _billing.productsById.containsKey(p.productId)).toList();
 
   Future<void> _showPurchaseResult(bool success) async {
     await showDialog(
@@ -176,15 +204,6 @@ class _PremiumScreenState extends State<PremiumScreen>
     );
   }
 
-  Future<void> _restore() async {
-    setState(() => _isLoading = true);
-    final premium = context.read<PremiumProvider>();
-    final success = await _subscriptionService.restorePurchases(premium);
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    _showRestoreResult(success);
-  }
-
   Future<void> _showRestoreResult(bool success) async {
     await showDialog(
       context: context,
@@ -238,8 +257,6 @@ class _PremiumScreenState extends State<PremiumScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isEn = AppLocalizations.locale.startsWith('en');
-
     return Scaffold(
       backgroundColor: _bg,
       extendBodyBehindAppBar: true,
@@ -267,19 +284,7 @@ class _PremiumScreenState extends State<PremiumScreen>
             ),
             child: IconButton(
               icon: Icon(PhosphorIconsRegular.arrowsClockwise, size: 18, color: _primary),
-              onPressed: _restore,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: _surface.withValues(alpha: 0.8),
-              shape: BoxShape.circle,
-              border: Border.all(color: _outlineVariant.withValues(alpha: 0.4)),
-            ),
-            child: IconButton(
-              icon: Icon(PhosphorIconsRegular.power, size: 18, color: _primary),
-              onPressed: () => _resetPremium(context),
+              onPressed: _isRestoring ? null : _restore,
             ),
           ),
           const SizedBox(width: 16),
@@ -320,14 +325,14 @@ class _PremiumScreenState extends State<PremiumScreen>
                       left: 24,
                       right: 24,
                     ),
-                    child: _buildHero(context, isEn, isPremiumActive),
+                    child: _buildHero(context, isPremiumActive),
                   ),
                   Expanded(
                     child: isPremiumActive && premium.expiryDate != null
-                        ? _buildCountdownSection(context, isEn, premium.expiryDate!)
-                        : _buildPurchaseSection(context, isEn),
+                        ? _buildCountdownSection(context, premium.expiryDate!)
+                        : _buildPurchaseSection(context),
                   ),
-                  if (!isPremiumActive) _buildBottomCta(context, isEn),
+                  if (!isPremiumActive) _buildBottomCta(context),
                 ],
               ),
             ],
@@ -387,7 +392,7 @@ class _PremiumScreenState extends State<PremiumScreen>
     );
   }
 
-  Widget _buildHero(BuildContext context, bool isEn, bool isPremiumActive) {
+  Widget _buildHero(BuildContext context, bool isPremiumActive) {
     return Column(
       children: [
         Container(
@@ -408,8 +413,8 @@ class _PremiumScreenState extends State<PremiumScreen>
               const SizedBox(width: 6),
               Text(
                 isPremiumActive
-                    ? (isEn ? 'PREMIUM ACTIVE' : 'PREMIUM AKTIF')
-                    : 'PREMIUM',
+                    ? AppLocalizations.tr('premium_active_badge')
+                    : AppLocalizations.tr('premium_badge'),
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -423,8 +428,8 @@ class _PremiumScreenState extends State<PremiumScreen>
         const SizedBox(height: 14),
         Text(
           isPremiumActive
-              ? (isEn ? 'Enjoying Premium' : 'Premium Aktif')
-              : (isEn ? 'Unlock Premium' : 'Buka Akses Premium'),
+              ? AppLocalizations.tr('premium_hero_active_title')
+              : AppLocalizations.tr('premium_hero_title'),
           style: GoogleFonts.syne(
             fontSize: 30,
             fontWeight: FontWeight.w800,
@@ -436,10 +441,8 @@ class _PremiumScreenState extends State<PremiumScreen>
         const SizedBox(height: 10),
         Text(
           isPremiumActive
-              ? (isEn ? 'You\'re enjoying all premium features' : 'Anda menikmati semua fitur premium')
-              : (isEn
-                  ? 'Unlimited emotion detection & ad-free experience'
-                  : 'Deteksi emosi tanpa batas & bebas iklan'),
+              ? AppLocalizations.tr('premium_hero_active_subtitle')
+              : AppLocalizations.tr('premium_hero_subtitle'),
           style: GoogleFonts.inter(
             fontSize: 14,
             color: _onSurfaceVariant,
@@ -453,102 +456,46 @@ class _PremiumScreenState extends State<PremiumScreen>
             spacing: 8,
             runSpacing: 8,
             alignment: WrapAlignment.center,
-            children: _heroChips(isEn),
+            children: [
+              _heroChip(PhosphorIconsRegular.infinity, 'premium_chip_unlimited'),
+              _heroChip(PhosphorIconsRegular.megaphoneSimple, 'premium_chip_adfree'),
+              _heroChip(PhosphorIconsRegular.shieldCheck, 'premium_chip_secure'),
+            ],
           ),
         ],
       ],
     );
   }
 
-  List<Widget> _heroChips(bool isEn) {
-    final items = isEn
-        ? [
-            (PhosphorIconsRegular.infinity, 'Unlimited detection'),
-            (PhosphorIconsRegular.megaphoneSimple, 'Ad-free'),
-            (PhosphorIconsRegular.shieldCheck, 'Private & secure'),
-          ]
-        : [
-            (PhosphorIconsRegular.infinity, 'Deteksi tanpa batas'),
-            (PhosphorIconsRegular.megaphoneSimple, 'Bebas iklan'),
-            (PhosphorIconsRegular.shieldCheck, 'Aman & pribadi'),
-          ];
-    return items.map((item) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: _surface.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: _outlineVariant.withValues(alpha: 0.35)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(item.$1, size: 12, color: _primary),
-            const SizedBox(width: 6),
-            Text(
-              item.$2,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: _onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
-    }).toList();
-  }
-
-  Future<void> _resetPremium(BuildContext context) async {
-    final isEn = AppLocalizations.locale.startsWith('en');
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: _surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Reset Premium',
-          style: GoogleFonts.syne(fontWeight: FontWeight.w700, color: _onSurface),
-        ),
-        content: Text(
-          isEn
-              ? 'This will clear your premium status and sign out from RevenueCat. Continue?'
-              : 'Ini akan menghapus status premium Anda dan keluar dari RevenueCat. Lanjutkan?',
-          style: GoogleFonts.inter(fontSize: 14, color: _onSurfaceVariant),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(
-              isEn ? 'Cancel' : 'Batal',
-              style: GoogleFonts.inter(color: _onSurfaceVariant),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              isEn ? 'Reset' : 'Reset',
-              style: GoogleFonts.inter(color: _primary),
+  Widget _heroChip(IconData icon, String labelKey) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: _surface.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _outlineVariant.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: _primary),
+          const SizedBox(width: 6),
+          Text(
+            AppLocalizations.tr(labelKey),
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: _onSurfaceVariant,
             ),
           ),
         ],
       ),
     );
-
-    if (confirm == true && context.mounted) {
-      final premium = context.read<PremiumProvider>();
-      await _subscriptionService.logOut(premium);
-      if (context.mounted) Navigator.pop(context);
-    }
   }
 
   // ── COUNTDOWN SECTION ──────────────────────────────────────
 
-  Widget _buildCountdownSection(
-    BuildContext context,
-    bool isEn,
-    DateTime expiryDate,
-  ) {
+  Widget _buildCountdownSection(BuildContext context, DateTime expiryDate) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -575,7 +522,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        isEn ? 'Active' : 'Aktif',
+                        AppLocalizations.tr('premium_active_pill'),
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -588,7 +535,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  isEn ? 'Premium Expires In' : 'Premium Berakhir Dalam',
+                  AppLocalizations.tr('premium_expires_in'),
                   style: GoogleFonts.inter(fontSize: 13, color: _onSurfaceVariant),
                 ),
                 const SizedBox(height: 12),
@@ -597,7 +544,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                 Container(height: 1, color: _outlineVariant.withValues(alpha: 0.4)),
                 const SizedBox(height: 10),
                 Text(
-                  '${isEn ? 'Expiry' : 'Berakhir'}: ${_formatDate(expiryDate)}',
+                  '${AppLocalizations.tr('premium_expiry_label')}: ${_formatDate(expiryDate)}',
                   style: GoogleFonts.jetBrainsMono(fontSize: 11, color: _onSurfaceVariant),
                 ),
               ],
@@ -614,7 +561,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                     Icon(PhosphorIconsFill.sparkle, size: 15, color: _primary),
                     const SizedBox(width: 8),
                     Text(
-                      isEn ? 'Your Premium Benefits' : 'Manfaat Premium Anda',
+                      AppLocalizations.tr('premium_benefits_title'),
                       style: GoogleFonts.syne(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -624,7 +571,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                   ],
                 ),
                 const SizedBox(height: 14),
-                ..._buildBenefits(isEn),
+                ..._buildBenefits(),
               ],
             ),
           ),
@@ -636,7 +583,12 @@ class _PremiumScreenState extends State<PremiumScreen>
 
   // ── PURCHASE SECTION ───────────────────────────────────────
 
-  Widget _buildPurchaseSection(BuildContext context, bool isEn) {
+  Widget _buildPurchaseSection(BuildContext context) {
+    final plans = _availablePlans();
+    if (_selectedIndex >= plans.length && plans.isNotEmpty) {
+      _selectedIndex = 0;
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -648,7 +600,7 @@ class _PremiumScreenState extends State<PremiumScreen>
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                isEn ? 'Choose your plan' : 'Pilih paket',
+                AppLocalizations.tr('premium_choose_plan'),
                 style: GoogleFonts.syne(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
@@ -656,7 +608,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                 ),
               ),
               Text(
-                isEn ? 'Cancel anytime' : 'Batalkan kapan saja',
+                AppLocalizations.tr('premium_cancel_anytime'),
                 style: GoogleFonts.inter(
                   fontSize: 10.5,
                   color: _onSurfaceVariant,
@@ -667,7 +619,18 @@ class _PremiumScreenState extends State<PremiumScreen>
           ),
           const SizedBox(height: 12),
 
-          ...List.generate(_plans.length, (i) => _buildPlanCard(i, isEn)),
+          if (plans.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: Text(
+                  AppLocalizations.tr('premium_plan_unavailable'),
+                  style: GoogleFonts.inter(fontSize: 12, color: _onSurfaceVariant),
+                ),
+              ),
+            )
+          else
+            ...List.generate(plans.length, (i) => _buildPlanCard(i, plans)),
 
           const SizedBox(height: 12),
 
@@ -678,9 +641,7 @@ class _PremiumScreenState extends State<PremiumScreen>
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
-                  isEn
-                      ? 'Secure checkout. Cancel anytime.'
-                      : 'Pembayaran aman. Batalkan kapan saja.',
+                  AppLocalizations.tr('premium_secure_checkout'),
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     color: _outline,
@@ -691,9 +652,7 @@ class _PremiumScreenState extends State<PremiumScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            isEn
-                ? 'By subscribing, you agree to our Terms of Service and Privacy Policy. Subscriptions auto-renew unless canceled.'
-                : 'Dengan berlangganan, Anda menyetujui Syarat & Ketentuan dan Kebijakan Privasi kami. Langganan diperpanjang otomatis kecuali dibatalkan.',
+            AppLocalizations.tr('premium_subscribe_terms'),
             style: GoogleFonts.inter(
               fontSize: 10,
               color: _outline.withValues(alpha: 0.85),
@@ -709,8 +668,9 @@ class _PremiumScreenState extends State<PremiumScreen>
 
   // ── PLAN CARD ──────────────────────────────────────────────
 
-  Widget _buildPlanCard(int index, bool isEn) {
-    final plan = _plans[index];
+  Widget _buildPlanCard(int index, List<_SubscriptionPlan> plans) {
+    final plan = plans[index];
+    final product = _billing.productsById[plan.productId]!;
     final isSelected = _selectedIndex == index;
 
     return Padding(
@@ -782,24 +742,22 @@ class _PremiumScreenState extends State<PremiumScreen>
                           Row(
                             children: [
                               Text(
-                                isEn ? plan.labelEn : plan.label,
+                                AppLocalizations.tr(plan.labelKey),
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                                   color: _onSurface,
                                 ),
                               ),
-                              if (plan.tag.isNotEmpty) ...[
-                                const SizedBox(width: 6),
-                                Text(
-                                  isEn ? plan.tagEn : plan.tag,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
-                                    color: _onSurfaceVariant.withValues(alpha: 0.75),
-                                  ),
+                              const SizedBox(width: 6),
+                              Text(
+                                AppLocalizations.tr(plan.tagKey),
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: _onSurfaceVariant.withValues(alpha: 0.75),
                                 ),
-                              ],
+                              ),
                             ],
                           ),
                           const SizedBox(height: 2),
@@ -808,16 +766,16 @@ class _PremiumScreenState extends State<PremiumScreen>
                             textBaseline: TextBaseline.alphabetic,
                             children: [
                               Text(
-                                plan.price,
+                                product.price,
                                 style: GoogleFonts.jetBrainsMono(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                   color: isSelected ? _primary : _onSurfaceVariant,
                                 ),
                               ),
-                              if (plan.period.isNotEmpty)
+                              if (_periodLabel(product).isNotEmpty)
                                 Text(
-                                  isEn ? plan.periodEn : plan.period,
+                                  _periodLabel(product),
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
                                     color: _outline,
@@ -825,39 +783,11 @@ class _PremiumScreenState extends State<PremiumScreen>
                                 ),
                             ],
                           ),
-                          if (plan.effective.isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              isEn ? plan.effectiveEn : plan.effective,
-                              style: GoogleFonts.inter(
-                                fontSize: 10.5,
-                                color: _onSurfaceVariant.withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
+                          if (plan.isPopular) _buildEffectiveLine(plan),
                         ],
                       ),
                     ),
-                    if (plan.savings.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _secondary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: _secondary.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Text(
-                          isEn ? plan.savingsEn : plan.savings,
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: _secondary,
-                            letterSpacing: 0.05,
-                          ),
-                        ),
-                      ),
+                    if (plan.isPopular) _buildSavingsBadge(),
                   ],
                 ),
               ),
@@ -885,7 +815,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                         Icon(PhosphorIconsFill.star, size: 10, color: _surface),
                         const SizedBox(width: 5),
                         Text(
-                          isEn ? 'POPULAR' : 'POPULER',
+                          AppLocalizations.tr('premium_popular'),
                           style: GoogleFonts.inter(
                             fontSize: 9,
                             fontWeight: FontWeight.w800,
@@ -904,9 +834,88 @@ class _PremiumScreenState extends State<PremiumScreen>
     );
   }
 
+  /// "± Rp 8.250/bln" — harga efektif dihitung dari harga store (yearly ÷ 12).
+  Widget _buildEffectiveLine(_SubscriptionPlan plan) {
+    final yearly = _billing.productsById[ConfigService.billingProductYearly];
+    final monthly = _billing.productsById[ConfigService.billingProductMonthly];
+    if (yearly == null || monthly == null) return const SizedBox.shrink();
+    final effective = yearly.rawPrice / 12;
+    final label = AppLocalizations.tr('premium_effective')
+        .replaceAll('{price}', _formatRupiah(effective));
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 10.5,
+          color: _onSurfaceVariant.withValues(alpha: 0.7),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSavingsBadge() {
+    final yearly = _billing.productsById[ConfigService.billingProductYearly];
+    final monthly = _billing.productsById[ConfigService.billingProductMonthly];
+    if (yearly == null || monthly == null || monthly.rawPrice <= 0) {
+      return const SizedBox.shrink();
+    }
+    final percent =
+        ((1 - (yearly.rawPrice / 12) / monthly.rawPrice) * 100).round();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: _secondary.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _secondary.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Text(
+        AppLocalizations.tr('premium_savings').replaceAll('{percent}', '$percent'),
+        style: GoogleFonts.inter(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: _secondary,
+          letterSpacing: 0.05,
+        ),
+      ),
+    );
+  }
+
+  /// Label periode dari billingPeriod Play ("P1W" → "/mgg").
+  String _periodLabel(ProductDetails product) {
+    if (product is! GooglePlayProductDetails) return '';
+    final details = product.productDetails.subscriptionOfferDetails;
+    if (details == null || details.isEmpty) return '';
+    final phases = details.first.pricingPhases;
+    final period = phases.isEmpty ? null : phases.first.billingPeriod;
+    switch (period) {
+      case 'P1W':
+        return AppLocalizations.tr('premium_period_week');
+      case 'P1M':
+        return AppLocalizations.tr('premium_period_month');
+      case 'P1Y':
+        return AppLocalizations.tr('premium_period_year');
+      default:
+        return '';
+    }
+  }
+
+  String _formatRupiah(double value) {
+    final rounded = value.round().toString();
+    final buffer = StringBuffer();
+    for (var i = 0; i < rounded.length; i++) {
+      if (i > 0 && (rounded.length - i) % 3 == 0) buffer.write('.');
+      buffer.write(rounded[i]);
+    }
+    return 'Rp $buffer';
+  }
+
   // ── BOTTOM CTA ─────────────────────────────────────────────
 
-  Widget _buildBottomCta(BuildContext context, bool isEn) {
+  Widget _buildBottomCta(BuildContext context) {
+    final isLoading = _billing.state == PurchaseState.pending;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       decoration: BoxDecoration(
@@ -928,9 +937,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
-                    isEn
-                        ? 'Secure payment · Cancel anytime'
-                        : 'Pembayaran aman · Batalkan kapan saja',
+                    AppLocalizations.tr('premium_secure_checkout'),
                     style: GoogleFonts.inter(
                       fontSize: 10.5,
                       color: _outline,
@@ -954,7 +961,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                 ],
               ),
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _purchase,
+                onPressed: isLoading ? null : _purchase,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _primary,
                   foregroundColor: const Color(0xFF3A1020),
@@ -963,7 +970,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: _isLoading
+                child: isLoading
                     ? const SizedBox(
                         width: 22, height: 22,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
@@ -974,7 +981,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                           Icon(PhosphorIconsFill.crown, size: 16),
                           const SizedBox(width: 8),
                           Text(
-                            isEn ? 'Subscribe Now' : 'Langganan Sekarang',
+                            AppLocalizations.tr('premium_subscribe_now'),
                             style: GoogleFonts.inter(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
@@ -1024,17 +1031,11 @@ class _PremiumScreenState extends State<PremiumScreen>
     return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
   }
 
-  List<Widget> _buildBenefits(bool isEn) {
-    final benefits = isEn
-        ? [
-            ['Unlimited detection', 'Record and analyze your emotions as many times as you need'],
-            ['Ad-free experience', 'Enjoy the app without any ads'],
-          ]
-        : [
-            ['Deteksi tanpa batas', 'Rekam dan analisis emosi sebanyak yang Anda butuhkan'],
-            ['Bebas iklan', 'Nikmati aplikasi tanpa gangguan iklan'],
-          ];
-
+  List<Widget> _buildBenefits() {
+    final benefits = [
+      ('premium_benefit_unlimited', 'premium_benefit_unlimited_desc'),
+      ('premium_benefit_adfree', 'premium_benefit_adfree_desc'),
+    ];
     return benefits.map((b) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
@@ -1061,7 +1062,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    b[0],
+                    AppLocalizations.tr(b.$1),
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       color: _onSurface,
@@ -1070,7 +1071,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    b[1],
+                    AppLocalizations.tr(b.$2),
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       color: _onSurfaceVariant,
@@ -1085,6 +1086,20 @@ class _PremiumScreenState extends State<PremiumScreen>
       );
     }).toList();
   }
+}
+
+class _SubscriptionPlan {
+  final String productId;
+  final String labelKey;
+  final String tagKey;
+  final bool isPopular;
+
+  const _SubscriptionPlan({
+    required this.productId,
+    required this.labelKey,
+    required this.tagKey,
+    required this.isPopular,
+  });
 }
 
 class _PremiumCountdown extends StatefulWidget {
@@ -1129,18 +1144,16 @@ class _PremiumCountdownState extends State<_PremiumCountdown> {
     final minutes = _remaining.inMinutes.remainder(60);
     final seconds = _remaining.inSeconds.remainder(60);
 
-    final isEn = AppLocalizations.locale.startsWith('en');
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _timeBlock(days, isEn ? 'Days' : 'Hari'),
+        _timeBlock(days, AppLocalizations.tr('premium_countdown_days')),
         _separator(),
-        _timeBlock(hours, isEn ? 'Hours' : 'Jam'),
+        _timeBlock(hours, AppLocalizations.tr('premium_countdown_hours')),
         _separator(),
-        _timeBlock(minutes, isEn ? 'Min' : 'Menit'),
+        _timeBlock(minutes, AppLocalizations.tr('premium_countdown_minutes')),
         _separator(),
-        _timeBlock(seconds, isEn ? 'Sec' : 'Detik'),
+        _timeBlock(seconds, AppLocalizations.tr('premium_countdown_seconds')),
       ],
     );
   }
@@ -1196,36 +1209,4 @@ class _PremiumCountdownState extends State<_PremiumCountdown> {
       ),
     );
   }
-}
-
-class _SubscriptionPlan {
-  final String id;
-  final String label;
-  final String labelEn;
-  final String price;
-  final String period;
-  final String periodEn;
-  final String tag;
-  final String tagEn;
-  final String effective;
-  final String effectiveEn;
-  final String savings;
-  final String savingsEn;
-  final bool isPopular;
-
-  const _SubscriptionPlan({
-    required this.id,
-    required this.label,
-    required this.labelEn,
-    required this.price,
-    required this.period,
-    required this.periodEn,
-    required this.tag,
-    required this.tagEn,
-    required this.effective,
-    required this.effectiveEn,
-    required this.savings,
-    required this.savingsEn,
-    required this.isPopular,
-  });
 }

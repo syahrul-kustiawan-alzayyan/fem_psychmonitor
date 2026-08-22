@@ -17,7 +17,7 @@ import 'providers/admin_provider.dart';
 import 'theme/app_theme.dart';
 import 'theme/resonance_colors.dart';
 import 'services/ad_service.dart';
-import 'services/subscription_service.dart';
+import 'services/billing_service.dart';
 import 'services/database_service.dart';
 import 'services/config_service.dart';
 import 'services/notification_service.dart';
@@ -71,16 +71,10 @@ void main() async {
   );
   await adService.init(premiumProvider);
 
-  final subscriptionService = SubscriptionService();
-  await subscriptionService.init(premiumProvider);
-
-  // Fallback: load premium dari Firestore jika RevenueCat gagal
-  if (!premiumProvider.isPremium && authProvider.isLoggedIn) {
-    final status = await DatabaseService.loadPremiumStatus();
-    if (status.isPremium) {
-      premiumProvider.setPremium(value: true, expiry: status.expiry);
-    }
-  }
+  final billingService = BillingService();
+  await billingService.init(premiumProvider);
+  // Restore & re-verifikasi status premium (server = sumber kebenaran)
+  await billingService.refreshFromServer(premiumProvider);
 
   // Auto-create admin account if not exists
   final adminEmail = ConfigService.adminEmail;

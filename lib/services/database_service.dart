@@ -360,15 +360,26 @@ class DatabaseService {
   // PREMIUM STATUS
   // ═══════════════════════════════════════════════════════════════
 
-  /// Simpan status premium ke backend
-  static Future<void> updatePremiumStatus(bool isPremium, DateTime? expiry) async {
+  /// Verifikasi purchase token ke server (Play Developer API).
+  /// Server menulis status premium sendiri — klien tidak pernah menulis.
+  /// Returns (isPremium, expiryDate) hasil verifikasi server.
+  static Future<({bool isPremium, DateTime? expiry})> verifyPremium(
+    String productId,
+    String purchaseToken,
+  ) async {
     try {
-      await ApiService().post('/premium.php', body: {
-        'is_premium': isPremium,
-        'premium_expiry': expiry?.toIso8601String(),
+      final res = await ApiService().post('/premium.php', body: {
+        'product_id': productId,
+        'purchase_token': purchaseToken,
       });
+      final data = res['data'] as Map<String, dynamic>? ?? {};
+      final isPremium = data['is_premium'] == true;
+      DateTime? expiry =
+          DateTime.tryParse(data['premium_expiry'] as String? ?? '');
+      return (isPremium: isPremium, expiry: expiry);
     } catch (e) {
-      debugPrint('Error updating premium status: $e');
+      debugPrint('Error verifying premium purchase: $e');
+      rethrow;
     }
   }
 

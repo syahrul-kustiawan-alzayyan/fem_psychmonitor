@@ -16,7 +16,6 @@ import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
 import '../services/database_service.dart';
 import '../services/storage_service.dart';
-import '../services/subscription_service.dart';
 import '../services/suggestion_service.dart';
 import '../theme/resonance_colors.dart';
 import '../utils/animations.dart';
@@ -427,7 +426,8 @@ String get _greetingAsset {
               if (confirm == true) {
                 if (!context.mounted) return;
                 DatabaseService.resetInstance();
-                await SubscriptionService().logOut(context.read<PremiumProvider>());
+                // Play Billing terikat akun Google di device — premium
+                // tetap berlaku; dicek ulang saat login berikutnya.
                 await context.read<AuthProvider>().logout();
                 if (context.mounted) {
                   Navigator.pushAndRemoveUntil(
