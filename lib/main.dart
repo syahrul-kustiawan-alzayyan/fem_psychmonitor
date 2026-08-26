@@ -45,6 +45,8 @@ void main() async {
   // Notifikasi pengingat harian (aman di-skip bila platform tidak mendukung)
   try {
     await NotificationService.instance.init();
+    // Auto-request permission & schedule on first launch
+    await NotificationService.instance.requestAndSchedule();
   } catch (e) {
     debugPrint('Notification init error: $e');
   }

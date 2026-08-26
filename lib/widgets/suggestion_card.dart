@@ -4,6 +4,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../services/suggestion_service.dart';
 import '../theme/resonance_colors.dart';
+import 'decorative_painters.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SuggestionCard — Kartu reusable untuk menampilkan saran Big Five OCEAN
@@ -117,34 +118,43 @@ class _StaticCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: c.surfaceLowest,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x1424161C),
-            offset: Offset(2, 2),
+            color: color.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: c.outlineVariant.withValues(alpha: 0.15),
+            blurRadius: 8,
+            offset: const Offset(2, 2),
           ),
         ],
         border: Border.all(
-          color: color.withValues(alpha: 0.22),
+          color: color.withValues(alpha: 0.15),
           width: 1,
         ),
       ),
-      child: Column(
-        children: [
-          _CardHeader(
-            title: title,
-            icon: icon,
-            color: color,
-            isExpanded: true,
-            showArrow: false,
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-            child: hasTraits
-                ? _buildTraitSections(traitSuggestions!, context)
-                : _buildFlatList(suggestions, context),
-          ),
-        ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Column(
+          children: [
+            _CardHeader(
+              title: title,
+              icon: icon,
+              color: color,
+              isExpanded: true,
+              showArrow: false,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: hasTraits
+                  ? _buildTraitSections(traitSuggestions!, context)
+                  : _buildFlatList(suggestions, context),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -185,15 +195,21 @@ class _CollapsibleCardState extends State<_CollapsibleCard> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: c.surfaceLowest,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x1424161C),
-            offset: Offset(2, 2),
+            color: widget.color.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: c.outlineVariant.withValues(alpha: 0.15),
+            blurRadius: 8,
+            offset: const Offset(2, 2),
           ),
         ],
         border: Border.all(
-          color: widget.color.withValues(alpha: 0.22),
+          color: widget.color.withValues(alpha: 0.15),
           width: 1,
         ),
       ),
@@ -201,7 +217,7 @@ class _CollapsibleCardState extends State<_CollapsibleCard> {
         children: [
           InkWell(
             onTap: () => setState(() => _expanded = !_expanded),
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
             child: _CardHeader(
               title: widget.title,
               icon: widget.icon,
@@ -356,33 +372,36 @@ class _CardHeader extends StatelessWidget {
     final c = ResonanceColors.of(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.07),
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0.06),
+            color.withValues(alpha: 0.03),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(18),
-          topRight: const Radius.circular(18),
+          topLeft: const Radius.circular(20),
+          topRight: const Radius.circular(20),
           bottomLeft: Radius.circular(
-              !showArrow || isExpanded ? 0 : 18),
+              !showArrow || isExpanded ? 0 : 20),
           bottomRight: Radius.circular(
-              !showArrow || isExpanded ? 0 : 18),
+              !showArrow || isExpanded ? 0 : 20),
         ),
         border: Border(
           bottom: showArrow && isExpanded
-              ? BorderSide(color: color.withValues(alpha: 0.15))
+              ? BorderSide(color: color.withValues(alpha: 0.12))
               : BorderSide.none,
         ),
       ),
       child: Row(
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 17),
+          // Decorative graphic instead of icon box
+          CustomPaint(
+            size: const Size(32, 32),
+            painter: FlowerPainter(color: color),
           ),
           const SizedBox(width: 12),
           Expanded(

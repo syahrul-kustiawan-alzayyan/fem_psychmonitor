@@ -1,6 +1,6 @@
 # Fem-Psych Monitor — Panduan Pengguna
 
-**Versi 2.0.5** · 22 Juli 2026
+**Versi 2.1.5** · Agustus 2026
 
 ---
 
@@ -23,13 +23,15 @@
 
 ## 1. Sekilas Aplikasi
 
-Fem-Psych Monitor adalah aplikasi kesehatan mental untuk perempuan Indonesia. Tiga fungsi utama:
+Fem-Psych Monitor adalah aplikasi kesehatan mental untuk perempuan Indonesia. Tiga fungsi utamanya:
 
-- **Rekam suara** — aplikasi membaca emosi dari nada bicara dan kata-kata yang diucapkan
+- **Rekam suara** — aplikasi menganalisis emosi dari nada bicara dan kata-kata yang diucapkan
 - **Asesmen psikologi** — tes Big Five (OCEAN) dan kuesioner kesehatan mental
 - **Pemantauan tren** — grafik yang menunjukkan perubahan kondisi emosi dari waktu ke waktu
 
 Bahasa yang didukung: Indonesia dan Inggris.
+
+> 📸 **[Screenshot: Tampilan utama aplikasi — halaman Beranda setelah login]**
 
 ---
 
@@ -41,26 +43,36 @@ Salin file `.apk` ke ponsel, buka, lalu tap Install. Jika muncul peringatan keam
 
 ### 2.2 Pertama Kali Buka
 
-Aplikasi akan memandu kamu melewati 3 langkah sebelum bisa masuk ke halaman utama.
+Aplikasi akan memandu kamu melewati beberapa langkah sebelum masuk ke halaman utama.
 
 **Langkah 1: Selamat Datang**
 Tap tombol Mulai untuk melanjutkan.
 
+> 📸 **[Screenshot: Layar Selamat Datang — tombol Mulai]**
+
 **Langkah 2: Tes Big Five (OCEAN)**
-20 pertanyaan dengan dua pilihan jawaban masing-masing. Pilih yang paling mewakili dirimu. Hasilnya akan menentukan skor kelima dimensi kepribadian: Openness, Conscientiousness, Extraversion, Agreeableness, dan Neuroticism.
+20 pertanyaan dengan skala Likert 1–5 (Sangat Tidak Sesuai sampai Sangat Sesuai). Pilih yang paling mewakili dirimu. Hasilnya akan menentukan skor kelima dimensi kepribadian: Openness, Conscientiousness, Extraversion, Agreeableness, dan Neuroticism.
+
+> 📸 **[Screenshot: Halaman Tes Big Five — contoh pertanyaan dengan 5 opsi jawaban]**
 
 **Langkah 3: Kuesioner Psikologi**
-30 pertanyaan dengan skala 1–5 (Tidak Pernah sampai Sangat Sering). Jawab dengan jujur — tidak ada jawaban benar atau salah. Skor akhir dikategorikan sebagai:
+20 pertanyaan dengan skala 0–3 (Tidak Pernah sampai Hampir Setiap Saat). Jawab dengan jujur — tidak ada jawaban benar atau salah. Skor mentah (0–60) akan dikonversi ke tampilan 0–100, di mana semakin tinggi nilainya, semakin baik kondisi kesehatan mentalmu.
 
-| Skor | Kategori |
-|------|----------|
-| 0–15 | Sehat Optimal |
-| 16–30 | Cukup Sehat |
-| 31–45 | Rentan |
-| 46+ | Butuh Perhatian Klinis |
+Kategori skor:
+
+| Skor Tampilan | Kategori |
+|---------------|----------|
+| ≥ 76 | Sehat Optimal |
+| 51 – 75 | Cukup Sehat |
+| 26 – 50 | Rentan |
+| < 26 | Butuh Perhatian Klinis |
+
+> 📸 **[Screenshot: Halaman Kuesioner Psikologi — contoh pertanyaan dengan opsi 0–3]**
 
 **Langkah 4: Hasil**
 Ringkasan profil Big Five dan skor psikologi ditampilkan. Tap tombol **Lanjut ke Login** untuk menuju halaman masuk.
+
+> 📸 **[Screenshot: Ringkasan Hasil — profil Big Five dan skor psikologi]**
 
 ### 2.3 Membuat Akun
 
@@ -71,28 +83,23 @@ Ringkasan profil Big Five dan skor psikologi ditampilkan. Tap tombol **Lanjut ke
 5. Buka email masuk (cek juga folder Spam) dan klik link verifikasi
 6. Kembali ke aplikasi, login dengan email dan password
 
+> 📸 **[Screenshot: Halaman Daftar — form input nama, email, password]**
+
 ### 2.4 Login
 
 Masukkan email dan password yang sudah terdaftar, centang persetujuan privasi, lalu tap **Masuk**.
 
 **Lupa password?** Tap tautan **Lupa Password** di halaman login, masukkan email, dan ikuti instruksi yang dikirim ke emailmu.
 
+> 📸 **[Screenshot: Halaman Login — form email dan password]**
+
 ### 2.5 Masuk dengan Google
 
-Tap tombol **Google**, pilih akun yang ingin digunakan. Jika alamat email belum terdaftar, akun Firebase baru akan dibuat secara otomatis.
+Tap tombol **Google**, pilih akun yang ingin digunakan. Jika alamat email belum terdaftar, akun baru akan dibuat secara otomatis.
 
 > Google Sign-In membutuhkan koneksi internet dan Google Play Services yang aktif.
 
-### 2.6 Mengaitkan Password ke Akun Google
-
-Jika kamu mendaftar menggunakan Google Sign-In, kamu bisa mengaitkan password ke akun tersebut agar bisa login dengan email dan password juga. Caranya:
-
-1. Buka halaman **Profil**
-2. Tap **Kaitkan Password**
-3. Masukkan password yang diinginkan (minimal 6 karakter)
-4. Tap **Simpan**
-
-Setelah dikaitkan, kamu bisa login menggunakan **Google Sign-In** atau **email + password**.
+> 📸 **[Screenshot: Halaman Login — tombol Google Sign-In]**
 
 ---
 
@@ -100,19 +107,47 @@ Setelah dikaitkan, kamu bisa login menggunakan **Google Sign-In** atau **email +
 
 ### 3.1 Tata Letak
 
-Beranda adalah halaman pertama setelah login. Terdiri dari lima blok yang tersusun vertikal:
+Beranda adalah halaman pertama setelah login. Bagian-bagiannya:
 
-**Header** — menampilkan sapaan (pagi/siang/sore/malam) dan inisial atau foto profil.
+**Header** — menampilkan tanggal hari ini, sapaan berdasarkan waktu (pagi/siang/sore/malam), nama pengguna, dan foto profil atau inisial. Tap ikon profil di pojok kanan atas untuk membuka menu Pengaturan atau Logout.
 
-**Status Psikis** — kartu gradien yang menunjukkan emosi dominan terkini, label kondisi, dan skor numerik.
+> 📸 **[Screenshot: Header Beranda — sapaan, nama, avatar]**
 
-**Tiga Kartu Statistik** — emosi yang paling sering muncul dalam seminggu terakhir, total rekaman, dan mood hari ini.
+**Kartu Status Psikis** — kartu gradien berwarna yang menunjukkan skor kesehatan mental (0–100), label kondisi (Sehat Optimal, Cukup Sehat, Rentan, atau Butuh Perhatian Klinis), serta deskripsi singkat. Warna kartu berubah sesuai kondisi: hijau untuk optimal, kuning untuk cukup, oranye untuk rentan, merah untuk butuh perhatian.
 
-**Tombol Mulai Rekam** — tombol bundar dengan efek pulse. Fungsi yang sama bisa diakses dari tab **Rekam** di navigasi bawah.
+> 📸 **[Screenshot: Kartu Status Psikis — skor 0–100 dengan progress bar]**
 
-**Saran Hari Ini** — rekomendasi berdasarkan hasil Big Five, skor psikologi, dan emosi terkini. Bisa ditutup dengan tap.
+**Empat Kartu Statistik (Bento Grid)** — tata letak 2×2 yang menampilkan:
+- **Rekaman** — total jumlah rekaman yang pernah dibuat
+- **Positif** — jumlah rekaman dengan emosi Happy
+- **Perlu Perhatian** — jumlah rekaman dengan emosi Angry, Sad, atau Fear
+- **Sisa Kuota** — sisa jatah deteksi gratis hari ini (pengguna gratis: 5 per hari)
 
-**Riwayat Terbaru** — tiga rekaman terakhir. Tap salah satu untuk melihat detail. Tap **Lihat Semua** untuk membuka halaman riwayat lengkap.
+> 📸 **[Screenshot: Bento Grid — empat kartu statistik 2×2]**
+
+**Tombol Mulai Rekam** — tombol lingkaran besar dengan efek pulse. Bisa juga diakses dari tab **Rekam** di navigasi bawah.
+
+> 📸 **[Screenshot: Tombol Mulai Rekam — lingkaran besar dengan animasi pulse]**
+
+**Rekomendasi Hari Ini** — saran personal berdasarkan hasil Big Five, skor psikologi, dan emosi terkini dari rekaman terakhir. Muncul hanya jika ada data rekaman.
+
+> 📸 **[Screenshot: Kartu Rekomendasi — saran personal berdasarkan profil]**
+
+**Riwayat Terbaru** — tiga rekaman terakhir. Tap salah satu untuk melihat detail lengkap.
+
+> 📸 **[Screenshot: Bagian Riwayat Terbaru — tiga kartu rekaman]**
+
+### 3.2 Navigasi
+
+Di bagian bawah layar terdapat tiga tab navigasi:
+
+| Ikon | Tab | Fungsi |
+|------|-----|--------|
+| 🏠 | Beranda | Dashboard utama |
+| 🎤 | Rekam | Mulai rekaman emosi |
+| 📊 | Riwayat | Grafik dan log rekaman |
+
+> 📸 **[Screenshot: Bottom Navigation Bar — tiga tab Beranda, Rekam, Riwayat]**
 
 ---
 
@@ -120,25 +155,34 @@ Beranda adalah halaman pertama setelah login. Terdiri dari lima blok yang tersus
 
 ### 4.1 Cara Kerja
 
-Saat merekam suara, dua proses berjalan paralel:
+Saat merekam suara, beberapa proses berjalan secara berurutan:
 
-- Nada suara dianalisis menggunakan model kecerdasan buatan (60% dari skor akhir)
-- Kata-kata yang diucapkan ditranskripsi dan dianalisis menggunakan pencocokan kata kunci (40% dari skor akhir)
+1. **Perekaman audio** — suara direkam dalam format WAV
+2. **Transkripsi** — model Whisper (lokal di perangkat) mengubah suara menjadi teks. Model Base dicoba terlebih dahulu; jika gagal, fallback ke model Tiny
+3. **Analisis teks** — teks transkrip dianalisis menggunakan pencocokan kata kunci untuk menghasilkan skor emosi
+4. **Analisis audio** — data audio dianalisis secara real-time selama perekaman
+5. **Penggabungan** — skor audio (60%) dan teks (40%) digabungkan menjadi skor akhir untuk masing-masing enam emosi: Happy, Sad, Angry, Disgust, Neutral, dan Fear
 
-Keduanya digabungkan menjadi skor akhir untuk masing-masing enam emosi: Happy, Sad, Angry, Disgust, Neutral, dan Fear.
+Semua analisis berjalan di perangkat (on-device), tidak ada data suara yang dikirim ke server eksternal untuk pemrosesan emosi.
 
-### 4.2 Layar Deteksi Langsung
+### 4.2 Batas Harian
 
-Sebelum merekam, layar ini menampilkan animasi pulsa dan emosi terdeteksi secara real-time. Fungsinya sebagai pratinjau — data tidak disimpan sampai rekaman dimulai.
+Pengguna gratis mendapat **5 deteksi per hari**. Jika kuota habis, kamu bisa:
+- Tonton iklan reward untuk mendapat tambahan 1 deteksi
+- Berlangganan Premium untuk deteksi tanpa batas
+
+Pengguna Premium tidak memiliki batas harian.
 
 ### 4.3 Melakukan Rekaman
 
-1. Tap tombol rekam (lingkaran besar)
-2. Indikator merah dan teks **Mendengarkan...** akan muncul
+1. Tap tab **Rekam** di navigasi bawah, atau tombol **Mulai Rekam** di Beranda
+2. Rekaman akan langsung dimulai — indikator merah dan animasi waveform akan muncul
 3. Bicaralah secara alami. Minimal 10–15 detik untuk hasil optimal
-4. Selama merekam, enam bar emosi akan bergerak menunjukkan skor real-time
+4. Selama merekam, bar emosi akan bergerak menunjukkan skor real-time
 5. Tap tombol **Stop** (■) untuk mengakhiri
-6. Tunggu proses analisis (1–5 detik), hasil akan muncul otomatis
+6. Tunggu proses analisis (beberapa detik), hasil akan muncul otomatis
+
+> 📸 **[Screenshot: Layar Rekaman — animasi waveform dan bar emosi real-time]**
 
 **Tips:**
 
@@ -148,7 +192,16 @@ Sebelum merekam, layar ini menampilkan animasi pulsa dan emosi terdeteksi secara
 
 ### 4.4 Enam Bar Emosi
 
-Setiap emosi diwakili oleh bar horizontal dengan panjang proporsional terhadap skornya, diurutkan dari tertinggi ke terendah. Warna bar berbeda per emosi: kuning untuk Happy, biru untuk Sad, merah untuk Angry, hijau untuk Disgust, abu-abu untuk Neutral, dan ungu untuk Fear.
+Setiap emosi diwakili oleh bar horizontal dengan panjang proporsional terhadap skornya, diurutkan dari tertinggi ke terendah. Warna bar berbeda per emosi:
+
+| Emosi | Warna |
+|-------|-------|
+| Happy | Kuning |
+| Sad | Biru |
+| Angry | Merah |
+| Disgust | Hijau |
+| Neutral | Abu-abu |
+| Fear | Ungu |
 
 ---
 
@@ -158,7 +211,11 @@ Setiap emosi diwakili oleh bar horizontal dengan panjang proporsional terhadap s
 
 **Emosi Dominan** — emosi dengan skor tertinggi ditampilkan besar di bagian atas, lengkap dengan persentase keyakinan dan skor numerik.
 
+> 📸 **[Screenshot: Halaman Hasil — emosi dominan besar di bagian atas]**
+
 **Grafik Perbandingan** — grafik batang berpasangan yang membandingkan skor dari analisis audio vs analisis teks. Berguna untuk melihat apakah nada suara selaras dengan kata-kata yang diucapkan.
+
+> 📸 **[Screenshot: Grafik Perbandingan — bar audio vs teks per emosi]**
 
 **Skor Tren** — hasil perkalian antara nilai dasar emosi dan keyakinan sistem. Nilai dasar berkisar dari -8 (Angry) hingga +10 (Happy). Semakin tinggi skor, semakin kuat emosi tersebut terdeteksi.
 
@@ -176,11 +233,13 @@ Sebelum menyimpan, kamu **wajib** memilih satu pemicu. Tujuh opsi tersedia:
 
 Tap pemicu yang sesuai, lalu tombol **Simpan** akan aktif.
 
+> 📸 **[Screenshot: Pilihan Pemicu Emosi — tujuh tag pemicu]**
+
 ### 5.3 Saran Personal
 
 Sistem saran aplikasi menggunakan tiga input untuk menghasilkan rekomendasi:
 
-1. **Emosi dominan** — emosi dengan skor tertinggi dari hasil deteksi (Happy, Sad, Angry, Disgust, Neutral, atau Fear)
+1. **Emosi dominan** — emosi dengan skor tertinggi dari hasil deteksi
 2. **Profil Big Five** — kelima dimensi kepribadian (O, C, E, A, N) dari hasil tes
 3. **Skor psikologi** — hasil kuesioner kesehatan mental
 
@@ -189,14 +248,7 @@ Sistem saran aplikasi menggunakan tiga input untuk menghasilkan rekomendasi:
 - Aplikasi membandingkan skor Big Five dengan titik tengah (3.0). Dimensi yang skornya di luar rentang netral (2.80–3.20) dianggap signifikan
 - Setiap dimensi signifikan dikelompokkan menjadi **Tinggi** (> 3.2) atau **Rendah** (< 2.8)
 - Aplikasi mengambil **2 saran per dimensi** yang relevan dengan level dan emosi dominan
-- Saran ditampilkan per kelompok dimensi, misalnya: "Neurotisisme (Tinggi) — 2 saran", "Keramahan (Rendah) — 2 saran"
-
-**Contoh tampilan:**
-
-Jika emosi dominan **Sedih** dan Neurotisisme **Tinggi** + Keramahan **Rendah**, maka saran akan mencakup:
-
-- Neurotisisme (Tinggi): teknik relaksasi, cara mengelola kecemasan
-- Keramahan (Rendah): tips membangun hubungan yang lebih baik
+- Saran ditampilkan per kelompok dimensi
 
 **Lapisan Keselamatan (Safety Layer):**
 
@@ -204,7 +256,7 @@ Jika kondisi pengguna terdeteksi dalam tingkat krisis atau distres berkepanjanga
 
 ### 5.4 Menyimpan
 
-Tap **Simpan** setelah memilih pemicu. Data akan tersimpan ke akun Firestore dan kamu akan kembali ke Beranda atau Riwayat.
+Tap **Simpan** setelah memilih pemicu. Data akan tersimpan ke server dan kamu akan kembali ke Beranda atau Riwayat.
 
 ---
 
@@ -214,17 +266,25 @@ Tap **Simpan** setelah memilih pemicu. Data akan tersimpan ke akun Firestore dan
 
 Menampilkan seluruh rekaman yang pernah dibuat. Dilengkapi filter waktu: Semua, Hari Ini, 7 Hari, 30 Hari, dan Kustom.
 
+> 📸 **[Screenshot: Halaman Riwayat — filter waktu dan daftar rekaman]**
+
 ### 6.2 Grafik
 
-Garis yang menunjukkan perubahan skor emosi dari waktu ke waktu. Sumbu vertikal berkisar dari -10 hingga +11. Naik berarti positif, turun berarti negatif.
+Halaman Riwayat menampilkan beberapa jenis grafik untuk memantau tren:
+
+- **Mental Health Trend** — grafik garis yang menunjukkan perubahan skor kesehatan mental (0–100) dari waktu ke waktu
+- **Emotion Value Trend** — grafik garis skor emosi dari waktu ke waktu (rentang -10 hingga +10)
+- **Emotional Breakdown** — distribusi proporsi masing-masing emosi dari seluruh rekaman
+- **Trigger Distribution** — distribusi pemicu emosi yang paling sering muncul
+
+> 📸 **[Screenshot: Grafik Tren — Mental Health Trend dan Emotion Value Trend]**
+> 📸 **[Screenshot: Grafik Distribusi — Emotional Breakdown dan Trigger Distribution]**
 
 ### 6.3 Daftar Log
 
 Setiap rekaman ditampilkan sebagai kartu yang berisi emoji, nama emosi, skor, pemicu, dan waktu relatif. Tap kartu untuk membuka detail lengkap.
 
-### 6.4 Ekspor Data
-
-Riwayat bisa diekspor dalam format CSV (bisa dibuka di Excel) atau JSON. Masuk ke **Pengaturan** → pilih **Ekspor Data (CSV)** atau **Ekspor Data (JSON)**.
+> 📸 **[Screenshot: Kartu Riwayat — emoji, emosi, skor, pemicu, waktu]**
 
 ---
 
@@ -233,30 +293,76 @@ Riwayat bisa diekspor dalam format CSV (bisa dibuka di Excel) atau JSON. Masuk k
 ### 7.1 Informasi yang Ditampilkan
 
 - Foto profil (bisa diganti dari galeri atau kamera)
-- Nama dan email
+- Nama dan email (bisa diedit)
 - Profil Big Five (5 dimensi: Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism)
 - Skor psikologi dan kategori
+- Tombol **Ambil Ulang Tes Big Five** untuk mengulang tes
+
+> 📸 **[Screenshot: Halaman Profil — avatar, nama, Big Five, skor psikologi]**
 
 ### 7.2 Edit Profil
 
-Tap nama atau foto untuk mengubahnya. Perubahan akan langsung tersimpan di Firestore.
+Tap ikon kamera pada avatar untuk mengganti foto (dari galeri atau kamera). Tap nama untuk mengubahnya. Perubahan akan langsung tersimpan.
+
+> 📸 **[Screenshot: Sheet Ubah Foto — opsi Kamera, Galeri, Hapus Foto]**
+
+### 7.3 Mengulang Tes Big Five
+
+Jika ingin memperbarui profil kepribadianmu, tap tombol **Ambil Ulang Tes Big Five** di bagian bawah halaman Profil. Tes baru akan menggantikan skor sebelumnya.
 
 ---
 
 ## 8. Pengaturan
 
+Pengaturan diakses dari menu pojok kanan atas di Beranda → **Pengaturan**.
+
+> 📸 **[Screenshot: Halaman Pengaturan — semua seksi]**
+
+### 8.1 Profil
+
 | Menu | Fungsi |
 |------|--------|
-| Bahasa | Beralih antara Indonesia dan Inggris |
-| Tema | Beralih antara tema terang dan gelap |
-| Panduan | Membuka panduan pengguna |
-| Kebijakan Privasi | Membuka halaman kebijakan privasi |
-| Lisensi | Informasi lisensi perangkat lunak |
-| Ekspor CSV | Mengunduh riwayat sebagai file CSV |
-| Ekspor JSON | Mengunduh riwayat sebagai file JSON |
-| Keluar | Logout dari aplikasi |
+| Profil | Membuka halaman Profil untuk edit data diri |
 
-**Logout** akan mengembalikan kamu ke halaman login. Semua data tetap aman di cloud dan bisa diakses kembali setelah login.
+### 8.2 Premium
+
+Menampilkan status langganan Premium saat ini, atau tautan untuk berlangganan jika belum premium.
+
+### 8.3 Umum
+
+| Menu | Fungsi |
+|------|--------|
+| Bahasa | Beralih antara Indonesia (ID) dan Inggris (EN) |
+| Tema | Beralih antara tema Terang dan Gelap |
+
+### 8.4 Notifikasi
+
+| Menu | Fungsi |
+|------|--------|
+| Pengingat Harian | Aktifkan/nonaktifkan notifikasi pengingat harian |
+| Waktu Pengingat | Atur waktu pengingat (jam:menit) — muncul setelah pengingat diaktifkan |
+
+Saat Pengingat Harian aktif, aplikasi akan mengirimkan notifikasi untuk mengingatmu melakukan rekaman emosi secara rutin.
+
+### 8.5 Tentang
+
+| Menu | Fungsi |
+|------|--------|
+| Panduan | Membuka panduan pengguna ini |
+| Terms & Services | Membuka layanan ketentuan |
+| Kebijakan Privasi | Membuka kebijakan privasi |
+
+### 8.6 Akun
+
+| Menu | Fungsi |
+|------|--------|
+| Backup Data | Mengekspor data ke file JSON |
+| Restore Data | Mengimpor data dari file JSON |
+| Hapus Akun | Menghapus akun dan seluruh data secara permanen |
+
+### 8.7 Keluar
+
+**Keluar** akan mengembalikan kamu ke halaman login. Semua data tetap aman di server dan bisa diakses kembali setelah login.
 
 ---
 
@@ -264,17 +370,21 @@ Tap nama atau foto untuk mengubahnya. Perubahan akan langsung tersimpan di Fires
 
 ### 9.1 Manfaat
 
-Premium adalah langganan berbayar yang menghilangkan semua iklan dari aplikasi (banner, interstitial, dan app open). Tiga paket tersedia:
+Premium adalah langganan berbayar yang menghilangkan semua iklan dari aplikasi (banner, interstitial, dan app open). Pengguna Premium juga mendapatkan deteksi emosi tanpa batas harian.
 
-| Paket | Harga | Keterangan |
-|-------|-------|------------|
-| Mingguan | Rp 7.000 | Per minggu |
-| Bulanan | Rp 20.000 | Hemat 20% |
-| Tahunan | Rp 99.000 | Hemat 50% |
+Tiga paket tersedia (harga dari Google Play, dapat berubah sewaktu-waktu):
+
+| Paket | Keterangan |
+|-------|------------|
+| Mingguan | Per minggu |
+| Bulanan | Per bulan |
+| Tahunan | Per tahun — paling hemat |
+
+> 📸 **[Screenshot: Halaman Premium — tiga paket langganan]**
 
 ### 9.2 Berlangganan
 
-Buka halaman Premium, pilih paket, tap **Langganan Sekarang**, lalu ikuti instruksi pembayaran dari Google Play.
+Buka halaman Premium (dari tab Profil atau Pengaturan), pilih paket, tap **Langganan Sekarang**, lalu ikuti instruksi pembayaran dari Google Play.
 
 ### 9.3 Memulihkan Pembelian
 
@@ -296,6 +406,8 @@ Halaman detail menampilkan:
 - Saran yang diberikan saat itu
 - Tombol **Hapus Rekaman** untuk menghapus data tersebut
 
+> 📸 **[Screenshot: Halaman Detail Rekaman — transkrip, grafik, saran]**
+
 ---
 
 ## 11. Akun & Data
@@ -307,19 +419,21 @@ Halaman detail menampilkan:
 - Rekaman suara, transkrip, skor emosi, dan pemicu
 - Preferensi aplikasi (tema, bahasa) — disimpan di perangkat
 
-### 11.2 Hapus Akun
+### 11.2 Backup & Restore
 
-Masuk ke **Profil**, gulir ke bawah, tap **Hapus Akun**. Baca peringatan, lalu tap **Hapus** untuk konfirmasi. Kamu akan diminta login ulang untuk verifikasi.
+Kamu bisa mencadangkan data ke file JSON melalui **Pengaturan → Akun → Backup Data**. File JSON bisa disimpan di perangkat atau dikirim ke layanan cloud pilihanmu.
 
-Data yang akan dihapus: profil, riwayat rekaman, hasil Big Five dan psikologi, status premium.
-Data yang tidak bisa dihapus: log anonim (tidak dapat dikaitkan ke individu) dan data pembayaran di Google Play / RevenueCat.
+Untuk memulihkan data dari file backup, masuk ke **Pengaturan → Akun → Restore Data** dan pilih file JSON yang sesuai.
 
-Proses penghapusan berlangsung dalam dua tahap:
+> 📸 **[Screenshot: Opsi Backup dan Restore di Pengaturan Akun]**
 
-- Database aktif: ±1 menit setelah konfirmasi
-- Seluruh backup dan cache: maksimal 7 hari
+### 11.3 Hapus Akun
 
-Jika berubah pikiran, login kembali dalam 7 hari untuk membatalkan. Setelah 7 hari, data tidak bisa dipulihkan.
+Masuk ke **Pengaturan → Akun → Hapus Akun**. Baca peringatan yang muncul, lalu tap **Hapus** untuk konfirmasi. Kamu akan diminta login ulang untuk verifikasi.
+
+Data yang akan dihapus: profil, riwayat rekaman, hasil Big Five dan psikologi, data premium.
+
+Data yang tidak bisa dihapus: log anonim (tidak dapat dikaitkan ke individu) dan data pembayaran di Google Play.
 
 **Kontak**: syahrulkustiawanalzayyan@gmail.com
 
@@ -342,14 +456,15 @@ Jika berubah pikiran, login kembali dalam 7 hari untuk membatalkan. Setelah 7 ha
 |---------|--------|
 | Mikrofon tidak berfungsi | Periksa izin mikrofon di pengaturan ponsel |
 | Transkrip kosong | Bicara lebih jelas, hindari tempat bising |
-| Proses terlalu lama | Wajar 1–5 detik. Jika lebih, restart aplikasi |
+| Proses terlalu lama | Wajar beberapa detik. Jika lebih, restart aplikasi |
 | Suara tidak terdeteksi | Pastikan tidak ada aplikasi lain yang menggunakan mikrofon |
+| Kuota habis | Tonton iklan reward atau berlangganan Premium |
 
 ### Lainnya
 
 | Masalah | Solusi |
 |---------|--------|
-| Model gagal diunduh | Pastikan koneksi stabil (ukuran file ~142 MB) |
+| Model transkripsi gagal diunduh | Pastikan koneksi stabil (ukuran file model ~142 MB) |
 | Premium tidak aktif | Buka Premium → Pulihkan Pembelian |
 | Aplikasi terasa lambat | Tutup aplikasi lain, restart ponsel |
 | Tampilan tidak normal | Restart aplikasi atau ganti tema |

@@ -124,13 +124,13 @@ class NotificationService {
 
   Future<bool> isEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_enabledKey) ?? false;
+    return prefs.getBool(_enabledKey) ?? true;
   }
 
   Future<TimeOfDayPrefs> getReminderPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     return TimeOfDayPrefs(
-      enabled: prefs.getBool(_enabledKey) ?? false,
+      enabled: prefs.getBool(_enabledKey) ?? true,
       hour: prefs.getInt(_hourKey) ?? 19,
       minute: prefs.getInt(_minuteKey) ?? 0,
     );
@@ -141,18 +141,64 @@ class NotificationService {
     await prefs.setBool(_enabledKey, enabled);
   }
 
+  /// Cek apakah izin notifikasi sudah diberikan oleh pengguna.
+  Future<bool> isPermissionGranted() async {
+    final androidImpl = _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    final status = await androidImpl?.areNotificationsEnabled();
+    return status ?? false;
+  }
+
+  /// Aktifkan notifikasi otomatis jika izin sudah diberikan.
+  /// Mengembalikan true jika berhasil menjadwalkan.
+  Future<bool> autoEnable() async {
+    final granted = await isPermissionGranted();
+    if (!granted) return false;
+
+    final prefs = await getReminderPrefs();
+    if (!prefs.enabled) {
+      await saveEnabled(true);
+    }
+    try {
+      await scheduleRoutine(startHour: prefs.hour, startMinute: prefs.minute);
+      return true;
+    } catch (e) {
+      debugPrint('Reminder auto-enable error: $e');
+      return false;
+    }
+  }
+
+  /// Minta izin lalu langsung jadwalkan jika diberikan.
+  Future<bool> requestAndSchedule() async {
+    final granted = await requestPermission();
+    if (!granted) return false;
+
+    final prefs = await getReminderPrefs();
+    await saveEnabled(true);
+    try {
+      await scheduleRoutine(startHour: prefs.hour, startMinute: prefs.minute);
+      return true;
+    } catch (e) {
+      debugPrint('Reminder schedule error: $e');
+      return false;
+    }
+  }
+
   Future<void> saveTime({required int hour, required int minute}) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_hourKey, hour);
     await prefs.setInt(_minuteKey, minute);
   }
 
-  /// Pulihkan & jadwalkan ulang pengingat jika sebelumnya aktif.
+  /// Pulihkan & jadwalkan ulang pengingat jika izin sudah diberikan.
   Future<void> restoreSchedule() async {
+    final granted = await isPermissionGranted();
+    if (!granted) return;
     final prefs = await getReminderPrefs();
-    if (!prefs.enabled) return;
     try {
       await scheduleRoutine(startHour: prefs.hour, startMinute: prefs.minute);
+      if (!prefs.enabled) await saveEnabled(true);
     } catch (e) {
       debugPrint('Reminder reschedule error: $e');
     }

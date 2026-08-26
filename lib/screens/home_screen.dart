@@ -19,6 +19,7 @@ import '../services/storage_service.dart';
 import '../services/suggestion_service.dart';
 import '../theme/resonance_colors.dart';
 import '../utils/animations.dart';
+import '../widgets/decorative_painters.dart';
 import '../widgets/suggestion_card.dart';
 import 'settings_screen.dart';
 import 'auth_screen.dart';
@@ -997,19 +998,19 @@ final stats = [
       (
         value: '${history.length}',
         label: AppLocalizations.tr('recordings'),
-        icon: PhosphorIconsRegular.chartBar,
+        painter: FlowerPainter(color: ResonanceColors.of(context).primary),
         color: ResonanceColors.of(context).primary,
       ),
       (
         value: '$positiveCount',
         label: AppLocalizations.tr('positive'),
-        icon: PhosphorIconsRegular.smiley,
+        painter: SunSmilePainter(color: const Color(0xFFF59E0B)),
         color: const Color(0xFFF59E0B),
       ),
       (
         value: '$negativeCount',
         label: AppLocalizations.tr('attention'),
-        icon: PhosphorIconsRegular.smileySad,
+        painter: HeartLeafPainter(color: const Color(0xFFF87171)),
         color: const Color(0xFFF87171),
       ),
     ];
@@ -1023,7 +1024,7 @@ Expanded(
                 context,
                 value: stats[0].value,
                 label: stats[0].label,
-                icon: stats[0].icon,
+                painter: stats[0].painter,
                 color: stats[0].color,
               ),
             ),
@@ -1033,7 +1034,7 @@ Expanded(
                 context,
                 value: stats[1].value,
                 label: stats[1].label,
-                icon: stats[1].icon,
+                painter: stats[1].painter,
                 color: stats[1].color,
               ),
             ),
@@ -1047,7 +1048,7 @@ Expanded(
                 context,
                 value: stats[2].value,
                 label: stats[2].label,
-                icon: stats[2].icon,
+                painter: stats[2].painter,
                 color: stats[2].color,
               ),
             ),
@@ -1065,7 +1066,7 @@ Widget _buildStatTile(
     BuildContext context, {
     required String value,
     required String label,
-    required IconData icon,
+    required CustomPainter painter,
     required Color color,
   }) {
     final c = ResonanceColors.of(context);
@@ -1084,14 +1085,9 @@ Widget _buildStatTile(
       ),
       child: Row(
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 18),
+          CustomPaint(
+            size: const Size(38, 38),
+            painter: painter,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1156,20 +1152,9 @@ Widget _buildStatTile(
           ),
 child: Row(
             children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  premium.isPremium
-                      ? PhosphorIconsRegular.infinity
-                      : PhosphorIconsRegular.timer,
-                  color: color,
-                  size: 18,
-                ),
+              CustomPaint(
+                size: const Size(38, 38),
+                painter: LeafTimerPainter(color: color),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1601,100 +1586,137 @@ child: Row(
     );
   }
 
-  // Item list riwayat dengan left-border accent
+  // Item list riwayat dengan dekorasi lembut
   Widget _buildHistoryItem(BuildContext context, EmotionRecord record) {
     final c = ResonanceColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: c.surfaceLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: c.outlineVariant),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x1424161C),
-            offset: Offset(2, 2),
+            color: record.emotion.color.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: c.outlineVariant.withValues(alpha: 0.12),
+            blurRadius: 6,
+            offset: const Offset(2, 2),
           ),
         ],
+        border: Border.all(
+          color: record.emotion.color.withValues(alpha: 0.15),
+          width: 1,
+        ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         child: IntrinsicHeight(
           child: Row(
             children: [
-              // Left accent border berwarna emosi
+              // Decorative left border with gradient
               Container(
                 width: 4,
                 decoration: BoxDecoration(
-                  color: record.emotion.color,
+                  gradient: LinearGradient(
+                    colors: [
+                      record.emotion.color.withValues(alpha: 0.4),
+                      record.emotion.color,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    bottomLeft: Radius.circular(16),
+                    topLeft: Radius.circular(18),
+                    bottomLeft: Radius.circular(18),
                   ),
                 ),
               ),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      // Ikon emosi
-                      Image.asset(
-                        record.emotion.assetIconPath,
-                        width: 44,
-                        height: 44,
+                child: Stack(
+                  children: [
+                    // Decorative background dots
+                    Positioned(
+                      right: 12,
+                      top: 8,
+                      child: CustomPaint(
+                        size: const Size(60, 50),
+                        painter: DotsDecorationPainter(color: record.emotion.color),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              record.emotion.displayName,
-                              style: GoogleFonts.spaceGrotesk(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                                color: c.onSurface,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        children: [
+                          // Decorative emotion graphic
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: record.emotion.color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Image.asset(
+                              record.emotion.assetIconPath,
+                              width: 32,
+                              height: 32,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  record.emotion.displayName,
+                                  style: GoogleFonts.spaceGrotesk(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: c.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  record.formattedTime,
+                                  style: GoogleFonts.inter(
+                                    color: c.onSurfaceVariant,
+                                    fontSize: 11.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Confidence chip
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: record.emotion.color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                color: record.emotion.color.withValues(alpha: 0.3),
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              record.formattedTime,
-                              style: GoogleFonts.inter(
-                                color: c.onSurfaceVariant,
-                                fontSize: 11.5,
+                            child: Text(
+                              record.confidencePercent,
+                              style: GoogleFonts.jetBrainsMono(
+                                color: record.emotion.color,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      // Confidence chip
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: record.emotion.color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: record.emotion.color.withValues(alpha: 0.3),
                           ),
-                        ),
-                        child: Text(
-                          record.confidencePercent,
-                          style: GoogleFonts.jetBrainsMono(
-                            color: record.emotion.color,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 11,
-                          ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],

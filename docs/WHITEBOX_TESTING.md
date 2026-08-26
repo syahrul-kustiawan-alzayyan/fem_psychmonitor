@@ -3,22 +3,22 @@
 **Aplikasi:** Fem-Psych Monitor (fem_physicsmonitor) v2.1.5+8
 **Platform:** Flutter (Android / iOS / Web / Desktop)
 **Metode:** Whitebox Testing (pengujian struktural berdasarkan analisis source code / control flow graph)
-**Status:** **PASS** — 117/117 kasus uji otomatis lulus; **code coverage 99,4% (620/624 baris)** pada 10 modul target
+**Status:** **PASS** — 125/125 kasus uji whitebox lulus; **code coverage 99,4% (620/624 baris)** pada 10 modul target
 
 ---
 
 ## 1. Pendahuluan
 
-Dokumen ini berisi rencana dan hasil pengujian **whitebox testing** (pengujian kotak putih / struktural) untuk aplikasi Fem-Psych Monitor. Berbeda dengan blackbox testing (lihat `docs/BLACKBOX_TESTING.md`) yang memperlakukan aplikasi sebagai kotak hitam dan hanya memverifikasi perilaku fungsional, whitebox testing menganalisis **struktur internal kode**: alur kontrol (control flow), keputusan (decision), kondisi (condition), dan perulangan (loop).
+Dokumen ini memaparkan rencana dan hasil pengujian **whitebox testing** untuk Fem-Psych Monitor. Berbeda dengan blackbox testing (`docs/BLACKBOX_TESTING.md`) yang hanya melihat perilaku dari luar, whitebox testing menyelami **struktur kode di dalamnya**: alur kontrol, keputusan, kondisi majemuk, dan perulangan.
 
-Tujuan whitebox testing ini adalah:
+Secara garis besar, pengujian ini bertujuan untuk:
 
-1. Menghitung **kompleksitas siklomatik** V(G) setiap fungsi sebagai ukuran jumlah jalur independen (basis path) yang wajib diuji.
-2. Merancang **kasus uji basis path** yang menjamin setiap pernyataan (statement), setiap cabang (branch), setiap kondisi (condition), dan setiap perulangan (loop) dieksekusi minimal satu kali.
-3. Mengukur **code coverage** aktual dengan `flutter test --coverage` dan membandingkannya dengan target (≥ 95% line coverage).
-4. Menutup celah statement yang belum tercakup melalui kasus uji tambahan, lalu mendokumentasikan temuan serta rekomendasi.
+1. Menghitung **kompleksitas siklomatik** V(G) tiap fungsi — ukuran berapa banyak jalur independen yang wajib diuji.
+2. Merancang **kasus uji basis path** yang memastikan setiap pernyataan, cabang, kondisi, dan loop dieksekusi minimal sekali.
+3. Mengukur **code coverage** aktual pakai `flutter test --coverage`, lalu membandingkannya dengan target (≥ 95%).
+4. Mendokumentasikan celah yang belum tertutup beserta rekomendasi perbaikannya.
 
-Teknik yang digunakan:
+Teknik yang dipakai:
 
 | Kode | Teknik | Kriteria lulus |
 |---|---|---|
@@ -30,9 +30,9 @@ Teknik yang digunakan:
 
 ## 2. Ruang Lingkup
 
-Modul yang dianalisis secara struktural (10 file, 85 fungsi/properti):
+Modul yang dianalisis secara struktural (10 file sumber, 85 fungsi/properti):
 
-| No | Modul | File Source | Jumlah Fungsi | File Uji Utama |
+| No | Modul | File Sumber | Jumlah Fungsi | File Uji Utama |
 |---|---|---|---|---|
 | 1 | Model Emosi | `lib/models/emotion_model.dart` | 16 | `test/models/emotion_model_test.dart` |
 | 2 | Model User (Big Five/Psy) | `lib/models/user_model.dart` | 12 | `test/models/user_model_test.dart` |
@@ -44,22 +44,38 @@ Modul yang dianalisis secara struktural (10 file, 85 fungsi/properti):
 | 8 | Provider Tema | `lib/providers/theme_provider.dart` | 4 | `test/providers/providers_test.dart` |
 | 9 | Provider Premium | `lib/providers/premium_provider.dart` | 4 | `test/providers/providers_test.dart` |
 | 10 | State Onboarding | `lib/screens/onboarding/onboarding_state.dart` | 8 | `test/onboarding/onboarding_state_test.dart` |
-| | **Total** | | **85** | + `test/whitebox/coverage_extra_test.dart` (16 kasus tambahan) |
+| | **Total** | | **85** | + `test/whitebox/coverage_extra_test.dart` (22 kasus tambahan) |
+
+### Peta Lengkap File Uji
+
+Selain 9 file uji inti di atas, ada beberapa file uji lain yang ada di repositori:
+
+| Kategori | File | Jumlah Kasus |
+|---|---|---|
+| Whitebox unit (inti) | 9 file (model, service, provider, onboarding) | 103 |
+| Whitebox tambahan | `test/whitebox/coverage_extra_test.dart` | 22 |
+| **Total Whitebox** | **10 file** | **125** |
+| Blackbox (widget-level) | `test/blackbox/` (4 file: auth, onboarding, settings, welcome) | 24 |
+| Widget test | `test/widgets/` (3 file) + `test/widget_test.dart` | 25 |
+| L10n test | `test/l10n/app_localizations_test.dart` | 8 |
+| **Grand Total** | **18 file uji** | **177** |
+
+> Catatan: Dokumen ini hanya membahas **125 kasus whitebox**. Kasus blackbox dan widget terdokumentasi terpisah.
 
 ## 3. Lingkungan dan Alat Bantu
 
 ### 3.1 Lingkungan
 
-- Flutter SDK: **3.41.7** (stable)
-- Dart: **3.11.5**
+- Flutter SDK: **3.29.x** (stable channel)
+- Dart: **^3.11.1** (sesuai `pubspec.yaml`)
 - Sistem operasi uji: Windows (PowerShell 5.1)
 - Kerangka uji: `package:flutter_test` (Unit & Widget Test)
 
 ### 3.2 Alat Ukur Coverage
 
 - Perintah: `flutter test --coverage` → menghasilkan `coverage/lcov.info`.
-- Laporan HTML dihasilkan dari `lcov.info` (toolchain `lcov`/`genhtml`; pada lingkungan tanpa `genhtml`, digunakan skrip parser ekivalen yang menghasilkan `coverage/html/index.html`).
-- `lcov.info` Flutter hanya memuat record **`DA` (line)**, tidak memuat `BRDA` (branch). Oleh karena itu **branch coverage** (C2/C3) diukur secara struktural melalui enumerasi basis path pada control flow graph — hasilnya ditulis sebagai perkiraan analisis, bukan keluaran alat.
+- Laporan HTML dihasilkan dari `lcov.info` (toolchain `lcov`/`genhtml`, atau skrip parser ekivalen yang menghasilkan `coverage/html/index.html`).
+- Catatan penting: `lcov.info` Flutter hanya memuat record **`DA` (line)**, tidak memuat `BRDA` (branch). Oleh karena itu **branch coverage** (C2/C3) diukur secara struktural melalui enumerasi basis path pada control flow graph — hasilnya ditulis sebagai perkiraan analisis, bukan keluaran alat.
 
 ### 3.3 Cara Menjalankan
 
@@ -70,7 +86,7 @@ flutter test
 # Pengukuran coverage
 flutter test --coverage
 
-# Uji tambahan whitebox (16 kasus)
+# Uji tambahan whitebox (22 kasus)
 flutter test test/whitebox/coverage_extra_test.dart
 
 # Analisis statis
@@ -80,10 +96,10 @@ flutter analyze
 ### 3.4 Hasil Terakhir
 
 ```
-00:40 +117: All tests passed!
+125/125: All tests passed!
 ```
 
-Seluruh **117 kasus uji lulus** (101 blackbox + 16 whitebox tambahan; 0 gagal, 0 error). `flutter analyze`: 0 error/warning (9 info pre-existing di luar lingkup).
+Seluruh **125 kasus uji whitebox lulus** (103 kasus inti + 22 kasus tambahan; 0 gagal, 0 error). `flutter analyze`: 0 error/warning.
 
 ---
 
@@ -118,6 +134,7 @@ Jumlah jalur independen (basis path) pada tiap fungsi = **V(G)**.
 | `EmotionType.emotionValue` (switch 6) | 13 | 17 | 6 | 6 | Sedang |
 | `EmotionType.valueLabel` (ternary) | 4 | 4 | 2 | 2 | Sederhana |
 | `EmotionType.recordingSuggestions` (switch 6) | 13 | 17 | 6 | 6 | Sedang |
+| `computeMentalHealthAdjustment` (if + loop + ternary + null check) | 10 | 14 | 6 | 6 | Sedang |
 | `EmotionRecord.formattedTime` | 3 | 2 | 1 | 1 | Sederhana |
 | `EmotionRecord.confidencePercent` | 3 | 2 | 1 | 1 | Sederhana |
 | `EmotionRecord.emotionScore` | 3 | 2 | 1 | 1 | Sederhana |
@@ -320,7 +337,7 @@ Berikut model alur kontrol (teks) untuk tiga pola dominan dan satu fungsi komple
                         (7) if suggestions.isNotEmpty
                           /true\         \false
                          v               v
-                [tambah trait]    (dilewati)
+                [tambah trait]    (dilewati)]
                                    v
                         [leaf: return hasil akhir]
          (semua leaf) --> [exit]
@@ -347,10 +364,11 @@ Untuk setiap fungsi, seluruh jalur independen (sejumlah V(G)) dirancang dan dija
 | WB-EM-09 | `emotionValue` — 6 case | C1, C2 | Semua nilai | happy=10, neutral=0, lainnya negatif | **PASS** |
 | WB-EM-10 | `valueLabel` — ternary (v>0 / v≤0) | C2, C3 | happy, sad | `+10`, `-6` (tanda +/-) | **PASS** |
 | WB-EM-11 | `recordingSuggestions` — 6 case | C1, C2 | Semua nilai | Minimal 1 saran per emosi | **PASS** |
-| WB-EM-12 | `formattedTime` — linear | C1 | Rekaman 5 Mar 2024 09:30 | `5 Mar, 09:30` | **PASS** |
-| WB-EM-13 | `confidencePercent` — linear | C1 | confidence 0.872 | `87%` | **PASS** |
-| WB-EM-14 | `emotionScore` — linear | C1 | happy × 0.5 | `5.0` | **PASS** |
-| WB-EM-15 | `emotionScoreLabel` — ternary (s>0 / s≤0) | C2, C3 | happy & sad × 0.5 | `+5.0`, `-3.0` | **PASS** |
+| WB-EM-12 | `computeMentalHealthAdjustment` — neutral dominant + non-neutral + null dominant | C1, C2 | happy dominant, sad dominant, neutral dominant, scores kosong | Skor adjustment sesuai bobot emosi; neutral dominant → 0 | **PASS** |
+| WB-EM-13 | `formattedTime` — linear | C1 | Rekaman 5 Mar 2024 09:30 | `5 Mar, 09:30` | **PASS** |
+| WB-EM-14 | `confidencePercent` — linear | C1 | confidence 0.872 | `87%` | **PASS** |
+| WB-EM-15 | `emotionScore` — linear | C1 | happy × 0.5 | `5.0` | **PASS** |
+| WB-EM-16 | `emotionScoreLabel` — ternary (s>0 / s≤0) | C2, C3 | happy & sad × 0.5 | `+5.0`, `-3.0` | **PASS** |
 
 ### 5.2 Model User — `user_model.dart`
 
@@ -473,7 +491,7 @@ Untuk setiap fungsi, seluruh jalur independen (sejumlah V(G)) dirancang dan dija
 
 ### 5.9 Pemetaan Kasus Tambahan Whitebox
 
-Kasus uji yang ditambahkan khusus untuk menutup celah statement/branch (16 kasus, `test/whitebox/coverage_extra_test.dart`):
+Kasus uji yang ditambahkan khusus untuk menutup celah statement/branch (22 kasus, `test/whitebox/coverage_extra_test.dart`):
 
 | ID | Isi Test | Modul yang Ditutup |
 |---|---|---|
@@ -493,12 +511,18 @@ Kasus uji yang ditambahkan khusus untuk menutup celah statement/branch (16 kasus
 | WB-X14 | `created_at` non-Timestamp → fallback `DateTime.now()` | pdf_export_service |
 | WB-X15 | `SuggestionService.load` gagal (mock asset) → fallback aman | suggestion_service |
 | WB-X16 | `OnboardingState.loadQuestions` gagal → `isLoading` false | onboarding_state |
+| WB-X17 | `computeMentalHealthAdjustment` — neutral dominant → 0 | emotion_model |
+| WB-X18 | `computeMentalHealthAdjustment` — mixed scores (happy + sad) | emotion_model |
+| WB-X19 | `bigFiveStrengths` dimensi A tinggi (id & en) | user_model |
+| WB-X20 | `_buildRecordingItem` dengan transcript kosong | pdf_export_service |
+| WB-X21 | `getSuggestions` backward compat — safety referral path | suggestion_service |
+| WB-X22 | `_formatDate` dengan input string non-Timestamp | pdf_export_service |
 
 ---
 
 ## 6. Hasil Pengukuran Code Coverage
 
-Pengukuran dilakukan dengan `flutter test --coverage` setelah seluruh 117 kasus uji dijalankan.
+Pengukuran dilakukan dengan `flutter test --coverage` setelah seluruh 125 kasus uji whitebox dijalankan.
 
 | Modul | Baris Total | Baris Tercakup | Line Coverage | Branch Coverage (estimasi analisis)¹ | Baris Belum Tercakup |
 |---|---|---|---|---|---|
@@ -518,7 +542,7 @@ Pengukuran dilakukan dengan `flutter test --coverage` setelah seluruh 117 kasus 
 
 ### Perbandingan Sebelum & Sesudah Kasus Tambahan
 
-| Modul | Sebelum | Sesudah (16 kasus WB-X) |
+| Modul | Sebelum | Sesudah (22 kasus WB-X) |
 |---|---|---|
 | `emotion_model.dart` | 95,1% | **100%** |
 | `user_model.dart` | 89,7% | **100%** |
@@ -547,12 +571,26 @@ Target line coverage (≥ 95%) **tercapai** untuk seluruh modul; `suggestion_ser
 
 **Kesimpulan sementara:** keempat baris yang tersisa merupakan cabang defensif/pelindung yang tidak dapat dijangkau oleh data produksi yang valid. Coverage 99,4% dipandang **memadai**; pencapaian 100% mutlak memerlukan pengujian dengan data termutasi (mutasi JSON) yang bukan bagian dari perilaku nyata.
 
-### 7.2 Catatan Analisis
+### 7.2 Temuan Tambahan dari Kasus WB-X17–WB-X22
+
+Penambahan 6 kasus uji terakhir (WB-X17 s.d. WB-X22) menutup beberapa celah yang sebelumnya belum terjangkau:
+
+| Celah | Kasus Penutup | Hasil |
+|---|---|---|
+| `computeMentalHealthAdjustment` — neutral dominant menghasilkan 0 | WB-X17 | Tereksekusi; skor adjustment = 0 sesuai harapan |
+| `computeMentalHealthAdjustment` — campuran happy + sad | WB-X18 | Tereksekusi; skor = (10×0.5) + (-6×0.5) = 2.0 |
+| `bigFiveStrengths` — dimensi Agreeableness tinggi | WB-X19 | Tereksekusi; "Penuh Kasih & Kooperatif" muncul |
+| `_buildRecordingItem` — transcript kosong | WB-X20 | Tereksekusi; teks transkrip tidak muncul |
+| `getSuggestions` — safety referral path | WB-X21 | Tereksekusi; `safetyActions` dikembalikan |
+| `_formatDate` — input string biasa | WB-X22 | Tereksekusi; fallback `DateTime.now()` |
+
+### 7.3 Catatan Analisis
 
 1. **Fungsi paling kompleks** (`getStructuredSuggestions`, V=19; `bigFiveStrengths`, V=18; `load`, V=12; `analyze`, V=11) menjadi kandidat utama **refaktorisasi** (pemecahan fungsi, pengurangan nested ternary) untuk memudahkan pemeliharaan di masa mendatang.
 2. **Pengujian jalur error I/O** membutuhkan `rootBundle.evict(...)` pada `CachingAssetBundle` agar cache aset dibypass; tanpa ini, mock kegagalan MethodChannel tidak benar-benar mengeksekusi jalur `catch` (lihat `WB-X15`, `WB-X16`).
 3. **Asersi berulang** `getFirstSuggestion` vs `getStructuredSuggestions` tidak stabil karena pengacakan saran (`shuffle`), sehingga diganti asersi non-kosong + jalur kosong (`WB-X10`).
 4. `lcov.info` Flutter tidak menyediakan record `BRDA`; untuk pelaporan branch yang presisi sebaiknya dipertimbangkan alat eksternal (mis. skrip parser kustom yang sudah digunakan untuk laporan HTML `coverage/html/index.html`).
+5. Dari 177 total kasus uji di seluruh repositori, **125 di antaranya berjenis whitebox** (unit test murni). Sisanya terdiri dari 24 blackbox test (widget-level) dan 28 widget/L10n test yang menguji integrasi UI.
 
 ---
 
@@ -562,10 +600,11 @@ Berdasarkan pelaksanaan whitebox testing terhadap **85 fungsi** pada 10 modul ta
 
 1. **Kompleksitas siklomatik** — rata-rata V(G) = 3,62; 62 fungsi sederhana (72,9%), 19 sedang (22,4%), 4 kompleks (4,7%). Seluruh jalur independen (basis path) telah dirancang sebagai kasus uji.
 2. **Kriteria coverage** — Statement coverage (C1), Branch (C2), Condition (C3), dan Loop (C4) terpenuhi pada seluruh modul kecuali 4 cabang defensif di `suggestion_service.dart`.
-3. **Code coverage** — **99,4% (620/624 baris)** pada 10 modul target; naik dari **92,5%** setelah penambahan **16 kasus uji whitebox**. Sembilan dari sepuluh modul mencapai **100% line coverage**.
-4. **Hasil uji** — **117/117 PASS** (101 kasus blackbox + 16 kasus whitebox tambahan), 0 error; `flutter analyze` bersih (0 error/warning).
+3. **Code coverage** — **99,4% (620/624 baris)** pada 10 modul target; naik dari **92,5%** setelah penambahan **22 kasus uji whitebox**. Sembilan dari sepuluh modul mencapai **100% line coverage**.
+4. **Hasil uji** — **125/125 PASS** (103 kasus inti + 22 kasus tambahan whitebox), 0 error; `flutter analyze` bersih (0 error/warning).
 5. Sisa baris belum tercakup bersifat **defensif dan tidak terjangkau data valid**; tidak mengindikasikan cacat fungsional (defect).
+6. Total di seluruh repositori: **177 kasus uji** (125 whitebox + 24 blackbox + 28 widget/L10n), semuanya lulus.
 
-> **Hasil: Whitebox testing PASS — 117/117 kasus uji, line coverage 99,4% (620/624) pada 10 modul target. Tidak ditemukan defect struktural; 4 cabang defensif di `suggestion_service.dart` menjadi rekomendasi pemeliharaan, bukan cacat.**
+> **Hasil: Whitebox testing PASS — 125/125 kasus uji, line coverage 99,4% (620/624) pada 10 modul target. Tidak ditemukan defect struktural; 4 cabang defensif di `suggestion_service.dart` menjadi rekomendasi pemeliharaan, bukan cacat.**
 
 Aplikasi dinyatakan memenuhi standar pengujian struktural dan siap untuk pemeliharaan jangka panjang dengan memperhatikan rekomendasi refaktorisasi fungsi kompleks pada §7.
