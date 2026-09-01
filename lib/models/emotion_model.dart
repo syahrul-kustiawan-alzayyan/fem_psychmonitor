@@ -116,12 +116,12 @@ extension EmotionTypeExtension on EmotionType {
   /// Label kondisi psikis ringkasan
   String get psychStatus {
     switch (this) {
-      case EmotionType.happy:   return 'Sangat Baik';
-      case EmotionType.sad:     return 'Perlu Perhatian';
-      case EmotionType.angry:   return 'Butuh Jeda';
-      case EmotionType.disgust: return 'Kurang Nyaman';
-      case EmotionType.neutral: return 'Stabil';
-      case EmotionType.fear:    return 'Perlu Dukungan';
+      case EmotionType.happy:   return AppLocalizations.tr('psych_status_happy');
+      case EmotionType.sad:     return AppLocalizations.tr('psych_status_sad');
+      case EmotionType.angry:   return AppLocalizations.tr('psych_status_angry');
+      case EmotionType.disgust: return AppLocalizations.tr('psych_status_disgust');
+      case EmotionType.neutral: return AppLocalizations.tr('psych_status_neutral');
+      case EmotionType.fear:    return AppLocalizations.tr('psych_status_fear');
     }
   }
 

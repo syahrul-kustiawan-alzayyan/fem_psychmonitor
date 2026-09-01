@@ -58,6 +58,14 @@ class BillingService extends ChangeNotifier {
     await _loadProducts();
   }
 
+  /// Re-initialize after dispose — resets state and re-subscribes.
+  void reinit(PremiumProvider premiumProvider) {
+    _purchaseSub?.cancel();
+    _purchaseSub = null;
+    _initialized = false;
+    init(premiumProvider);
+  }
+
   Future<void> _loadProducts() async {
     if (!Platform.isAndroid || productIds.isEmpty) return;
     try {
@@ -107,6 +115,8 @@ class BillingService extends ChangeNotifier {
   /// 2. Fallback: status premium terverifikasi terakhir dari server (GET).
   Future<void> refreshFromServer(PremiumProvider premiumProvider) async {
     if (!Platform.isAndroid) return;
+    // Reset stale premium flag immediately if the stored expiry has passed.
+    premiumProvider.checkExpiry();
     try {
       await _iap.restorePurchases();
     } catch (e) {
@@ -119,6 +129,11 @@ class BillingService extends ChangeNotifier {
         var e = status.expiry;
         if (current != null && e != null && current.isAfter(e)) e = current;
         premiumProvider.setPremium(value: true, expiry: e);
+      } else {
+        // Server says not premium — revoke if previously granted.
+        if (premiumProvider.rawPremium) {
+          premiumProvider.clearPremium();
+        }
       }
     } catch (e) {
       debugPrint('Load premium status error: $e');
@@ -170,8 +185,11 @@ class BillingService extends ChangeNotifier {
         verified = true;
         verifiedExpiry = result.expiry;
       }
-    } on ApiException {
-      // Server merespons: token invalid / verifikasi ditolak → jangan fallback device.
+    } on ApiException catch (e) {
+      // Server merespons & menolak token → jangan fallback ke data device.
+      // (ApiException tsb bisa juga berasal dari timeout/network, tapi statusCode
+      //  null. Hanya anggap "server tercapai" saat benar-benar ada respons HTTP.)
+      if (e.statusCode != null) serverReached = true;
     } catch (e) {
       // Gangguan jaringan → fallback best-effort ke data device.
       debugPrint('Server verify error: $e');
@@ -206,7 +224,8 @@ class BillingService extends ChangeNotifier {
       premiumProvider.setPremium(value: true, expiry: expiry);
     }
 
-    if (verified && purchase.pendingCompletePurchase) {
+    // Always acknowledge purchase to prevent auto-refund (Google requires within 3 days).
+    if (purchase.pendingCompletePurchase) {
       try {
         await _iap.completePurchase(purchase);
       } catch (e) {
@@ -229,10 +248,22 @@ class BillingService extends ChangeNotifier {
     final weeks = RegExp(r'(\d+)W').firstMatch(period)?.group(1);
     final months = RegExp(r'(\d+)M').firstMatch(period)?.group(1);
     final years = RegExp(r'(\d+)Y').firstMatch(period)?.group(1);
-    final days = (weeks != null ? int.parse(weeks) * 7 : 0) +
-        (months != null ? int.parse(months) * 30 : 0) +
-        (years != null ? int.parse(years) * 365 : 0);
-    return start.add(Duration(days: days));
+    var result = start;
+    if (weeks != null) {
+      result = result.add(Duration(days: int.parse(weeks) * 7));
+    }
+    if (months != null) {
+      // Use actual calendar month addition for accuracy.
+      final m = int.parse(months);
+      result = DateTime(result.year, result.month + m, result.day,
+          result.hour, result.minute, result.second);
+    }
+    if (years != null) {
+      final y = int.parse(years);
+      result = DateTime(result.year + y, result.month, result.day,
+          result.hour, result.minute, result.second);
+    }
+    return result;
   }
 
   void _setState(PurchaseState state, String? message) {

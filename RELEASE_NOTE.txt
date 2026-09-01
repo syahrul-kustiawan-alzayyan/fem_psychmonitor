@@ -1,3 +1,28 @@
+v2.2.1
+
+Perbaikan Premium & Validasi Kuesioner
+
+- Perbaikan kritis: pembelian premium selalu ter-acknowledge (mencegah auto-refund)
+- Premium otomatis revoked jika sudah expired
+- Status premium di-sync ulang dari server saat session berakhir
+- Soal kuesioner Big Five disesuaikan hasil validasi pakar (8 soal)
+- 180 rekomendasiBig Five ditinjau ulang & diperbaiki
+- Pengguna expired premium tidak lagi melihat "Premium Aktif" di Pengaturan
+- Limit deteksi gratis per hari dijadikan konstanta (bukan hardcoded)
+- Dialog "Data Belum Lengkap" bisa ditutup tanpa harus mengisi onboarding
+- Teks hardcoded di beberapa dialog & notifikasi diganti ke sistem lokalisasi
+
+v2.2.0
+
+Pembukaan Open Testing 🎉
+
+- Redesain kartu statistik dashboard dengan grafis dekoratif organik (bunga, matahari, hati, daun) menggantikan ikon Phosphor
+- Redesain kartu saran psikis dengan tampilan lebih lembut dan empatik untuk kesehatan mental perempuan
+- Redesain kartu riwayat dengan gradien aksen emosi dan pola titik dekoratif
+- Notifikasi otomatis aktif tanpa pengaturan manual — langsung jadwal saat pertama kali membuka aplikasi
+- Pengaturan notifikasi dihapus dari halaman Pengaturan (selalu aktif otomatis)
+- Peningkatan versi ke 2.2.0 untuk fase Open Testing
+
 v2.1.5
 
 - Redesain halaman dashboard admin dengan tampilan profesional (header gradien, kartu statistik, grafik emosi, status kesehatan mental)

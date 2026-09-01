@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
+import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 
 class TextEmotionService {
@@ -8,21 +9,26 @@ class TextEmotionService {
 
   Map<EmotionType, List<String>> _keywords = {};
   bool _loaded = false;
+  String _loadedLocale = '';
 
   Future<void> loadAll() async {
-    if (_loaded) return;
+    final currentLocale = AppLocalizations.currentLocale;
+    // Reload if locale changed or not loaded yet.
+    if (_loaded && _loadedLocale == currentLocale) return;
     _keywords = {};
+    _loadedLocale = currentLocale;
 
-    for (final file in ['assets/emotion.json', 'assets/emotion_en.json']) {
-      final jsonStr = await rootBundle.loadString(file);
-      final Map<String, dynamic> data = json.decode(jsonStr);
+    final file = currentLocale == 'en'
+        ? 'assets/emotion_en.json'
+        : 'assets/emotion.json';
+    final jsonStr = await rootBundle.loadString(file);
+    final Map<String, dynamic> data = json.decode(jsonStr);
 
-      for (final entry in data.entries) {
-        final emotion = _parseEmotion(entry.key);
-        if (emotion == null) continue;
-        final words = List<String>.from(entry.value);
-        _keywords[emotion] = (_keywords[emotion] ?? [])..addAll(words);
-      }
+    for (final entry in data.entries) {
+      final emotion = _parseEmotion(entry.key);
+      if (emotion == null) continue;
+      final words = List<String>.from(entry.value);
+      _keywords[emotion] = (_keywords[emotion] ?? [])..addAll(words);
     }
 
     _loaded = true;

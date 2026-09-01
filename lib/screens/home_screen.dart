@@ -1164,7 +1164,7 @@ child: Row(
                     Text(
                       premium.isPremium
                           ? '∞'
-                          : '$remaining/5',
+                          : '$remaining/${StorageService.maxFreeDetections}',
                       style: GoogleFonts.spaceGrotesk(
                         fontSize: 19,
                         fontWeight: FontWeight.w700,

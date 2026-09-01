@@ -20,14 +20,14 @@
                 "Angry": [
                     "Salurkan energi emosi ke dalam aktivitas kreatif.",
                     "Tulis puisi atau prosa singkat tentang apa yang membuat frustrasi.",
-                    "Lakukan sesi improvisasi musik atau seni.",
-                    "Ganti suasana dengan menjelajahi tempat baru dan asing.",
+                    "Gambar atau lukis ekspresi emosi yang sedang dirasakan.",
+                    "Ganti suasana dengan menjelajahi tempat baru yang belum pernah dikunjungi.",
                     "Baca perspektif filosofis untuk melihat situasi dari sudut pandang berbeda."
                 ],
                 "Fear": [
                     "Gunakan imajinasi untuk memvisualisasikan skenario positif.",
                     "Eksplorasi berbagai kemungkinan solusi secara kreatif.",
-                    "Dengarkan musik ambient atau meditatif.",
+                    "Gunakan musik yang menurut Anda menenangkan sambil melakukan latihan relaksasi atau mindfulness.",
                     "Arahkan rasa ingin tahu pada mekanisme di balik ketakutan.",
                     "Buat jurnal visual berupa sketsa atau kolase tentang kekhawatiran."
                 ],
@@ -64,7 +64,7 @@
                 "Angry": [
                     "Salurkan energi ke aktivitas fisik yang terstruktur.",
                     "Buat daftar langkah konkret untuk mengatasi sumber masalah.",
-                    "Lakukan pekerjaan manual yang membutuhkan konsentrasi penuh.",
+                    "Alihkan perhatian dengan aktivitas sederhana yang membutuhkan fokus, seperti merapikan ruangan, berkebun, atau menyusun barang.",
                     "Tenangkan diri dengan melakukan pernapasan teratur.",
                     "Fokus pada fakta dan data, bukan pada spekulasi."
                 ],
@@ -124,7 +124,7 @@
                 ],
                 "Disgust": [
                     "Terapkan sistem organisasi yang lebih ketat.",
-                    "Buat standar operasional prosedur untuk mencegah pengulangan.",
+                    "Buat catatan tentang apa yang salah agar tidak terulang di masa depan.",
                     "Bersihkan lingkungan secara menyeluruh dan higienis.",
                     "Dokumentasikan apa yang salah untuk referensi di masa depan.",
                     "Fokus pada perbaikan sistem yang terukur."
@@ -155,28 +155,28 @@
                 "Angry": [
                     "Salurkan energi ke aktivitas fisik yang spontan dan intens.",
                     "Tulis atau ekspresikan kemarahan tanpa sensor terlebih dahulu.",
-                    "Lompat ke aktivitas baru untuk mengalihkan pikiran.",
+                    "Berikan jeda sejenak, kemudian lakukan aktivitas sederhana yang membantu menenangkan diri sebelum kembali menyelesaikan masalah.",
                     "Biarkan diri 'ngambek' sesaat sebagai bentuk pelepasan emosi.",
                     "Cari distraksi dengan melakukan sesuatu yang tidak terduga."
                 ],
                 "Fear": [
                     "Hadapi ketakutan secara spontan tanpa terlalu banyak berpikir.",
                     "Cari dukungan dari orang lain secara langsung.",
-                    "Alihkan perhatian dengan aktivitas menyenangkan yang mendadak.",
+                    "Lakukan aktivitas sederhana yang Anda sukai untuk membantu menenangkan diri sebelum menghadapi situasi yang menimbulkan ketakutan.",
                     "Ingatkan diri bahwa tidak semuanya harus direncanakan.",
                     "Lakukan sesuatu yang menyenangkan sebagai pelarian sementara."
                 ],
                 "Disgust": [
-                    "Tinggalkan situasi dengan cepat tanpa perlu merapikan.",
-                    "Alihkan perhatian ke hal lain yang lebih menarik.",
-                    "Lompat ke aktivitas baru untuk reset suasana hati.",
+                    "Tinggalkan situasi jika sudah tidak nyaman dan beri jeda sejenak.",
+                    "Alihkan perhatian ke hal lain yang lebih positif.",
+                    "Lakukan aktivitas baru untuk menyegarkan pikiran.",
                     "Gunakan humor spontan untuk meredakan ketegangan.",
                     "Jangan paksakan diri untuk tetap berada dalam situasi tersebut."
                 ],
                 "Neutral": [
                     "Lakukan kegiatan tanpa rencana yang kaku.",
                     "Eksplorasi hobi baru secara iseng.",
-                    "Scroll dan cari inspirasi dari berbagai sumber acak.",
+                    "Cari inspirasi dari berbagai sumber secara acak.",
                     "Coba pendekatan berbeda dalam menyelesaikan tugas harian.",
                     "Biarkan hari berjalan tanpa daftar tugas yang ketat."
                 ]
@@ -190,17 +190,17 @@
                     "Bagikan kegembiraan dengan orang-orang di sekitar.",
                     "Ikuti acara sosial atau komunitas yang menarik.",
                     "Lakukan aktivitas yang melibatkan interaksi dengan banyak orang.",
-                    "Jadilah pusat perhatian yang positif dan menghibur."
+                    "Nikmati peran aktif dalam memberikan energi positif kepada orang lain."
                 ],
                 "Sad": [
                     "Cari dukungan dari teman atau keluarga terdekat.",
                     "Ceritakan perasaan kepada orang yang dipercaya.",
-                    "Keluar rumah dan berada di keramaian untuk mengalihkan pikiran.",
+                    "Luangkan waktu bertemu atau berbicara dengan orang-orang yang membuat Anda merasa nyaman dan didukung.",
                     "Ikut serta dalam kegiatan kelompok yang ringan dan menyenangkan.",
                     "Minta teman untuk menemani ngobrol atau jalan-jalan."
                 ],
                 "Angry": [
-                    "Venting atau curhat ke teman yang bisa dipercaya.",
+                    "Curhat atau luapkan uneg-uneg ke teman yang bisa dipercaya.",
                     "Diskusikan masalah secara langsung dengan pihak terkait.",
                     "Lakukan olahraga tim atau kelas kebugaran kelompok.",
                     "Ekspresikan kemarahan secara verbal dengan cara yang asertif.",
@@ -209,7 +209,7 @@
                 "Fear": [
                     "Cari teman untuk menemani dan memberikan rasa aman.",
                     "Diskusikan ketakutan dengan kelompok pendukung.",
-                    "Berada di lingkungan yang terang dan ramai.",
+                    "Berada di lingkungan yang nyaman dan mendukung.",
                     "Ikuti kegiatan sosial sebagai distraksi yang sehat.",
                     "Minta pendapat dari banyak orang untuk mendapat perspektif."
                 ],
@@ -234,7 +234,7 @@
                     "Lakukan refleksi diri dalam suasana yang tenang.",
                     "Baca buku yang memperkaya wawasan dalam kedamaian.",
                     "Manjakan diri dengan perawatan diri (self-care) di rumah.",
-                    "Habiskan waktu dengan 1-2 orang terdekat secara intim."
+                    "Habiskan waktu dengan 1-2 orang terdekat secara personal."
                 ],
                 "Sad": [
                     "Beri diri ruang untuk menyendiri tanpa gangguan.",
@@ -285,8 +285,8 @@
                 ],
                 "Sad": [
                     "Cari dukungan emosional dari orang-orang terdekat.",
-                    "Bantu orang lain sebagai cara mengalihkan kesedihan.",
                     "Bicarakan perasaan dengan teman yang empatik.",
+                    "Ceritakan perasaan kepada orang yang dipercaya.",
                     "Terima bantuan dan dukungan dari orang lain.",
                     "Luangkan waktu untuk merawat hubungan yang berarti."
                 ],
@@ -316,7 +316,7 @@
                     "Lakukan kebaikan kecil secara acak.",
                     "Dengarkan cerita orang lain dengan penuh perhatian.",
                     "Ikut serta dalam kegiatan sosial di lingkungan sekitar.",
-                    "Luangkan waktu untuk menjadi relawan."
+                    "Jadilah relawan untuk kegiatan yang bermanfaat."
                 ]
             },
             "low": {
@@ -330,21 +330,21 @@
                 "Sad": [
                     "Proses kesedihan secara mandiri tanpa melibatkan orang lain.",
                     "Fokus pada pemecahan masalah secara logis.",
-                    "Lakukan aktivitas yang memperkuat kemandirian.",
+                    "Fokus menyelesaikan satu aktivitas yang dapat memberikan rasa mampu dan kepuasan terhadap diri sendiri.",
                     "Analisis penyebab kesedihan secara objektif.",
                     "Beri diri waktu sendiri untuk memulihkan diri."
                 ],
                 "Angry": [
                     "Tegaskan pendirian dan batasan dengan jelas.",
                     "Konfrontasi masalah secara langsung dan faktual.",
-                    "Salurkan kemarahan ke dalam kompetisi atau tantangan.",
+                    "Salurkan energi melalui aktivitas fisik yang sehat, seperti berjalan cepat atau berolahraga.",
                     "Jangan ragu untuk mengatakan 'tidak'.",
                     "Prioritaskan kepentingan dan kebenaran pribadi."
                 ],
                 "Fear": [
                     "Analisis ancaman secara logis dan rasional.",
                     "Buat rencana perlindungan diri secara mandiri.",
-                    "Hadapi sumber ketakutan dengan keberanian.",
+                    "Hadapi situasi yang ditakuti secara bertahap sesuai dengan kemampuan Anda.",
                     "Kumpulkan kekuatan internal tanpa bergantung pada orang lain.",
                     "Fokus pada kemampuan diri untuk mengatasi situasi."
                 ],
@@ -359,7 +359,7 @@
                     "Fokus pada pengembangan diri dan kompetensi pribadi.",
                     "Tetapkan target ambisius tanpa perlu persetujuan orang lain.",
                     "Analisis situasi secara kritis dan independen.",
-                    "Lakukan aktivitas yang memperkuat kemandirian.",
+                    "Manfaatkan waktu untuk mengejar minat pribadi.",
                     "Gunakan waktu untuk merencanakan strategi pribadi."
                 ]
             }
@@ -375,7 +375,7 @@
                     "Luangkan waktu untuk aktivitas yang menenangkan saraf."
                 ],
                 "Sad": [
-                    "Praktikkan self-compassion dan validasi emosi sendiri.",
+                    "Beri diri pengertian dan kasih sayang seperti untuk orang terdekat.",
                     "Gunakan teknik grounding untuk kembali ke saat ini.",
                     "Buat jurnal untuk mengidentifikasi pemicu suasana hati.",
                     "Lakukan aktivitas fisik ringan untuk meningkatkan mood.",
@@ -385,22 +385,22 @@
                     "Lakukan teknik pernapasan dalam sebelum bereaksi.",
                     "Jeda sejenak dan tinggalkan situasi yang memicu.",
                     "Tuliskan emosi untuk meredakan intensitas.",
-                    "Praktikkan progressive muscle relaxation.",
+                    "Rilekskan otot-otot tubuh secara bertahap dari ujung kaki hingga kepala.",
                     "Kenali pemicu dan pola reaksi emosi."
                 ],
                 "Fear": [
                     "Praktikkan pernapasan diafragma untuk menenangkan sistem saraf.",
                     "Gunakan teknik 5-4-3-2-1 grounding untuk mengurangi kecemasan.",
-                    "Identifikasi distorsi kognitif yang memperburuk ketakutan.",
+                    "Cobalah mengenali apakah ada pikiran yang membuat rasa takut terasa lebih besar daripada kenyataannya.",
                     "Buat jurnal kecemasan untuk melacak pola pemicu.",
                     "Cari terapi atau konseling untuk strategi koping jangka panjang."
                 ],
                 "Disgust": [
-                    "Praktikkan toleransi terhadap ketidaknyamanan secara bertahap.",
+                    "Kenali dan terima perasaan tidak nyaman tanpa menghakimi.",
                     "Gunakan teknik mindfulness untuk mengamati reaksi tanpa menghakimi.",
-                    "Identifikasi akar keengganan untuk memahami respons emosi.",
+                    "Tanyakan pada diri sendiri apa yang sebenarnya memicu perasaan ini.",
                     "Cari perspektif yang lebih seimbang terhadap situasi.",
-                    "Lakukan self-soothing dengan aktivitas yang menenangkan."
+                    "Lakukan aktivitas menenangkan seperti mendengarkan musik atau berjalan santai."
                 ],
                 "Neutral": [
                     "Praktikkan meditasi mindfulness secara rutin.",
@@ -414,7 +414,7 @@
                 "Happy": [
                     "Nikmati stabilitas emosi yang alami.",
                     "Manfaatkan ketenangan untuk mendukung orang lain.",
-                    "Lakukan aktivitas berani yang menantang zona nyaman.",
+                    "Coba aktivitas baru yang sebelumnya dihindari karena rasa takut.",
                     "Bagikan ketenangan dan perspektif positif dengan sekitar.",
                     "Jadikan diri pilar stabilitas bagi orang-orang terdekat."
                 ],
@@ -428,7 +428,7 @@
                 "Angry": [
                     "Tangani konflik dengan kepala dingin dan rasional.",
                     "Gunakan ketenangan alami untuk meredakan situasi.",
-                    "Konfrontasi masalah secara langsung tanpa dramatisasi.",
+                    "Hadapi sumber masalah secara tenang dan fokus pada penyelesaiannya.",
                     "Jadilah penengah dalam konflik yang melibatkan orang lain.",
                     "Fokus pada solusi daripada reaksi emosional."
                 ],

@@ -768,6 +768,7 @@ class AppLocalizations {
       'premium_countdown_minutes': 'Menit',
       'premium_countdown_seconds': 'Detik',
       'premium_purchase_canceled': 'Pembelian dibatalkan.',
+      'premium_purchase_error': 'Gagal memulai pembelian. Silakan coba lagi.',
       'premium_plan_unavailable': 'Produk tidak tersedia saat ini.',
 
       // ── Daily Detection Limit ──
@@ -791,6 +792,23 @@ class AppLocalizations {
       'reward_earned_message':
           'Terima kasih telah menonton iklan. Kamu bisa melakukan 1 deteksi emosi tambahan sekarang.',
       'login_successful': 'Login Berhasil',
+      'incomplete_data_title': 'Data Belum Lengkap',
+      'incomplete_data_desc': 'Anda harus mengisi data onboarding terlebih dahulu sebelum menggunakan aplikasi.',
+      'fill_now': 'Isi Sekarang',
+      'later': 'Nanti',
+      'model_downloading': 'Mengunduh model suara...',
+      'model_download_success': 'Model berhasil diunduh.',
+      'model_download_failed': 'Gagal mengunduh model. Periksa koneksi internet Anda.',
+      'download_now': 'Unduh Sekarang',
+      'voice_model': 'Model Suara',
+      'voice_model_desc': 'Model ini diperlukan untuk deteksi emosi dari suara.',
+      'psych_status_happy': 'Sangat Baik',
+      'psych_status_sad': 'Perlu Perhatian',
+      'psych_status_angry': 'Butuh Jeda',
+      'psych_status_disgust': 'Kurang Nyaman',
+      'psych_status_neutral': 'Stabil',
+      'psych_status_fear': 'Perlu Dukungan',
+      'weight': 'bobot',
     },
 
     // ════════════════════════════════════════════
@@ -1536,6 +1554,7 @@ class AppLocalizations {
       'premium_countdown_minutes': 'Min',
       'premium_countdown_seconds': 'Sec',
       'premium_purchase_canceled': 'Purchase canceled.',
+      'premium_purchase_error': 'Failed to start purchase. Please try again.',
       'premium_plan_unavailable': 'Product currently unavailable.',
 
       // ── Daily Detection Limit ──
@@ -1559,6 +1578,23 @@ class AppLocalizations {
       'reward_earned_message':
           'Thank you for watching the ad. You can now do 1 additional emotion detection.',
       'login_successful': 'Login Successful',
+      'incomplete_data_title': 'Incomplete Data',
+      'incomplete_data_desc': 'You need to complete the onboarding data before using the application.',
+      'fill_now': 'Fill Now',
+      'later': 'Later',
+      'model_downloading': 'Downloading voice model...',
+      'model_download_success': 'Model downloaded successfully.',
+      'model_download_failed': 'Failed to download model. Check your internet connection.',
+      'download_now': 'Download Now',
+      'voice_model': 'Voice Model',
+      'voice_model_desc': 'This model is required for voice emotion detection.',
+      'psych_status_happy': 'Very Good',
+      'psych_status_sad': 'Needs Attention',
+      'psych_status_angry': 'Needs a Break',
+      'psych_status_disgust': 'Uncomfortable',
+      'psych_status_neutral': 'Stable',
+      'psych_status_fear': 'Needs Support',
+      'weight': 'weight',
     },
   };
 }

@@ -113,5 +113,20 @@ void main() {
       provider.setPremium(value: true, expiry: null);
       expect(count, 1);
     });
+
+    test('isPremium false setelah melewati expiry meskipun flag diset', () {
+      final provider = PremiumProvider();
+      provider.init();
+      provider.setPremium(
+        value: true,
+        expiry: DateTime.now().subtract(const Duration(minutes: 1)),
+      );
+      expect(provider.isExpired, isTrue);
+      expect(provider.isPremium, isFalse, reason: 'expired user harus kehilangan hak premium');
+      expect(provider.rawPremium, isTrue, reason: 'flag mentah tetap true s.d. checkExpiry()');
+
+      provider.checkExpiry();
+      expect(provider.rawPremium, isFalse);
+    });
   });
 }

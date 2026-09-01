@@ -115,7 +115,16 @@ class _PremiumScreenState extends State<PremiumScreen>
     if (_billing.state == PurchaseState.pending) return;
     final available = _availablePlans();
     if (_selectedIndex >= available.length) return;
-    await _billing.purchase(available[_selectedIndex].productId);
+    final success = await _billing.purchase(available[_selectedIndex].productId);
+    if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.tr('premium_purchase_error')),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: _surface,
+        ),
+      );
+    }
   }
 
   Future<void> _restore() async {
@@ -137,7 +146,7 @@ class _PremiumScreenState extends State<PremiumScreen>
       await _billing.restore();
       // Jika tidak ada pembelian sama sekali, stream tidak memancarkan apa pun.
       final result = await done.future
-          .timeout(const Duration(seconds: 4), onTimeout: () => false);
+          .timeout(const Duration(seconds: 10), onTimeout: () => false);
       _billing.removeListener(listener);
       if (!mounted) return;
       setState(() => _isRestoring = false);
@@ -586,7 +595,9 @@ class _PremiumScreenState extends State<PremiumScreen>
   Widget _buildPurchaseSection(BuildContext context) {
     final plans = _availablePlans();
     if (_selectedIndex >= plans.length && plans.isNotEmpty) {
-      _selectedIndex = 0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _selectedIndex = 0);
+      });
     }
 
     return Padding(

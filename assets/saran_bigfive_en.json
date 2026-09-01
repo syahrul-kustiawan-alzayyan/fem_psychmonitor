@@ -20,14 +20,14 @@
                 "Angry": [
                     "Channel emotional energy into creative activities.",
                     "Write poetry or short prose about what frustrates you.",
-                    "Do an improvisational music or art session.",
+                    "Draw or paint the emotions you're feeling.",
                     "Change scenery by exploring new and unfamiliar places.",
                     "Read philosophical perspectives to see the situation differently."
                 ],
                 "Fear": [
                     "Use imagination to visualize positive scenarios.",
                     "Creatively explore various possible solutions.",
-                    "Listen to ambient or meditative music.",
+                    "Use music that you find calming while doing relaxation exercises or mindfulness.",
                     "Channel curiosity into understanding the mechanism behind fear.",
                     "Create a visual journal with sketches or collages about worries."
                 ],
@@ -64,7 +64,7 @@
                 "Angry": [
                     "Channel energy into structured physical activities.",
                     "Make a list of concrete steps to address the problem source.",
-                    "Do manual work that requires full concentration.",
+                    "Distract yourself with simple activities that require focus, like tidying up a room, gardening, or organizing items.",
                     "Calm yourself with regular breathing exercises.",
                     "Focus on facts and data, not speculation."
                 ],
@@ -122,9 +122,9 @@
                     "Break large problems into small manageable tasks.",
                     "Stick to your schedule as an anchor of stability."
                 ],
-                "Disgust": [
-                    "Implement stricter organizational systems.",
-                    "Create standard operating procedures to prevent recurrence.",
+"Disgust": [
+                    "Apply stricter organization systems.",
+                    "Make notes about what went wrong to avoid repeating it.",
                     "Clean the environment thoroughly and hygienically.",
                     "Document what went wrong for future reference.",
                     "Focus on measurable system improvements."
@@ -155,28 +155,28 @@
                 "Angry": [
                     "Channel energy into spontaneous intense physical activities.",
                     "Write or express anger without filtering first.",
-                    "Jump into a new activity to shift your mind.",
+                    "Take a moment, then do a simple activity that helps you calm down before returning to address the problem.",
                     "Allow yourself to sulk for a moment as emotional release.",
                     "Seek distraction by doing something unexpected."
                 ],
                 "Fear": [
                     "Face fear spontaneously without overthinking.",
                     "Seek support from others directly.",
-                    "Distract yourself with sudden enjoyable activities.",
+                    "Do simple activities you enjoy to help calm down before facing the situation that causes fear.",
                     "Remind yourself that not everything has to be planned.",
                     "Do something fun as a temporary escape."
                 ],
                 "Disgust": [
-                    "Leave the situation quickly without tidying up.",
-                    "Shift attention to something more interesting.",
-                    "Jump into a new activity to reset your mood.",
+                    "Leave the situation if it's uncomfortable and take a moment.",
+                    "Shift attention to something more positive.",
+                    "Try a new activity to refresh your mind.",
                     "Use spontaneous humor to ease tension.",
                     "Don't force yourself to stay in the situation."
                 ],
                 "Neutral": [
                     "Do activities without rigid plans.",
                     "Casually explore new hobbies.",
-                    "Scroll and find inspiration from various random sources.",
+                    "Find inspiration from various random sources.",
                     "Try different approaches to completing daily tasks.",
                     "Let the day flow without a strict to-do list."
                 ]
@@ -190,17 +190,17 @@
                     "Share your joy with people around you.",
                     "Attend interesting social events or communities.",
                     "Do activities that involve interacting with many people.",
-                    "Be the center of positive attention and entertainment."
+                    "Enjoy playing an active role in spreading positive energy to others."
                 ],
                 "Sad": [
                     "Seek support from close friends or family.",
                     "Share your feelings with a trusted person.",
-                    "Go out and be in crowds to distract your mind.",
+                    "Spend time meeting or talking with people who make you feel comfortable and supported.",
                     "Join light and fun group activities.",
                     "Ask a friend to accompany you for a chat or walk."
                 ],
                 "Angry": [
-                    "Vent to a trusted friend.",
+                    "Vent or share your frustrations with a trusted friend.",
                     "Discuss issues directly with the relevant parties.",
                     "Do team sports or group fitness classes.",
                     "Express anger verbally in an assertive way.",
@@ -209,7 +209,7 @@
                 "Fear": [
                     "Find a friend to accompany and provide a sense of safety.",
                     "Discuss fears with a support group.",
-                    "Be in bright and busy environments.",
+                    "Be in comfortable and supportive environments.",
                     "Join social activities as a healthy distraction.",
                     "Ask for opinions from many people for perspective."
                 ],
@@ -234,7 +234,7 @@
                     "Do self-reflection in a quiet setting.",
                     "Read books that enrich your insight in peace.",
                     "Pamper yourself with self-care at home.",
-                    "Spend time with 1-2 closest people intimately."
+                    "Spend time with 1-2 closest people personally."
                 ],
                 "Sad": [
                     "Give yourself space to be alone without disturbance.",
@@ -283,10 +283,10 @@
                     "Host a small event to strengthen relationships.",
                     "Share happiness by cooking or giving gifts."
                 ],
-                "Sad": [
-                    "Seek emotional support from those closest to you.",
-                    "Help others as a way to distract from sadness.",
-                    "Talk about feelings with empathetic friends.",
+"Sad": [
+                    "Seek emotional support from close ones.",
+                    "Talk about your feelings with an empathetic friend.",
+                    "Share your feelings with a trusted person.",
                     "Accept help and support from others.",
                     "Spend time nurturing meaningful relationships."
                 ],
@@ -311,12 +311,12 @@
                     "Remind yourself of human values.",
                     "Maintain good relationships despite differences."
                 ],
-                "Neutral": [
-                    "Contact friends or family just to say hello.",
-                    "Do random small acts of kindness.",
+"Neutral": [
+                    "Reach out to friends or family just to say hello.",
+                    "Do random acts of kindness.",
                     "Listen to others' stories with full attention.",
                     "Participate in social activities in your neighborhood.",
-                    "Spend time volunteering."
+                    "Be a volunteer for meaningful activities."
                 ]
             },
             "low": {
@@ -327,25 +327,25 @@
                     "Do competitive activities that challenge you.",
                     "Use the momentum to advocate for yourself."
                 ],
-                "Sad": [
+"Sad": [
                     "Process sadness independently without involving others.",
                     "Focus on logical problem-solving.",
-                    "Do activities that strengthen independence.",
-                    "Analyze the causes of sadness objectively.",
-                    "Give yourself alone time to recover."
+                    "Focus on completing one activity that can give you a sense of competence and self-satisfaction.",
+                    "Analyze the cause of sadness objectively.",
+                    "Give yourself time alone to recover."
                 ],
-                "Angry": [
-                    "Assert your stance and boundaries clearly.",
-                    "Confront issues directly and factually.",
-                    "Channel anger into competition or challenges.",
+"Angry": [
+                    "Assert your position and boundaries clearly.",
+                    "Confront the problem directly and factually.",
+                    "Channel energy through healthy physical activities, like brisk walking or exercising.",
                     "Don't hesitate to say 'no'.",
-                    "Prioritize your interests and personal truth."
+                    "Prioritize your own interests and truth."
                 ],
-                "Fear": [
+"Fear": [
                     "Analyze threats logically and rationally.",
-                    "Make independent self-protection plans.",
-                    "Face the source of fear with courage.",
-                    "Gather internal strength without relying on others.",
+                    "Create a self-protection plan independently.",
+                    "Face the feared situation gradually according to your ability.",
+                    "Gather internal strength without depending on others.",
                     "Focus on your ability to handle the situation."
                 ],
                 "Disgust": [
@@ -355,11 +355,11 @@
                     "Express dislike directly without beating around the bush.",
                     "Create clear distance from disturbing things."
                 ],
-                "Neutral": [
-                    "Focus on self-development and personal competence.",
-                    "Set ambitious targets without needing others' approval.",
+"Neutral": [
+                    "Focus on personal development and competence.",
+                    "Set ambitious goals without needing others' approval.",
                     "Analyze situations critically and independently.",
-                    "Do activities that strengthen independence.",
+                    "Use time to pursue personal interests.",
                     "Use time to plan personal strategies."
                 ]
             }
@@ -374,33 +374,33 @@
                     "Document positive things that happened today.",
                     "Spend time on nerve-calming activities."
                 ],
-                "Sad": [
-                    "Practice self-compassion and validate your own emotions.",
-                    "Use grounding techniques to return to the present.",
-                    "Keep a journal to identify mood triggers.",
-                    "Do light physical activities to boost mood.",
+"Sad": [
+                    "Be understanding and compassionate with yourself as you would with a loved one.",
+                    "Use grounding techniques to return to the present moment.",
+                    "Create a journal to identify mood triggers.",
+                    "Do light physical activities to improve mood.",
                     "Seek professional support if needed."
                 ],
-                "Angry": [
-                    "Practice deep breathing before reacting.",
-                    "Pause and leave triggering situations.",
-                    "Write down emotions to reduce intensity.",
-                    "Practice progressive muscle relaxation.",
-                    "Recognize emotional triggers and reaction patterns."
+"Angry": [
+                    "Practice deep breathing techniques before reacting.",
+                    "Take a moment and leave the triggering situation.",
+                    "Write down emotions to reduce their intensity.",
+                    "Relax your body muscles gradually from toes to head.",
+                    "Recognize triggers and emotional reaction patterns."
                 ],
-                "Fear": [
+"Fear": [
                     "Practice diaphragmatic breathing to calm the nervous system.",
                     "Use the 5-4-3-2-1 grounding technique to reduce anxiety.",
-                    "Identify cognitive distortions that worsen fear.",
-                    "Keep an anxiety journal to track trigger patterns.",
+                    "Try to recognize if there are thoughts that make fear feel bigger than reality.",
+                    "Create an anxiety journal to track trigger patterns.",
                     "Seek therapy or counseling for long-term coping strategies."
                 ],
-                "Disgust": [
-                    "Gradually practice tolerance to discomfort.",
-                    "Use mindfulness techniques to observe reactions without judgment.",
-                    "Identify the root of aversion to understand emotional responses.",
-                    "Seek a more balanced perspective on the situation.",
-                    "Practice self-soothing with calming activities."
+"Disgust": [
+                    "Recognize and accept uncomfortable feelings without judgment.",
+                    "Use mindfulness techniques to observe reactions without judging.",
+                    "Ask yourself what's actually triggering this feeling.",
+                    "Find a more balanced perspective on the situation.",
+                    "Do calming activities like listening to music or taking a gentle walk."
                 ],
                 "Neutral": [
                     "Practice mindfulness meditation regularly.",
@@ -411,12 +411,12 @@
                 ]
             },
             "low": {
-                "Happy": [
-                    "Enjoy your natural emotional stability.",
-                    "Use your calm to support others.",
-                    "Do brave activities that challenge your comfort zone.",
-                    "Share your calm and positive perspective with those around you.",
-                    "Be a pillar of stability for your closest people."
+"Happy": [
+                    "Enjoy natural emotional stability.",
+                    "Use your calmness to support others.",
+                    "Try new activities you previously avoided due to fear.",
+                    "Share your calmness and positive perspective with those around you.",
+                    "Be a pillar of stability for your loved ones."
                 ],
                 "Sad": [
                     "Process sadness with a balanced perspective.",
@@ -425,10 +425,10 @@
                     "Help others who might be going through difficult times.",
                     "Remind yourself that negative emotions are temporary."
                 ],
-                "Angry": [
-                    "Handle conflicts with a cool and rational head.",
-                    "Use natural calm to defuse situations.",
-                    "Confront issues directly without dramatization.",
+"Angry": [
+                    "Handle conflicts with a cool head and rationality.",
+                    "Use natural calmness to defuse situations.",
+                    "Address the source of the problem calmly and focus on solving it.",
                     "Be a mediator in conflicts involving others.",
                     "Focus on solutions rather than emotional reactions."
                 ],

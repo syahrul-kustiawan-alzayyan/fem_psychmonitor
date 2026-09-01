@@ -22,7 +22,7 @@
             "dimension": "E",
             "dimension_name": "Extraversion",
             "keyed": "+",
-            "statement": "I am the life of the party."
+            "statement": "I usually liven up the atmosphere when gathering with others."
         },
         {
             "id": 2,
@@ -36,7 +36,7 @@
             "dimension": "C",
             "dimension_name": "Conscientiousness",
             "keyed": "+",
-            "statement": "I get chores done right away."
+            "statement": "I try to complete tasks as soon as I have the opportunity."
         },
         {
             "id": 4,
@@ -50,7 +50,7 @@
             "dimension": "O",
             "dimension_name": "Openness to Experience",
             "keyed": "+",
-            "statement": "I have a vivid imagination."
+            "statement": "I often have many ideas or imagine various possibilities."
         },
         {
             "id": 6,
@@ -71,7 +71,7 @@
             "dimension": "C",
             "dimension_name": "Conscientiousness",
             "keyed": "-",
-            "statement": "I often forget to put things back in their place."
+            "statement": "I often forget to tidy up or organize things after using them."
         },
         {
             "id": 9,
@@ -85,7 +85,7 @@
             "dimension": "O",
             "dimension_name": "Openness to Experience",
             "keyed": "-",
-            "statement": "I am not interested in abstract ideas."
+            "statement": "I am less interested in thinking about complex ideas or concepts."
         },
         {
             "id": 11,
@@ -120,7 +120,7 @@
             "dimension": "O",
             "dimension_name": "Openness to Experience",
             "keyed": "-",
-            "statement": "I have difficulty understanding abstract ideas."
+            "statement": "I have difficulty understanding complex concepts or those requiring a lot of thought."
         },
         {
             "id": 16,
@@ -134,7 +134,7 @@
             "dimension": "A",
             "dimension_name": "Agreeableness",
             "keyed": "-",
-            "statement": "I am not really interested in other people."
+            "statement": "I am not particularly interested in knowing what others think or feel."
         },
         {
             "id": 18,
@@ -155,7 +155,7 @@
             "dimension": "O",
             "dimension_name": "Openness to Experience",
             "keyed": "-",
-            "statement": "I do not have a good imagination."
+            "statement": "I feel like I don't have much imagination or many new ideas."
         }
     ],
     "panduan_skoring": {

@@ -469,7 +469,7 @@ class _MainNavigationState extends State<MainNavigation>
           if (!mounted) return;
           final go = await showDialog<bool>(
             context: context,
-            barrierDismissible: false,
+            barrierDismissible: true,
             builder: (ctx) => AlertDialog(
               backgroundColor: AppTheme.surface(ctx),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -477,14 +477,18 @@ class _MainNavigationState extends State<MainNavigation>
                 children: [
                   Icon(Icons.info_outline_rounded, color: AppTheme.primaryColor, size: 24),
                   const SizedBox(width: 10),
-                  Expanded(child: Text('Data Belum Lengkap', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 18))),
+                  Expanded(child: Text(AppLocalizations.tr('incomplete_data_title'), style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 18))),
                 ],
               ),
               content: Text(
-                'Anda harus mengisi data onboarding terlebih dahulu sebelum menggunakan aplikasi.',
+                AppLocalizations.tr('incomplete_data_desc'),
                 style: GoogleFonts.poppins(fontSize: 13, height: 1.5),
               ),
               actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(AppLocalizations.tr('later'), style: GoogleFonts.poppins(color: Colors.grey)),
+                ),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(ctx, true),
                   style: ElevatedButton.styleFrom(
@@ -492,7 +496,7 @@ class _MainNavigationState extends State<MainNavigation>
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text('Isi Sekarang', style: GoogleFonts.poppins()),
+                  child: Text(AppLocalizations.tr('fill_now'), style: GoogleFonts.poppins()),
                 ),
               ],
             ),
@@ -539,25 +543,24 @@ class _MainNavigationState extends State<MainNavigation>
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Model Suara',
+                AppLocalizations.tr('voice_model'),
                 style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 18),
               ),
             ),
           ],
         ),
         content: Text(
-          'Fitur analisis suara memerlukan model bahasa untuk transkripsi. '
-          'Harap sambungkan ke internet untuk mengunduh model (~150 MB).',
+          AppLocalizations.tr('voice_model_desc'),
           style: GoogleFonts.poppins(fontSize: 13, height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Nanti', style: GoogleFonts.poppins()),
+            child: Text(AppLocalizations.tr('later'), style: GoogleFonts.poppins()),
           ),
           ElevatedButton.icon(
             icon: const Icon(Icons.download_rounded, size: 18),
-            label: Text('Unduh Sekarang', style: GoogleFonts.poppins()),
+            label: Text(AppLocalizations.tr('download_now'), style: GoogleFonts.poppins()),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryColor,
               foregroundColor: Colors.white,
@@ -581,21 +584,21 @@ class _MainNavigationState extends State<MainNavigation>
           children: [
             const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
             const SizedBox(width: 12),
-            Text('Mengunduh model...', style: GoogleFonts.poppins(fontSize: 12)),
+            Text(AppLocalizations.tr('model_downloading'), style: GoogleFonts.poppins(fontSize: 12)),
           ],
         ),
-        duration: const Duration(seconds: 1),
+        duration: const Duration(seconds: 3),
       ),
     );
     await WhisperInitService.instance.warmUp();
     if (!mounted) return;
     if (WhisperInitService.instance.isReady) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Model berhasil diunduh', style: GoogleFonts.poppins(fontSize: 12))),
+        SnackBar(content: Text(AppLocalizations.tr('model_download_success'), style: GoogleFonts.poppins(fontSize: 12))),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengunduh. Periksa koneksi internet.', style: GoogleFonts.poppins(fontSize: 12))),
+        SnackBar(content: Text(AppLocalizations.tr('model_download_failed'), style: GoogleFonts.poppins(fontSize: 12))),
       );
     }
   }

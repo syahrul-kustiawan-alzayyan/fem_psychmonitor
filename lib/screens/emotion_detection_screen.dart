@@ -544,7 +544,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
               Text(
                 premium.isPremium
                     ? AppLocalizations.tr('remaining_unlimited')
-                    : '$remaining/5',
+                    : '$remaining/${StorageService.maxFreeDetections}',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,

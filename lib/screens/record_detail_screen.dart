@@ -1182,7 +1182,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                   ),
                 ),
                 Text(
-                  'bobot $weightLabel',
+                  '${AppLocalizations.tr('weight')} $weightLabel',
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 9,
                     fontWeight: FontWeight.w500,

@@ -1,5 +1,45 @@
 # Changelog
 
+## [2.2.1] - 2026-08-27
+
+### 🐛 Perbaikan Bug
+- **Premium Acknowledge** — Pembelian premium selalu di-acknowledge meskipun verifikasi server gagal (mencegah auto-refund Google dalam 3 hari).
+- **Premium Expiry Auto-Revoke** — Status premium otomatis revoked jika sudah melewati masa berlaku.
+- **Server Sync** — `refreshFromServer` me-revoke premium jika server mengembalikan status expired.
+- **Expired UI** — Pengguna dengan premium expired tidak lagi melihat "Premium Aktif" di halaman Pengaturan.
+- **Dialog Stuck** — Dialog "Data Belum Lengkap" bisa ditutup (bukan paksa isi onboarding).
+- **Detection Limit** — Limit deteksi gratis per hari dijadikan konstanta `maxFreeDetections` (bukan hardcoded `5`).
+
+### 📋 Kuesioner & Rekomendasi
+- **Validasi Pakar** — 8 soal kuesioner Big Five disesuaikan berdasarkan validasi psikolog (Astrid Nur Alfaradais, M.Psi.).
+- **Rekomendasi Diperbaiki** — 180+ rekomendasiBig Five ditinjau ulang: hapus redundansi, perjalan bahasa, sesuaikan konteks budaya Indonesia.
+
+### 🌐 Lokalisasi
+- Teks hardcoded di beberapa dialog & notifikasi diganti ke `AppLocalizations.tr()`.
+- Channel notifikasi Android diubah ke Bahasa Inggris (ditampilkan di sistem Android).
+- `TextEmotionService` hanya memuat file emosi sesuai locale aktif.
+
+### 📝 Lainnya
+- **Versi** — Update ke `2.2.1+10`.
+
+## [2.2.0] - 2026-08-26
+
+### 🎉 Open Testing Release
+
+Pembukaan fase Open Testing untuk Fem-Psych Monitor.
+
+### 🎨 Tampilan
+- **Stat Card Redesign** — Kartu statistik (Rekaman, Positif, Perlu Perhatian, Sisa Deteksi) menggunakan grafis dekoratif organik (bunga, matahari tersenyum, hati dengan daun, timer berdaun) menggantikan ikon Phosphor.
+- **Suggestion Card Redesign** — Kartu saran psikis dengan gradien halus, sudut membulat 20px, bayangan ganda lembut, dan grafis bunga di header untuk tampilan lebih empatik.
+- **History Card Redesign** — Kartu riwayat dengan gradien aksen emosi pada border kiri, pola titik dekoratif, dan bayangan berwarna emosi.
+
+### ⚙️ Perubahan Perilaku
+- **Notifikasi Otomatis** — Notifikasi pengingat harian otomatis aktif saat pertama kali membuka aplikasi (tanpa toggle di Pengaturan).
+- **Pengaturan Notifikasi Dihapus** — Menu notifikasi dihapus dari halaman Pengaturan karena notifikasi selalu aktif otomatis.
+
+### 📝 Lainnya
+- **Versi** — Update ke `2.2.0+9`.
+
 ## [2.1.5] - 2026-08-06
 
 ### 🎨 Tampilan

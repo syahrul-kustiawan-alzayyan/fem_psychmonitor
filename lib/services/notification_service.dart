@@ -87,8 +87,8 @@ class NotificationService {
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'routine_reminder',
-            'Pengingat Rutin',
-            channelDescription: 'Pengingat rutin untuk deteksi emosi',
+            'Routine Reminder',
+            channelDescription: 'Routine reminder for emotion detection',
             importance: Importance.high,
             priority: Priority.high,
           ),

@@ -123,7 +123,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               Consumer<PremiumProvider>(
                 builder: (context, premium, _) {
-                  if (premium.isPremium) {
+                  if (premium.isPremium && !premium.isExpired) {
                     return _buildSettingsCard(
                       context,
                       children: [_buildPremiumActiveTile(context, premium)],
@@ -274,7 +274,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Footer: versi app
               Center(
                 child: Text(
-                  'Fem-Psych Monitor v2.2.0',
+                  'Fem-Psych Monitor v2.2.3',
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 11,
                     color: c.outline,

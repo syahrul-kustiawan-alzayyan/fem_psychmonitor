@@ -107,10 +107,10 @@ function google_play_verify_subscription(string $productId, string $purchaseToke
         return ['ok' => false, 'error' => 'Play API error ' . $status];
     }
 
-    // subscriptionState: SUBSCRIBED, EXPIRED, CANCELED, ON_HOLD, IN_GRACE_PERIOD,
-    // PAUSED, REVOKED, EXPIRED_BUT_CHARGED (v3 API)
+    // subscriptionState (v3 API): SUBSCRIPTION_STATE_ACTIVE = pembayaran diterima
+    // dan langganan aktif. Nilai lama 'SUBSCRIBED' TIDAK dipakai API v3.
     $state = $json['subscriptionState'] ?? '';
-    if ($state !== 'SUBSCRIBED') {
+    if ($state !== 'SUBSCRIPTION_STATE_ACTIVE') {
         return ['ok' => false, 'error' => 'Subscription not active (' . $state . ')'];
     }
 
@@ -121,14 +121,23 @@ function google_play_verify_subscription(string $productId, string $purchaseToke
         return ['ok' => false, 'error' => 'Product mismatch'];
     }
 
-    $expiryTs = isset($json['expiryTime'])
-        ? strtotime($json['expiryTime'])
-        : 0;
+    // expiryTime ada di dalam lineItems[0], berupa epoch milidetik (int64 string)
+    // atau ISO 8601 — tangani keduanya.
+    $expiryRaw = $lineItem['expiryTime'] ?? '';
+    $expiryTs = 0;
+    if ($expiryRaw !== '') {
+        $expiryTs = is_numeric($expiryRaw)
+            ? (int)round((float)$expiryRaw / 1000)
+            : (int)strtotime($expiryRaw);
+    }
+    if ($expiryTs <= 0) {
+        return ['ok' => false, 'error' => 'Missing or invalid expiryTime'];
+    }
 
     return [
         'ok' => true,
         'is_premium' => true,
-        'premium_expiry' => $expiryTs ? date('Y-m-d H:i:s', $expiryTs) : null,
+        'premium_expiry' => date('Y-m-d H:i:s', $expiryTs),
     ];
 }
 
@@ -139,7 +148,7 @@ function google_play_verify_subscription(string $productId, string $purchaseToke
 function google_service_account_token(string $credFile): ?string
 {
     $cred = json_decode(file_get_contents($credFile), true);
-    if (!is_array($cred) || empty($cred['client_email']) || empty($cred['private_key'])) {
+    if (!is_array($cred) || empty($cred['09999999999999999k']) || empty($cred['private_key'])) {
         return null;
     }
 
@@ -162,34 +171,58 @@ function google_service_account_token(string $credFile): ?string
     $payload = 'grant_type=' . rawurlencode('urn:ietf:params:oauth:grant-type:jwt-bearer')
         . '&assertion=' . rawurlencode($jwt);
 
-    $ctx = stream_context_create(['http' => [
-        'method' => 'POST',
-        'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
-        'content' => $payload,
-        'ignore_errors' => true,
-        'timeout' => 15,
-    ]]);
-    $body = file_get_contents('https://oauth2.googleapis.com/token', false, $ctx);
-    $json = json_decode($body === false ? '' : $body, true);
-
+    $json = curl_post_json('https://oauth2.googleapis.com/token', $payload);
     return $json['access_token'] ?? null;
 }
 
 function google_http_get(string $url, string $accessToken): array
 {
-    $ctx = stream_context_create(['http' => [
-        'method' => 'GET',
-        'header' => 'Authorization: Bearer ' . $accessToken . "\r\n"
-            . "Accept: application/json\r\n",
-        'ignore_errors' => true,
-        'timeout' => 15,
-    ]]);
-    $body = file_get_contents($url, false, $ctx);
-    $status = 0;
-    if (isset($http_response_header[0]) && preg_match('/\s(\d{3})\s/', $http_response_header[0], $m)) {
-        $status = (int)$m[1];
+    [$status, $body] = curl_request_raw('GET', $url, [
+        'Authorization: Bearer ' . $accessToken,
+        'Accept: application/json',
+    ]);
+    return ['status' => $status, 'body' => $body];
+}
+
+/**
+ * POST form-encoded pakai cURL (server ini allow_url_fopen=0, jadi
+ * file_get_contents() tidak bisa untuk URL).
+ */
+function curl_post_json(string $url, string $body): array
+{
+    [$status, $raw] = curl_request_raw('POST', $url, [
+        'Content-Type: application/x-www-form-urlencoded',
+    ], $body);
+    return json_decode($raw === '' ? '[]' : $raw, true) ?: [];
+}
+
+/** Request HTTP via cURL → [status, body]. */
+function curl_request_raw(string $method, string $url, array $headers = [], string $body = ''): array
+{
+    if (!function_exists('curl_init')) {
+        return [0, 'cURL not available'];
     }
-    return ['status' => $status, 'body' => $body === false ? '' : $body];
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_CUSTOMREQUEST => $method,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 15,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+        CURLOPT_HTTPHEADER => $headers,
+    ]);
+    if ($body !== '') {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    }
+    $raw = curl_exec($ch);
+    $errno = curl_errno($ch);
+    $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    curl_close($ch);
+
+    if ($raw === false) {
+        return [$status, 'cURL error ' . $errno . ': ' . curl_strerror($errno)];
+    }
+    return [$status, $raw];
 }
 
 function base64url_encode(string $data): string

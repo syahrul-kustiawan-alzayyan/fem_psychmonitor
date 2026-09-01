@@ -24,7 +24,7 @@
             "dimension": "E",
             "dimension_name": "Extraversion (Ekstraversi)",
             "keyed": "+",
-            "statement": "Saya adalah sosok yang menghidupkan suasana dalam sebuah pesta atau kumpul-kumpul."
+            "statement": "Saya biasanya membuat suasana menjadi lebih hidup ketika berkumpul bersama orang lain."
         },
         {
             "id": 2,
@@ -38,7 +38,7 @@
             "dimension": "C",
             "dimension_name": "Conscientiousness (Kehati-hatian)",
             "keyed": "+",
-            "statement": "Saya langsung menyelesaikan tugas atau pekerjaan rumah begitu ada kesempatan."
+            "statement": "Saya berusaha menyelesaikan tugas sesegera mungkin ketika memiliki kesempatan."
         },
         {
             "id": 4,
@@ -52,7 +52,7 @@
             "dimension": "O",
             "dimension_name": "Openness / Intellect (Keterbukaan)",
             "keyed": "+",
-            "statement": "Saya memiliki imajinasi yang hidup."
+            "statement": "Saya sering memiliki banyak ide atau membayangkan berbagai kemungkinan."
         },
         {
             "id": 6,
@@ -73,7 +73,7 @@
             "dimension": "C",
             "dimension_name": "Conscientiousness (Kehati-hatian)",
             "keyed": "-",
-            "statement": "Saya sering lupa mengembalikan barang ke tempat asalnya."
+            "statement": "Saya sering lupa merapikan atau mengatur kembali barang setelah digunakan."
         },
         {
             "id": 9,
@@ -87,7 +87,7 @@
             "dimension": "O",
             "dimension_name": "Openness / Intellect (Keterbukaan)",
             "keyed": "-",
-            "statement": "Saya tidak tertarik dengan ide-ide yang abstrak."
+            "statement": "Saya kurang tertarik memikirkan gagasan atau konsep yang rumit."
         },
         {
             "id": 11,
@@ -122,7 +122,7 @@
             "dimension": "O",
             "dimension_name": "Openness / Intellect (Keterbukaan)",
             "keyed": "-",
-            "statement": "Saya kesulitan memahami ide-ide yang abstrak."
+            "statement": "Saya kesulitan memahami konsep yang rumit atau membutuhkan banyak pemikiran."
         },
         {
             "id": 16,
@@ -136,7 +136,7 @@
             "dimension": "A",
             "dimension_name": "Agreeableness (Keramahan)",
             "keyed": "-",
-            "statement": "Sebenarnya saya tidak terlalu tertarik pada orang lain."
+            "statement": "Saya tidak terlalu tertarik untuk mengetahui apa yang dipikirkan atau dirasakan orang lain."
         },
         {
             "id": 18,
@@ -157,7 +157,7 @@
             "dimension": "O",
             "dimension_name": "Openness / Intellect (Keterbukaan)",
             "keyed": "-",
-            "statement": "Saya merasa daya imajinasi saya kurang berkembang."
+            "statement": "Saya merasa tidak memiliki banyak imajinasi atau ide-ide baru."
         }
     ],
     "panduan_skoring": {

@@ -37,17 +37,19 @@ class StorageService {
   }
 
   // ── Daily Detection Limit (per-akun) ──────────────────────────
+  /// Batas deteksi gratis per hari.
+  static const int maxFreeDetections = 5;
   static String _detectDateKey(String uid) => 'detection_date_$uid';
   static String _detectCountKey(String uid) => 'detection_count_$uid';
 
-  /// Sisa deteksi gratis hari ini (max 5, per-akun)
+  /// Sisa deteksi gratis hari ini (per-akun)
   static Future<int> getRemainingDetections(String uid) async {
     final prefs = await SharedPreferences.getInstance();
     final today = _todayStr();
     final savedDate = prefs.getString(_detectDateKey(uid)) ?? '';
-    if (savedDate != today) return 5;
+    if (savedDate != today) return maxFreeDetections;
     final count = prefs.getInt(_detectCountKey(uid)) ?? 0;
-    return (5 - count).clamp(0, 5);
+    return (maxFreeDetections - count).clamp(0, maxFreeDetections);
   }
 
   /// Tambah 1 hitungan deteksi hari ini (per-akun)
