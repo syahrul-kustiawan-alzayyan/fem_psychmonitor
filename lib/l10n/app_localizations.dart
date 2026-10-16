@@ -770,6 +770,21 @@ class AppLocalizations {
       'premium_purchase_canceled': 'Pembelian dibatalkan.',
       'premium_purchase_error': 'Gagal memulai pembelian. Silakan coba lagi.',
       'premium_plan_unavailable': 'Produk tidak tersedia saat ini.',
+      'premium_cancel_subscription': 'Batalkan Langganan',
+      'premium_cancel_title': 'Batalkan Langganan?',
+      'premium_cancel_desc':
+          'Pembatalan dilakukan aman via Play Store. Akses premium tetap berlaku sampai akhir periode berjalan, lalu tidak diperpanjang.',
+      'premium_cancel_manage': 'Kelola via Play Store',
+      'premium_cancel_open_store': 'Buka Play Store',
+      'premium_status_refreshed': 'Status langganan diperbarui.',
+      'premium_cancel_keep': 'Tetap Berlangganan',
+      'premium_cancel_processing': 'Membatalkan langganan...',
+      'premium_cancel_success_title': 'Langganan Dibatalkan',
+      'premium_cancel_success_desc':
+          'Status premium Anda telah dicabut. Anda bisa berlangganan kembali kapan saja.',
+      'premium_cancel_failed_title': 'Gagal Membatalkan',
+      'premium_cancel_failed_desc':
+          'Tidak dapat membatalkan langganan. Periksa koneksi internet Anda lalu coba lagi.',
 
       // ── Daily Detection Limit ──
       'daily_limit_title': 'Batas Harian Tercapai',
@@ -1556,6 +1571,21 @@ class AppLocalizations {
       'premium_purchase_canceled': 'Purchase canceled.',
       'premium_purchase_error': 'Failed to start purchase. Please try again.',
       'premium_plan_unavailable': 'Product currently unavailable.',
+      'premium_cancel_subscription': 'Cancel Subscription',
+      'premium_cancel_title': 'Cancel Subscription?',
+      'premium_cancel_desc':
+          'Cancellation is handled securely via the Play Store. Premium access remains valid until the end of the current period, then it will not renew.',
+      'premium_cancel_manage': 'Manage via Play Store',
+      'premium_cancel_open_store': 'Open Play Store',
+      'premium_status_refreshed': 'Subscription status refreshed.',
+      'premium_cancel_keep': 'Keep Subscription',
+      'premium_cancel_processing': 'Canceling subscription...',
+      'premium_cancel_success_title': 'Subscription Canceled',
+      'premium_cancel_success_desc':
+          'Your premium status has been revoked. You can resubscribe anytime.',
+      'premium_cancel_failed_title': 'Cancel Failed',
+      'premium_cancel_failed_desc':
+          'Unable to cancel the subscription. Check your internet connection and try again.',
 
       // ── Daily Detection Limit ──
       'daily_limit_title': 'Daily Limit Reached',

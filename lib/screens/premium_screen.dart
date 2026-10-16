@@ -7,11 +7,13 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
 import '../providers/premium_provider.dart';
 import '../services/billing_service.dart';
 import '../services/config_service.dart';
+import '../services/database_service.dart';
 
 // ── Midnight Blush Palette (dark standalone) ────────────────
 const _primary = Color(0xFFFFC5D3);
@@ -34,6 +36,7 @@ class _PremiumScreenState extends State<PremiumScreen>
     with TickerProviderStateMixin {
   final _billing = BillingService();
   bool _isRestoring = false;
+  bool _isCanceling = false;
   int _selectedIndex = 0;
 
   late final AnimationController _glowCtrl;
@@ -505,11 +508,10 @@ class _PremiumScreenState extends State<PremiumScreen>
   // ── COUNTDOWN SECTION ──────────────────────────────────────
 
   Widget _buildCountdownSection(BuildContext context, DateTime expiryDate) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Column(
         children: [
-          const SizedBox(height: 8),
           _buildGlassCard(
             padding: 20,
             child: Column(
@@ -584,7 +586,311 @@ class _PremiumScreenState extends State<PremiumScreen>
               ],
             ),
           ),
+          const SizedBox(height: 12),
+          _buildCancelSubscriptionCard(),
           const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  // ── CANCEL SUBSCRIPTION ───────────────────────────────────
+
+  /// Kartu kecil untuk mengelola/membatalkan langganan.
+  /// Langganan aktif dibatalkan via Play Store (deep link); yang sudah
+  /// kedaluwarsa dicabut langsung via server.
+  Widget _buildCancelSubscriptionCard() {
+    return _buildGlassCard(
+      padding: 14,
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: Colors.red.shade400.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(color: Colors.red.shade400.withValues(alpha: 0.3)),
+            ),
+            child: Icon(
+              PhosphorIconsRegular.calendarX,
+              size: 15,
+              color: Colors.red.shade300,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.tr('premium_cancel_subscription'),
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: _onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  AppLocalizations.tr('premium_cancel_manage'),
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: _onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: _isCanceling ? null : _confirmCancelSubscription,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.red.shade400.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: Colors.red.shade400.withValues(alpha: 0.4),
+                ),
+              ),
+              child: _isCanceling
+                  ? SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.red.shade300,
+                      ),
+                    )
+                  : Text(
+                      AppLocalizations.tr('premium_cancel_subscription'),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.red.shade300,
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmCancelSubscription() async {
+    if (_isCanceling) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Icon(
+          PhosphorIconsFill.calendarX,
+          color: Colors.red.shade400,
+          size: 48,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              AppLocalizations.tr('premium_cancel_title'),
+              style: GoogleFonts.syne(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: _onSurface,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppLocalizations.tr('premium_cancel_desc'),
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: _onSurfaceVariant,
+                height: 1.45,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              AppLocalizations.tr('premium_cancel_keep'),
+              style: GoogleFonts.inter(
+                color: _onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              AppLocalizations.tr('premium_cancel_open_store'),
+              style: GoogleFonts.inter(
+                color: Colors.red.shade300,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _cancelSubscription();
+    }
+  }
+
+  /// Batalkan langganan.
+  ///
+  /// - Langganan yang sudah kedaluwarsa → server mencabut flag lokal
+  ///   langsung (tanpa memanggil Play API).
+  /// - Langganan aktif → deep link ke Play Store (pola resmi Google untuk
+  ///   pembatalan inisiatif user; entitlement tetap berlaku sampai expiry).
+  ///   Server hanya di-refresh best-effort setelahnya.
+  Future<void> _cancelSubscription() async {
+    if (_isCanceling) return;
+    final premium = context.read<PremiumProvider>();
+    final expiry = premium.expiryDate;
+    final isExpired =
+        premium.isExpired || (expiry != null && expiry.isBefore(DateTime.now()));
+
+    if (isExpired) {
+      setState(() => _isCanceling = true);
+      final result = await DatabaseService.cancelPremium();
+      if (!mounted) return;
+      setState(() => _isCanceling = false);
+      if (result.ok) {
+        context.read<PremiumProvider>().clearPremium();
+        await _showCancelResult(true);
+      } else {
+        await _showCancelResult(false, error: result.error);
+      }
+      return;
+    }
+
+    setState(() => _isCanceling = true);
+    try {
+      final launched = await launchUrl(
+        Uri.parse(_playStoreSubscriptionUrl()),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!mounted) return;
+      setState(() => _isCanceling = false);
+      if (!launched) {
+        await _showCancelResult(false);
+        return;
+      }
+      // Refresh status server best-effort. Play tidak memberi callback,
+      // jadi user bisa saja kembali tanpa membatalkan — karena itu jangan
+      // tampilkan dialog "dibatalkan". Hanya beri tahu status diperbarui,
+      // kecuali server memastikan premium sudah nonaktif.
+      try {
+        final status = await DatabaseService.loadPremiumStatus();
+        if (!mounted) return;
+        if (!status.isPremium) {
+          context.read<PremiumProvider>().clearPremium();
+          await _showCancelResult(true);
+          return;
+        }
+        if (status.expiry != null) {
+          context.read<PremiumProvider>().setPremium(value: true, expiry: status.expiry);
+        }
+      } catch (_) {}
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.tr('premium_status_refreshed')),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: _surface,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isCanceling = false);
+      await _showCancelResult(false);
+    }
+  }
+
+  /// URL halaman langganan Play Store untuk app ini (tanpa sku agar
+  /// menampilkan semua langganan user pada aplikasi ini).
+  String _playStoreSubscriptionUrl() {
+    final pkg = ConfigService.appPackageName;
+    return 'https://play.google.com/store/account/subscriptions?package=$pkg';
+  }
+
+  Future<void> _showCancelResult(bool success, {String? error}) async {
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Icon(
+          success ? PhosphorIconsFill.checkCircle : PhosphorIconsFill.xCircle,
+          color: success ? Colors.green.shade400 : Colors.red.shade400,
+          size: 48,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              success
+                  ? AppLocalizations.tr('premium_cancel_success_title')
+                  : AppLocalizations.tr('premium_cancel_failed_title'),
+              style: GoogleFonts.syne(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: _onSurface,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              success
+                  ? AppLocalizations.tr('premium_cancel_success_desc')
+                  : AppLocalizations.tr('premium_cancel_failed_desc'),
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: _onSurfaceVariant,
+                height: 1.45,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (!success && error != null && error.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  error,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: Colors.red.shade900.withValues(alpha: 0.8),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              if (success && context.mounted) Navigator.pop(context);
+            },
+            child: Text(
+              'OK',
+              style: GoogleFonts.inter(color: _primary, fontWeight: FontWeight.w600),
+            ),
+          ),
         ],
       ),
     );

@@ -399,6 +399,41 @@ class DatabaseService {
     }
   }
 
+  /// Batalkan langganan premium langsung dari server (Play Developer API).
+  /// Server memvalidasi token tersimpan lalu mencabut status premium.
+  ///
+  /// DELETE adalah jalur utama; bila hosting memblokir/proxy-kan DELETE
+  /// (umumnya terlihat sebagai 405/502 non-JSON di shared hosting),
+  /// otomatis fallback ke POST /premium.php?action=cancel.
+  static Future<({bool ok, String? error})> cancelPremium() async {
+    try {
+      final res = await ApiService().delete('/premium.php');
+      return (ok: res['ok'] == true, error: null);
+    } on ApiException catch (e) {
+      // Fallback untuk hosting yang memblokir method DELETE.
+      final shouldRetry =
+          e.statusCode == 405 || e.statusCode == 501 || e.statusCode == 502;
+      if (shouldRetry) {
+        debugPrint('DELETE /premium.php gagal ($e), coba POST ?action=cancel');
+        try {
+          final res = await ApiService().post(
+            '/premium.php',
+            query: {'action': 'cancel'},
+          );
+          return (ok: res['ok'] == true, error: null);
+        } on ApiException catch (e2) {
+          debugPrint('Error canceling premium (fallback): $e2');
+          return (ok: false, error: e2.toString());
+        }
+      }
+      debugPrint('Error canceling premium: $e');
+      return (ok: false, error: e.toString());
+    } catch (e) {
+      debugPrint('Error canceling premium: $e');
+      return (ok: false, error: e.toString());
+    }
+  }
+
   /// Reset instance (untuk logout - dipanggil oleh AuthProvider)
   static void resetInstance() {
     debugPrint('DatabaseService reset (no-op for server API)');

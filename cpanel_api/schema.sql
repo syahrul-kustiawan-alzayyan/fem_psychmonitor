@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
   psych_score INT NULL,
   is_premium TINYINT(1) NOT NULL DEFAULT 0,
   premium_expiry DATETIME NULL,
+  subscription_token VARCHAR(512) NULL,
+  subscription_product_id VARCHAR(255) NULL,
   is_admin TINYINT(1) NOT NULL DEFAULT 0,
   created_at DATETIME NULL,
   updated_at DATETIME NULL

@@ -27,6 +27,12 @@ class ConfigService {
   static String get apiBaseUrl => _get('API_BASE_URL');
   static String get apiKey => _get('API_KEY');
 
+  // App
+  static String get appPackageName {
+    final v = _get('APP_PACKAGE_NAME');
+    return v.isNotEmpty ? v : 'com.fempsychmonitor';
+  }
+
   // Admin
   static String get adminEmail => _get('ADMIN_EMAIL');
   static String get adminPassword => _get('ADMIN_PASSWORD');

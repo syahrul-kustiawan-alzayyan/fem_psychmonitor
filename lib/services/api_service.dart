@@ -52,10 +52,18 @@ class ApiService {
     if (res.statusCode >= 200 && res.statusCode < 300 && body['ok'] == true) {
       return body;
     }
-    throw ApiException(
-      (body['error'] as String?) ?? 'HTTP ${res.statusCode}',
-      statusCode: res.statusCode,
-    );
+    final serverError = body['error'] as String?;
+    if (serverError != null && serverError.isNotEmpty) {
+      throw ApiException(serverError, statusCode: res.statusCode);
+    }
+    // Respons bukan JSON (mis. halaman 502 proxy/hosting): sertakan
+    // cuplikan body agar log tidak misterius ("HTTP 502" saja).
+    final snippet = res.body.trim().replaceAll(RegExp(r'\s+'), ' ');
+    final preview = snippet.length > 160 ? '${snippet.substring(0, 160)}…' : snippet;
+    final detail = preview.isEmpty
+        ? 'HTTP ${res.statusCode} (respons kosong dari server)'
+        : 'HTTP ${res.statusCode} (respons non-JSON: $preview)';
+    throw ApiException(detail, statusCode: res.statusCode);
   }
 
   static Future<T> _guard<T>(Future<T> Function() run) async {
@@ -90,9 +98,10 @@ class ApiService {
   Future<Map<String, dynamic>> post(
     String path, {
     Map<String, dynamic>? body,
+    Map<String, String>? query,
   }) {
     return _guard(() async {
-      final uri = Uri.parse('$_baseUrl$path');
+      final uri = Uri.parse('$_baseUrl$path').replace(queryParameters: query);
       final res = await http
           .post(uri, headers: _headers(), body: jsonEncode(body ?? {}))
           .timeout(_timeout);
