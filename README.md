@@ -8,7 +8,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-v3.11+-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Emotion_Server-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![PyTorch](https://img.shields.io/badge/PyTorch-WavLM_SSL-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org)
-[![MySQL](https://img.shields.io/badge/MySQL-Metadata_DB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com)
+[![MySQL](https://img.shields.io/badge/PHP_MySQL_API-SharedPreferences-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com)
 
 </div>
 
@@ -52,7 +52,7 @@ Alur rekam → hasil di `EmotionDetectionScreen`:
 - **Auth**: Firebase Auth (Google Sign-In) — *tetap dipakai*
 - **Backend metadata**: PHP + MySQL (cPanel) via `http` REST API (`cpanel_api/`)
 - **Server emosi + transkripsi**: FastAPI + PyTorch CPU (`ser_server/`) — WavLM-base-plus + MLP ensemble, faster-whisper small int8
-- **Lokal HP**: SharedPreferences, `record` (audio), `fl_chart` — tanpa model ML on-device
+- **Lokal HP**: SharedPreferences, `record` (audio), `fl_chart` — seluruh inferensi ML berjalan di server
 
 ## 📦 Struktur Project
 ```text
