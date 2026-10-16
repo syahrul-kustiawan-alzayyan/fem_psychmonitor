@@ -47,15 +47,29 @@ class TextEmotionService {
   }
 
   Map<EmotionType, double> analyze(String text) {
+    return analyzeDetailed(text).scores;
+  }
+
+  /// Analisis detail: skor + jumlah keyword mentah + flag prior.
+  ///
+  /// [hits] adalah jumlah keyword yang cocok (frasa multi-kata dihitung 2,
+  /// sama seperti bobot skor). Transkrip kosong atau nol keyword memberi
+  /// `hits = 0` dan `isPrior = true` sehingga confident-switch
+  /// ([FusionGate]) tidak pernah fire untuk kasus ini.
+  TextEmotionAnalysis analyzeDetailed(String text) {
     if (text.trim().isEmpty || !_loaded) {
-      return {
-        EmotionType.happy:   0.1,
-        EmotionType.sad:     0.1,
-        EmotionType.angry:   0.1,
-        EmotionType.disgust: 0.1,
-        EmotionType.neutral: 0.5,
-        EmotionType.fear:    0.1,
-      };
+      return const TextEmotionAnalysis(
+        scores: {
+          EmotionType.happy: 0.1,
+          EmotionType.sad: 0.1,
+          EmotionType.angry: 0.1,
+          EmotionType.disgust: 0.1,
+          EmotionType.neutral: 0.5,
+          EmotionType.fear: 0.1,
+        },
+        hits: 0,
+        isPrior: true,
+      );
     }
 
     final lower = text.toLowerCase();
@@ -84,20 +98,44 @@ class TextEmotionService {
     }
 
     if (totalMatches == 0) {
-      return {
-        EmotionType.happy:   0.1,
-        EmotionType.sad:     0.1,
-        EmotionType.angry:   0.1,
-        EmotionType.disgust: 0.1,
-        EmotionType.neutral: 0.5,
-        EmotionType.fear:    0.1,
-      };
+      return const TextEmotionAnalysis(
+        scores: {
+          EmotionType.happy: 0.1,
+          EmotionType.sad: 0.1,
+          EmotionType.angry: 0.1,
+          EmotionType.disgust: 0.1,
+          EmotionType.neutral: 0.5,
+          EmotionType.fear: 0.1,
+        },
+        hits: 0,
+        isPrior: true,
+      );
     }
 
     for (final e in EmotionType.values) {
       scores[e] = (scores[e] ?? 0) / totalMatches;
     }
 
-    return scores;
+    return TextEmotionAnalysis(
+        scores: scores, hits: totalMatches, isPrior: false);
   }
+}
+
+/// Hasil analisis emosi teks beserta metadata mentah untuk fusi.
+class TextEmotionAnalysis {
+  /// Distribusi 6 emosi (jumlah = 1.0).
+  final Map<EmotionType, double> scores;
+
+  /// Jumlah keyword mentah yang cocok (bobot frasa ikut dihitung).
+  final int hits;
+
+  /// True bila tidak ada sinyal teks (kosong / nol keyword / belum load)
+  /// sehingga [scores] hanyalah prior default.
+  final bool isPrior;
+
+  const TextEmotionAnalysis({
+    required this.scores,
+    required this.hits,
+    required this.isPrior,
+  });
 }

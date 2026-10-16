@@ -5,8 +5,9 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
 import '../services/database_service.dart';
-import '../services/gemini_service.dart';
+import '../services/fusion_gate.dart';
 import '../services/suggestion_service.dart';
+import '../services/text_emotion_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/resonance_colors.dart';
 import '../widgets/painters.dart';
@@ -28,17 +29,19 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
   bool _loaded = false;
   bool _transcriptExpanded = false;
 
+  Map<EmotionType, double>? _displayScores;
+
+  /// Distribusi kanal pemenang confident-switch (sum = 1) untuk chart.
+  /// Dihitung ulang dari data tersimpan agar konsisten dengan keputusan
+  /// saat perekaman (tanpa blend berbobot tetap).
   Map<EmotionType, double> get _combinedScores {
+    final stored = _displayScores;
+    if (stored != null) return stored;
     final data = _recordingData;
     if (data == null) {
       return {for (final e in EmotionType.values) e: 1.0 / EmotionType.values.length};
     }
-    return GeminiService.combineResults(
-      data.audioEmotions,
-      data.transcriptEmotions,
-      audioWeight: 0.6,
-      textWeight: 0.4,
-    );
+    return data.audioEmotions;
   }
 
   Map<EmotionType, double> get _sortedScores {
@@ -58,8 +61,23 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
     final id = widget.record.recordingId;
     if (id == null) return;
     final data = await DatabaseService.getRecording(id);
+    Map<EmotionType, double>? display;
+    if (data != null) {
+      await TextEmotionService.instance.loadAll();
+      final textAnalysis = TextEmotionService.instance
+          .analyzeDetailed(data.transcriptText);
+      final decision = FusionGate.decide(
+        audioScores: data.audioEmotions,
+        textScores: textAnalysis.scores,
+        keywordHits: textAnalysis.hits,
+      );
+      display = decision.textUsed ? textAnalysis.scores : data.audioEmotions;
+    }
     if (mounted) {
-      setState(() => _recordingData = data);
+      setState(() {
+        _recordingData = data;
+        _displayScores = display;
+      });
     }
   }
 

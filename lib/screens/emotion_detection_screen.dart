@@ -17,7 +17,7 @@ import '../services/ad_service.dart';
 import '../services/api_service.dart';
 import '../services/database_service.dart';
 import '../services/storage_service.dart';
-import '../services/gemini_service.dart';
+import '../services/fusion_gate.dart';
 import '../services/ser_service.dart';
 import '../services/suggestion_service.dart';
 import '../services/text_emotion_service.dart';
@@ -382,26 +382,31 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     await Future.delayed(const Duration(milliseconds: 300));
 
     await TextEmotionService.instance.loadAll();
-    final textScores = TextEmotionService.instance.analyze(transcript);
+    final textAnalysis = TextEmotionService.instance.analyzeDetailed(transcript);
+    final textScores = textAnalysis.scores;
 
     final hasAudioData =
         _finalAudioScores.isNotEmpty && _finalAudioScores.values.any((v) => v > 0);
 
     if (hasAudioData) {
       if (mounted) {
-        setState(() =>
-            _processingMessage = AppLocalizations.tr('processing_result'));
+        setState(() => _processingMessage = 'Menerapkan confident-switch');
       }
-      final combined = GeminiService.combineResults(
-        _finalAudioScores,
-        textScores,
-        audioWeight: 0.6,
-        textWeight: 0.4,
+      // Confident-switch tervalidasi; bukan blend berbobot tetap.
+      final decision = FusionGate.decide(
+        audioScores: _finalAudioScores,
+        textScores: textScores,
+        keywordHits: textAnalysis.hits,
       );
 
-      final dominant = combined.entries.reduce(
-        (a, b) => a.value >= b.value ? a : b,
+      // Distribusi untuk konsumen hilir: kanal yang menang (sum = 1) supaya
+      // computeMentalHealthAdjustment() tetap bermakna.
+      final combined = decision.textUsed ? textScores : _finalAudioScores;
+      final dominant = MapEntry(
+        decision.label,
+        combined[decision.label] ?? 0.0,
       );
+      debugPrint('🔀 Fusion: $decision');
 
       final user = await DatabaseService.getUser();
       final userId = user?.id ?? 1;

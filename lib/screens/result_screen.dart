@@ -5,8 +5,9 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../models/emotion_model.dart';
 import '../l10n/app_localizations.dart';
 import '../services/database_service.dart';
-import '../services/gemini_service.dart';
+import '../services/fusion_gate.dart';
 import '../services/suggestion_service.dart';
+import '../services/text_emotion_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/resonance_colors.dart';
 import '../widgets/painters.dart';
@@ -28,13 +29,14 @@ class _ResultScreenState extends State<ResultScreen> {
   String _selectedTrigger = '';
   bool _transcriptExpanded = false;
 
+  Map<EmotionType, double>? _displayScores;
+
+  /// Distribusi kanal pemenang confident-switch (sum = 1) untuk chart.
+  /// Dihitung ulang dari data tersimpan agar konsisten dengan keputusan
+  /// saat perekaman (tanpa blend berbobot tetap).
   Map<EmotionType, double> get _combinedScores {
-    return GeminiService.combineResults(
-      widget.recordingData.audioEmotions,
-      widget.recordingData.transcriptEmotions,
-      audioWeight: 0.6,
-      textWeight: 0.4,
-    );
+    return _displayScores ??
+        {for (final e in EmotionType.values) e: 1.0 / EmotionType.values.length};
   }
 
   Map<EmotionType, double> get _sortedScores {
@@ -55,16 +57,23 @@ class _ResultScreenState extends State<ResultScreen> {
     await service.load();
 
     final bigFiveScores = user?.bigFiveScores ?? {};
-    final combined = _combinedScores;
-    final dominant = combined.entries
-        .reduce((a, b) => a.value >= b.value ? a : b)
-        .key;
+    await TextEmotionService.instance.loadAll();
+    final textAnalysis = TextEmotionService.instance
+        .analyzeDetailed(widget.recordingData.transcriptText);
+    final decision = FusionGate.decide(
+      audioScores: widget.recordingData.audioEmotions,
+      textScores: textAnalysis.scores,
+      keywordHits: textAnalysis.hits,
+    );
+    final dominant = decision.label;
 
     final result = service.getStructuredSuggestions(bigFiveScores, dominant);
     final title = service.buildTitle(bigFiveScores, dominant);
 
     if (mounted) {
       setState(() {
+        _displayScores =
+            decision.textUsed ? textAnalysis.scores : widget.recordingData.audioEmotions;
         _suggestionResult = result;
         _title = title;
         _loaded = true;
