@@ -1,0 +1,12 @@
+torch>=2.6
+transformers
+faster-whisper
+hf_transfer  # akselerator unduh model (pakai HF_HUB_ENABLE_HF_TRANSFER=1)
+soundfile
+scipy
+numpy
+pandas
+fastapi
+uvicorn[standard]
+python-multipart
+huggingface_hub

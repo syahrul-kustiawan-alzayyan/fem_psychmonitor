@@ -27,6 +27,11 @@ class ConfigService {
   static String get apiBaseUrl => _get('API_BASE_URL');
   static String get apiKey => _get('API_KEY');
 
+  // Server inferensi SER lokal (FastAPI, assets/model_deploy/server_ssl.py)
+  // Lokal: http://127.0.0.1:8001 (desktop) atau http://10.0.2.2:8001 (emulator).
+  // Perangkat fisik: ganti dengan IP LAN laptop, mis. http://192.168.1.5:8001.
+  static String get serBaseUrl => _get('SER_BASE_URL');
+
   // App
   static String get appPackageName {
     final v = _get('APP_PACKAGE_NAME');

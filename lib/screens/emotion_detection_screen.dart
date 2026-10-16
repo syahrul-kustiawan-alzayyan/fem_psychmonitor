@@ -19,6 +19,7 @@ import '../services/api_service.dart';
 import '../services/database_service.dart';
 import '../services/storage_service.dart';
 import '../services/gemini_service.dart';
+import '../services/ser_service.dart';
 import '../services/suggestion_service.dart';
 import '../services/text_emotion_service.dart';
 import '../services/whisper_init_service.dart';
@@ -279,7 +280,10 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     _pulseCtrl.stop();
     _pulseCtrl.reset();
 
-    _finalAudioScores = Map.from(_currentScores);
+    // NOTE pengujian lokal: skor live di atas hanya animasi preview,
+    // TIDAK dipakai sebagai hasil. Skor final wajib dari server SER
+    // (fail-closed, tanpa fallback mock).
+    _finalAudioScores = {};
 
     // Step 1: Stop recording
     String? recordedPath;
@@ -291,13 +295,79 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     final path = recordedPath ?? _wavPath;
     _wavPath = path; // sync untuk upload nanti
 
-    // Step 2: Transcribe with Whisper - fallback base -> tiny -> skip
+    if (path == null) {
+      setState(() => _isProcessing = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.tr('emotion_data_unavailable')),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Step 1b: Server SER lokal — inferensi emosi + transkripsi PARALEL
+    // (pengganti TFLite/mock dan Whisper on-device sebagai sumber utama).
+    // Aturan gagal: emosi gagal -> batal simpan (fail-closed);
+    // transkrip server gagal -> fallback Whisper on-device di bawah.
     String transcript = '';
     String transcriptionInfo = '';
-    if (path != null) {
-      if (mounted) {
-        setState(() => _processingMessage = AppLocalizations.tr('processing_transcription_first'));
+    if (mounted) {
+      setState(() => _processingMessage = 'Inferensi server (emosi + transkripsi)...');
+    }
+    try {
+      final results = await Future.wait([
+        SerService().predictEmotion(path),
+        // Transkrip server boleh gagal sendiri: tangkap di sini agar
+        // Future.wait tidak ikut gagal, lalu fallback on-device.
+        SerService().transcribe(path).then<String>((t) => t).catchError((Object e) {
+          debugPrint('⚠️ Transkrip server gagal, fallback on-device: $e');
+          return '';
+        }),
+      ]);
+      final ser = results[0] as SerResult;
+      transcript = results[1] as String;
+      _finalAudioScores = Map<EmotionType, double>.from(ser.scores);
+      if (transcript.isNotEmpty) {
+        transcriptionInfo = 'Transkrip: server (faster-whisper)';
       }
+      if (mounted) {
+        setState(() {
+          _currentScores = Map<EmotionType, double>.from(ser.scores);
+          _currentEmotion = ser.dominant;
+        });
+      }
+      debugPrint('✅ SER ${ser.label} (${(ser.confidence * 100).toStringAsFixed(1)}%, ${ser.inferSeconds}s)');
+      if (transcript.isNotEmpty) {
+        debugPrint('📝 Transkrip server: "$transcript"');
+      }
+    } on SerException catch (e) {
+      debugPrint('❌ SER gagal: $e');
+      setState(() => _isProcessing = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Server emosi lokal gagal: $e\nJalankan: python assets/model_deploy/server_ssl.py',
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 6),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Step 2: Fallback transkripsi on-device (Whisper base -> tiny)
+    // hanya bila transkrip server kosong/gagal.
+    if (transcript.isEmpty) {
+      {
+        if (mounted) {
+          setState(() => _processingMessage = AppLocalizations.tr('processing_transcription_first'));
+        }
 
       await WhisperInitService.instance.warmUp();
 
@@ -359,6 +429,16 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
           ),
         );
       }
+      }
+    } else if (mounted && transcriptionInfo.isNotEmpty) {
+      // Transkrip server berhasil — beri tahu sumbernya sekilas.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(transcriptionInfo),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
 
     // Step 3: Analyze emotion from transcript text (local, no API)
@@ -654,9 +734,10 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     final c = ResonanceColors.of(context);
     final isEn = AppLocalizations.locale.startsWith('en');
     final steps = isEn
-        ? ['Transcribing audio', 'Analyzing text emotion', 'Preparing results']
+        ? ['Transcribing audio', 'Server emotion inference', 'Analyzing text emotion', 'Preparing results']
         : [
             'Transkripsi audio',
+            'Inferensi server emosi',
             'Analisis emosi teks',
             'Menyiapkan hasil',
           ];
@@ -800,15 +881,18 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     );
   }
 
-  /// Tahapan pemrosesan aktif (0=transkripsi, 1=analisis teks, 2=finalisasi).
+  /// Tahapan pemrosesan aktif (0=transkripsi, 1=server SER, 2=analisis teks, 3=finalisasi).
   int get _processingStep {
     final m = _processingMessage.toLowerCase();
+    if (m.contains('server') || m.contains('inferensi') || m.contains('inference')) {
+      return 1;
+    }
     if (m.contains('analisis') ||
         m.contains('analyz') ||
         m.contains('emosi teks')) {
-      return 1;
+      return 2;
     }
-    if (m.contains('hasil') || m.contains('result') || m.isEmpty) return 2;
+    if (m.contains('hasil') || m.contains('result') || m.isEmpty) return 3;
     return 0;
   }
 

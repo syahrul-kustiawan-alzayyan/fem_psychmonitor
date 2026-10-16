@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
@@ -22,7 +21,6 @@ import 'services/database_service.dart';
 import 'services/config_service.dart';
 import 'services/notification_service.dart';
 import 'services/storage_service.dart';
-import 'services/whisper_init_service.dart';
 import 'screens/auth_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
@@ -198,12 +196,10 @@ class AppRouter extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<_RouteAction>(
       future: (() async {
+        // NOTE: tidak ada unduh model saat startup. Transkripsi utama
+        // dari server (/transcribe); Whisper on-device hanya fallback
+        // dan diunduh sesuai kebutuhan di layar deteksi.
         try {
-          await WhisperInitService.instance.warmUp();
-          if (!WhisperInitService.instance.isReady) {
-            await Future.delayed(const Duration(seconds: 3));
-          }
-
           final user = FirebaseAuth.instance.currentUser;
           if (user != null) {
             final isAdmin = await DatabaseService.isCurrentUserAdmin();
@@ -265,44 +261,14 @@ class AppRouter extends StatelessWidget {
 }
 
 // ────────────────────────────────────────────────────────
-// Splash Screen Premium dengan Animasi Partikel
+// Splash Screen — statis, tanpa unduh model.
+// (Transkripsi utama dari server; model on-device hanya fallback.)
 // ────────────────────────────────────────────────────────
-class _SplashScreen extends StatefulWidget {
+class _SplashScreen extends StatelessWidget {
   const _SplashScreen();
 
   @override
-  State<_SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<_SplashScreen>
-    with SingleTickerProviderStateMixin {
-  double _modelProgress = 0.0;
-  String _modelStatus = '';
-
-  @override
-  void initState() {
-    super.initState();
-    final ws = WhisperInitService.instance;
-    _modelProgress = ws.progress;
-    _modelStatus = ws.statusMessage;
-    ws.addProgressListener(_onModelProgress);
-  }
-
-  void _onModelProgress(double progress, String message) {
-    if (mounted) setState(() { _modelProgress = progress; _modelStatus = message; });
-  }
-
-  @override
-  void dispose() {
-    WhisperInitService.instance.removeProgressListener(_onModelProgress);
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final isReady = _modelProgress >= 1.0;
-    final status =
-        _modelStatus.isNotEmpty ? _modelStatus : 'Memuat aplikasi...';
     final c = ResonanceColors.of(context);
 
     return Scaffold(
@@ -383,52 +349,6 @@ class _SplashScreenState extends State<_SplashScreen>
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 44),
-
-                  // Progress
-                  if (isReady)
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: c.primaryContainer,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        PhosphorIconsRegular.checkCircle,
-                        color: c.primary,
-                        size: 22,
-                      ),
-                    )
-                  else ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(999),
-                      child: SizedBox(
-                        width: 220,
-                        height: 6,
-                        child: LinearProgressIndicator(
-                          value: _modelProgress > 0 ? _modelProgress : null,
-                          minHeight: 6,
-                          backgroundColor:
-                              c.primary.withValues(alpha: 0.15),
-                          valueColor: AlwaysStoppedAnimation<Color>(c.primary),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      _modelProgress > 0
-                          ? '${(_modelProgress * 100).toStringAsFixed(0)}%'
-                          : status,
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: _modelProgress > 0
-                            ? c.primary
-                            : c.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -525,82 +445,9 @@ class _MainNavigationState extends State<MainNavigation>
           MaterialPageRoute(builder: (_) => const PremiumScreen()),
         );
       }
-      if (!mounted) return;
-      if (!WhisperInitService.instance.isReady) {
-        _showModelDownloadDialog(context);
-      }
+      // NOTE: tidak ada unduh/prompt model suara di awal. Transkripsi
+      // utama dari server; Whisper on-device hanya fallback sesuai kebutuhan.
     });
-  }
-
-  void _showModelDownloadDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.cloud_download_rounded, color: AppTheme.primaryColor, size: 24),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                AppLocalizations.tr('voice_model'),
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 18),
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          AppLocalizations.tr('voice_model_desc'),
-          style: GoogleFonts.poppins(fontSize: 13, height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(AppLocalizations.tr('later'), style: GoogleFonts.poppins()),
-          ),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.download_rounded, size: 18),
-            label: Text(AppLocalizations.tr('download_now'), style: GoogleFonts.poppins()),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              _performModelDownload();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _performModelDownload() async {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
-            const SizedBox(width: 12),
-            Text(AppLocalizations.tr('model_downloading'), style: GoogleFonts.poppins(fontSize: 12)),
-          ],
-        ),
-        duration: const Duration(seconds: 3),
-      ),
-    );
-    await WhisperInitService.instance.warmUp();
-    if (!mounted) return;
-    if (WhisperInitService.instance.isReady) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.tr('model_download_success'), style: GoogleFonts.poppins(fontSize: 12))),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.tr('model_download_failed'), style: GoogleFonts.poppins(fontSize: 12))),
-      );
-    }
   }
 
   void _navigateToRecording() {

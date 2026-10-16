@@ -274,7 +274,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Footer: versi app
               Center(
                 child: Text(
-                  'Fem-Psych Monitor v2.2.3',
+                  'Fem-Psych Monitor v2.2.4',
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 11,
                     color: c.outline,
