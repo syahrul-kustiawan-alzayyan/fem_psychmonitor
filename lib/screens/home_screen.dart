@@ -586,16 +586,11 @@ String get _greetingAsset {
         final user = snapshot.data;
         final basePsychScore = user?.psychologicalScore; // 0-100 (tinggi = baik)
 
-        // Skor langsung 0-100 dari Firebase (tinggi = sehat)
+        // Skor langsung 0-100 dari database (tinggi = sehat)
         // Skor sudah termasuk adjustment dari rekaman emosi sebelumnya
         int? displayScore100;
         if (basePsychScore != null) {
           displayScore100 = basePsychScore;
-          // Override skor untuk testing safety layer
-          if (FirebaseAuth.instance.currentUser?.uid ==
-              '3v01CZB4LQMblWB2Z2AHv5Sv8q63') {
-            displayScore100 = 20;
-          }
         }
 
         // Tentukan warna dan info berdasarkan skor (0-100, tinggi = baik)

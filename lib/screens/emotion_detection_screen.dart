@@ -204,11 +204,10 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         const Duration(seconds: 3),
         (_) {
           if (mounted) {
+            // Pratinjau netral saja; emosi final hanya dari server.
             setState(() {
               _currentScores = _generateMockScores();
-              _currentEmotion = _currentScores.entries.reduce(
-                (a, b) => a.value >= b.value ? a : b,
-              ).key;
+              _currentEmotion = null;
             });
           }
         },
@@ -216,9 +215,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
       if (mounted) {
         setState(() {
           _currentScores = _generateMockScores();
-          _currentEmotion = _currentScores.entries.reduce(
-            (a, b) => a.value >= b.value ? a : b,
-          ).key;
+          _currentEmotion = null;
         });
       }
 
@@ -258,17 +255,13 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
     }
   }
 
+  /// Skor pratinjau deterministik (netral, semua kelas sama) selama rekaman.
+  ///
+  /// Ini HANYA animasi placeholder — skor final tidak pernah berasal dari
+  /// sini, melainkan selalu dari server (`SerService`) saat rekaman berhenti.
   Map<EmotionType, double> _generateMockScores() {
-    final scores = <EmotionType, double>{};
-    double remaining = 1.0;
-    final values = EmotionType.values.toList()..shuffle(_rand);
-    for (int i = 0; i < values.length - 1; i++) {
-      final v = remaining * (0.05 + _rand.nextDouble() * 0.35);
-      scores[values[i]] = v;
-      remaining -= v;
-    }
-    scores[values.last] = remaining;
-    return scores;
+    final uniform = 1.0 / EmotionType.values.length;
+    return {for (final e in EmotionType.values) e: uniform};
   }
 
   Future<void> _stopRecording() async {
