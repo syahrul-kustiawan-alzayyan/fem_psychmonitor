@@ -343,13 +343,11 @@ class AppLocalizations {
 
       // ── Live Detection Screen ──
       'live_detection_title': 'Deteksi Emosi Live',
-      'loading_model': 'Memuat model TFLite...',
       'model_not_ready': 'Model belum siap. Tunggu sebentar...',
       'mic_permission_required':
           'Permission microphone diperlukan untuk fitur ini',
       'failed_start_recording': 'Gagal memulai rekaman',
       'tap_to_stop': 'Sentuh untuk menghentikan',
-      'loading_model_short': 'Memuat model...',
       'tap_to_start': 'Sentuh untuk memulai',
       'detecting_emotion': 'Mendeteksi emosi...',
       'emotion_detected': 'Emosi terdeteksi: ',
@@ -811,12 +809,6 @@ class AppLocalizations {
       'incomplete_data_desc': 'Anda harus mengisi data onboarding terlebih dahulu sebelum menggunakan aplikasi.',
       'fill_now': 'Isi Sekarang',
       'later': 'Nanti',
-      'model_downloading': 'Mengunduh model suara...',
-      'model_download_success': 'Model berhasil diunduh.',
-      'model_download_failed': 'Gagal mengunduh model. Periksa koneksi internet Anda.',
-      'download_now': 'Unduh Sekarang',
-      'voice_model': 'Model Suara',
-      'voice_model_desc': 'Model ini diperlukan untuk deteksi emosi dari suara.',
       'psych_status_happy': 'Sangat Baik',
       'psych_status_sad': 'Perlu Perhatian',
       'psych_status_angry': 'Butuh Jeda',
@@ -1150,13 +1142,11 @@ class AppLocalizations {
 
       // ── Live Detection Screen ──
       'live_detection_title': 'Live Emotion Detection',
-      'loading_model': 'Loading TFLite model...',
       'model_not_ready': 'Model not ready. Please wait...',
       'mic_permission_required':
           'Microphone permission is required for this feature',
       'failed_start_recording': 'Failed to start recording',
       'tap_to_stop': 'Tap to stop',
-      'loading_model_short': 'Loading model...',
       'tap_to_start': 'Tap to start',
       'detecting_emotion': 'Detecting emotion...',
       'emotion_detected': 'Emotion detected: ',
@@ -1612,12 +1602,6 @@ class AppLocalizations {
       'incomplete_data_desc': 'You need to complete the onboarding data before using the application.',
       'fill_now': 'Fill Now',
       'later': 'Later',
-      'model_downloading': 'Downloading voice model...',
-      'model_download_success': 'Model downloaded successfully.',
-      'model_download_failed': 'Failed to download model. Check your internet connection.',
-      'download_now': 'Download Now',
-      'voice_model': 'Voice Model',
-      'voice_model_desc': 'This model is required for voice emotion detection.',
       'psych_status_happy': 'Very Good',
       'psych_status_sad': 'Needs Attention',
       'psych_status_angry': 'Needs a Break',

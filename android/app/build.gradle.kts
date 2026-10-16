@@ -16,24 +16,6 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
-// Patch whisper_kit CMakeLists.txt to remove armv8.2-a+fp16 flag that causes SIGILL on older devices
-val pubCacheBase = System.getenv("PUB_CACHE") ?: "${System.getProperty("user.home")}/AppData/Local/Pub/Cache"
-val whisperCmakeFile = file("$pubCacheBase/hosted/pub.dev/whisper_kit-0.3.1/src/CMakeLists.txt")
-tasks.matching { it.name.startsWith("configureCMake") }.configureEach {
-    doFirst {
-        if (whisperCmakeFile.exists()) {
-            var content = whisperCmakeFile.readText()
-            val patched = content
-                .replace("-march=armv8.2-a+fp16", "-march=armv8-a")
-                .replace("-mfpu=neon-vfpv4", "-mfpu=neon")
-            if (content != patched) {
-                whisperCmakeFile.writeText(patched)
-                logger.lifecycle("✅ Patched whisper_kit CMakeLists.txt for broader CPU compatibility")
-            }
-        }
-    }
-}
-
 android {
     namespace = "com.fempsychmonitor"
     ndkVersion = "28.2.13676358"

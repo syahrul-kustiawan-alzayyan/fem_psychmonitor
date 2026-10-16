@@ -294,22 +294,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
-  flutter_litert:
-    dependency: "direct main"
-    description:
-      name: flutter_litert
-      sha256: "6e541d7d79a31ab5d67c0b9fd1f61ce5a1e88a7be86ffc7157b5ed14527ddf51"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.4.0"
-  flutter_litert_flex:
-    dependency: "direct main"
-    description:
-      name: flutter_litert_flex
-      sha256: "459ca757faaa9fc21e63ad4fa596a6c8ac9f2661bb1ce0114ac96c2a1b27419a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.8"
   flutter_local_notifications:
     dependency: "direct main"
     description:
@@ -840,14 +824,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
-  quiver:
-    dependency: transitive
-    description:
-      name: quiver
-      sha256: ea0b925899e64ecdfbf9c7becb60d5b50e706ade44a85b2363be2a22d88117d2
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.2.2"
   record:
     dependency: "direct main"
     description:
@@ -1165,14 +1141,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.25.1"
-  whisper_kit:
-    dependency: "direct main"
-    description:
-      name: whisper_kit
-      sha256: "85d99b5122a99a577d8fcba288022dfdff97ae349924d9d842c16f00a5089886"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.1"
   win32:
     dependency: transitive
     description:

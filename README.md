@@ -6,112 +6,129 @@
 ### *Empowering Women through Emotional Intelligence and AI*
 
 [![Flutter](https://img.shields.io/badge/Flutter-v3.11+-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
-[![TFLite](https://img.shields.io/badge/TFLite-Emotion_Engine-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://www.tensorflow.org/lite)
-[![SQLite](https://img.shields.io/badge/SQLite-Local_Persistence-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Emotion_Server-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![PyTorch](https://img.shields.io/badge/PyTorch-WavLM_SSL-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org)
+[![MySQL](https://img.shields.io/badge/MySQL-Metadata_DB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com)
 
 </div>
 
 ---
 
 ## 🌟 Tentang Proyek
-**Fem-Psych Monitor** (Fem-PhysicsMonitor) adalah aplikasi pemantauan kesehatan mental yang dirancang khusus untuk perempuan. Menggabungkan psikometri (MBTI) dengan teknologi **Voice Emotion Intelligence** berbasis AI, aplikasi ini membantu pengguna memahami dinamika emosional mereka secara real-time dan memberikan saran yang dipersonalisasi.
+**Fem-Psych Monitor** adalah aplikasi pemantauan kesehatan mental yang dirancang khusus untuk perempuan. Menggabungkan psikometri **Big Five (OCEAN)** dengan **Voice Emotion Intelligence** — inferensi emosi suara (WavLM + MLP ensemble) dan transkripsi (faster-whisper) yang berjalan di server lokal — aplikasi ini membantu pengguna memahami dinamika emosionalnya dan mendapatkan saran coping yang dipersonalisasi secara deterministik (bukan generatif).
 
-Aplikasi ini bertujuan untuk menjadi asisten digital yang menyediakan ruang aman bagi perempuan untuk melacak kondisi psikologis mereka, mengidentifikasi pola stres, dan mendapatkan dukungan mandiri melalui rekomendasi berbasis sains.
+> ⚠️ **Bukan alat diagnosis klinis.** Skor dan rekomendasi bersifat skrining awal/pendukung. Kode berperilaku *fail-closed*: kegagalan server ditampilkan sebagai error yang jelas, tidak pernah diganti skor palsu.
 
 ## 🚀 Fitur Unggulan
 
-### 1. 📋 Onboarding & Profil Psikologis
-Sistem penilaian awal yang komprehensif untuk membangun profil dasar pengguna:
-- **MBTI Assessment**: Tes kepribadian terintegrasi untuk menentukan tipe kepribadian (16 tipe).
-- **Mental Health Check**: Kuesioner kesehatan mental awal untuk menentukan base-line kondisi psikis.
-- **Dynamic Categorization**: Pengelompokan kondisi mental dalam kategori: *Baik*, *Cukup*, atau *Perlu Perhatian*.
+### 1. 📋 Onboarding Psikometri
+Membangun profil dasar pengguna sebelum memakai fitur utama:
+- **Big Five Mini-IPIP** (20 item, skala Likert 1–5): Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism.
+- **Skrining psikologis khusus perempuan** (20 item): beban peran ganda, fluktuasi hormonal, citra tubuh, batasan personal, kecemasan sosial, burnout.
+- **Stratifikasi skor**: *Sehat Optimal* (≥76), *Cukup* (≥51), *Rentan* (≥26), *Butuh Perhatian Klinis* (<26).
 
-### 2. 🎙️ Voice Emotion Intelligence (AI)
-Fitur inti yang mendeteksi emosi melalui suara menggunakan model **TensorFlow Lite**:
-- **Real-time Recording**: Merekam suara dan melakukan inferensi instan.
-- **Multi-Emotion Detection**: Mendeteksi emosi seperti *Happy*, *Sad*, *Angry*, *Fear*, *Disgust*, dan *Neutral*.
-- **Emotion Snapshots**: Mengambil data emosi setiap 3 detik untuk analisis durasi yang lebih akurat.
+### 2. 🎙️ Deteksi Emosi Multimodal (Server)
+Alur rekam → hasil di `EmotionDetectionScreen`:
+- **Rekam suara** (WAV 16 kHz mono) dengan pratinjau live dan panduan pertanyaan cerita.
+- **Jalur suara (bobot 60%)**: `POST /predict-ssl` — WavLM-base-plus frozen + MLP ensemble 3 seed → 6 emosi (`happy, sad, angry, fearful, disgust, neutral`) + confidence.
+- **Jalur teks (bobot 40%)**: `POST /transcribe` (faster-whisper, Bahasa Indonesia) → pencocokan leksikon afektif dwibahasa → skor emosi teks. Transkrip kosong → skor teks default netral.
+- **Fusi + penyimpanan**: skor gabungan → emosi dominan → saran pertama → simpan ke backend (metadata + transkrip, audio opsional) → skor psikologis diperbarui (`computeMentalHealthAdjustment`, netral = tidak berubah).
 
-### 3. 📊 Dashboard & Visualisasi Data
-Memantau perkembangan kesehatan mental melalui grafik yang interaktif:
-- **Emotional Trends**: Grafik garis dan batang menggunakan `fl_chart`.
-- **History Tracking**: Log lengkap riwayat rekaman dan hasil deteksi.
-- **Consistency Score**: Melihat seberapa stabil kondisi emosi dalam rentang waktu mingguan/bulanan.
+### 3. 📊 Dashboard & Riwayat
+- **Home**: sapaan, kartu status psikis, mini-statistik, riwayat terbaru, saran personal.
+- **History**: filter waktu, grafik tren emosi (`fl_chart`), detail per rekaman (transkrip, skor audio vs teks, trigger tag), ekspor PDF.
+- **Trigger tag** wajib tiap rekaman: kerja, asmara, keuangan, kesehatan, keluarga, sosial, lainnya.
 
-### 4. 💡 Smart Recommendations
-Sistem saran cerdas yang mengambil data dari `saran.json`:
-- **Personalized Advice**: Saran yang disesuaikan dengan tipe MBTI (Contoh: saran untuk *INFJ* berbeda dengan *ESTP*).
-- **Emotion-Based Strategy**: Memberikan langkah praktis berdasarkan emosi dominan yang terdeteksi.
+### 4. 💡 Rekomendasi Deterministik
+`SuggestionService` (basis `saran_bigfive_v2.json`): 6 emosi × 5 trait × tinggi/rendah → tampil 10 saran per sesi (2 per trait non-netral) + lapisan rujukan keselamatan. Tanpa LLM generatif — setiap saran dapat ditelusuri.
+
+### 5. 🔐 Auth, Premium & Admin
+- Firebase Auth (email + Google, verifikasi email) — UID Firebase = identitas di database.
+- Premium (Google Play Billing, server = sumber kebenaran), AdMob, notifikasi pengingat harian, id/en dua bahasa, mode terang/gelap.
+- Dashboard admin: daftar user, distribusi emosi, detail + PDF per user.
 
 ## 🛠️ Stack Teknologi
-- **Framework**: [Flutter](https://flutter.dev)
-- **State Management**: [Provider](https://pub.dev/packages/provider)
-- **Autentikasi**: Firebase Auth (Google Sign-In) — *tetap dipakai*
-- **Backend Database & Storage**: PHP + MySQL (cPanel) via `http` (REST API)
-- **AI/ML Engine**: Server SER lokal — WavLM-base-plus frozen + MLP ensemble (`ser_server/`, FastAPI + PyTorch CPU) untuk emosi suara, faster-whisper untuk transkripsi
-- **Data Persistence**: [Shared Preferences](https://pub.dev/packages/shared_preferences) + server API
-- **Charts**: [fl_chart](https://pub.dev/packages/fl_chart)
-- **Audio Management**: [record](https://pub.dev/packages/record)
+- **Framework**: [Flutter](https://flutter.dev) · **State**: [Provider](https://pub.dev/packages/provider)
+- **Auth**: Firebase Auth (Google Sign-In) — *tetap dipakai*
+- **Backend metadata**: PHP + MySQL (cPanel) via `http` REST API (`cpanel_api/`)
+- **Server emosi + transkripsi**: FastAPI + PyTorch CPU (`ser_server/`) — WavLM-base-plus + MLP ensemble, faster-whisper small int8
+- **Lokal HP**: SharedPreferences, `record` (audio), `fl_chart` — tanpa model ML on-device
 
 ## 📦 Struktur Project
 ```text
 lib/                 # Aplikasi Flutter
 ├── l10n/            # Lokalisasi id/en
-├── models/          # AppUser, EmotionRecord, dst.
+├── models/          # AppUser, EmotionRecord, BigFive/PsyQuestion
 ├── providers/       # Auth, locale, theme, premium, admin
-├── screens/         # Auth, onboarding, home, deteksi, history, admin
-├── services/        # ApiService, DatabaseService, SerService, dsb.
+├── screens/         # Auth, onboarding/*, home, deteksi, hasil, history, admin
+├── services/        # ApiService, DatabaseService, SerService, saran, teks-emosi, dsb.
 ├── theme/           # AppTheme + ResonanceColors
 ├── utils/           # Helper animasi
 └── widgets/         # Komponen UI reusable
 ser_server/          # Server inferensi emosi + transkripsi (Python/FastAPI)
-├── server_ssl.py    # Satu-satunya entrypoint (GET /health, POST /predict-ssl, /transcribe)
-├── train_ssl.py     # Definisi arsitektur SSLHead (jangan diubah)
-├── models/ssl/      # Checkpoint ensemble + scaler (jangan commit ulang tanpa perlu)
-├── requirements.txt # Dependensi Python (torch>=2.6, transformers, faster-whisper)
-└── test_*.py        # Uji kontrak + latensi server
-cpanel_api/          # Backend PHP + MySQL (metadata, bukan audio inferensi)
+├── server_ssl.py    # Entrypoint: GET /health, POST /predict-ssl, POST /transcribe
+├── train_ssl.py     # Definisi arsitektur SSLHead (terikat checkpoint — jangan diubah)
+├── models/ssl/      # Checkpoint ensemble 3 seed + scaler.npz (fit-di-train, wajib dipakai)
+├── requirements.txt # torch>=2.6, transformers, faster-whisper, hf_transfer
+└── test_*.py        # Uji kontrak + benchmark latensi
+cpanel_api/          # Backend PHP + MySQL (metadata & audio upload, bukan inferensi)
 ├── api/             # Endpoint (salin ke public_html/api/)
 └── schema.sql       # Skema database
 docs/                # Blueprint, manual, diagram alir, jurnal teknis, laporan uji
-test/                # Unit/widget test Flutter (mirip struktur lib/)
+test/                # Unit/widget test Flutter (cermin struktur lib/)
 ```
 
-## ⚙️ Cara Instalasi
+## ⚙️ Cara Menjalankan
 
 ### Prasyarat
-- Flutter SDK v3.11 atau lebih baru.
-- Android Studio / VS Code dengan plugin Flutter.
-- Server cPanel dengan PHP 8+ & MySQL (untuk backend metadata).
-- Python 3.10–3.12 + CPU memadai (untuk server SER lokal, lihat `ser_server/README.md`).
+- Flutter SDK v3.11+, Android Studio / VS Code + plugin Flutter.
+- Server cPanel PHP 8+ & MySQL (metadata) — atau lewati untuk mode lokal.
+- Python 3.10–3.12 (server SER). Lihat `ser_server/README.md` + `ser_server/AGENTS.md` untuk kontrak yang tidak boleh dilanggar.
 
-### Langkah-langkah
-1. **Deploy Backend (cPanel)**:
-   Salin isi folder `cpanel_api/api/` ke `public_html/api/`, buat database MySQL, import `cpanel_api/schema.sql`, lalu isi kredensial di `api/config.php` (lihat [cpanel_api/README.md](cpanel_api/README.md)).
-2. **Jalankan Server SER (lokal)**:
-   ```bash
-   pip install -r ser_server/requirements.txt
-   python -u ser_server/server_ssl.py   # http://127.0.0.1:8001
-   ```
-3. **Konfigurasi `.env`**:
-   Salin `.env.example` menjadi `.env` dan isi `API_BASE_URL` + `API_KEY` (**wajib sama** dengan `API_KEY` di `config.php`), serta `SER_BASE_URL` (alamat server SER, mis. `http://127.0.0.1:8001` untuk desktop atau `http://10.0.2.2:8001` untuk emulator).
-4. **Instal Dependensi**:
-   ```bash
-   flutter pub get
-   ```
-5. **Jalankan Aplikasi**:
-   ```bash
-   flutter run
-   ```
+### 1. Backend metadata (cPanel)
+Salin `cpanel_api/api/` → `public_html/api/`, buat database, import `cpanel_api/schema.sql`, isi `api/config.php` (lihat `cpanel_api/README.md`).
 
-> **Catatan migrasi**: Firestore & Firebase Storage sudah diganti dengan backend PHP+MySQL.
-> Firebase Auth (login Google) tetap dipakai; UID Firebase menjadi kunci identitas user di database.
+### 2. Server emosi + transkripsi
+```bash
+pip install -r ser_server/requirements.txt
+python -u ser_server/server_ssl.py   # http://127.0.0.1:8001
+curl http://127.0.0.1:8001/health
+```
 
-## 📂 Data & Aset Utama
-- `assets/model_female.tflite`: Model machine learning untuk klasifikasi emosi suara.
-- `assets/MBTI.json`: Bank soal untuk penilaian tipe MBTI.
-- `assets/psych.json`: Daftar pertanyaan kesehatan mental.
-- `assets/saran.json`: Database saran psikologis berbasis MBTI & Emosi.
+### 3. Aplikasi Flutter
+```bash
+cp .env.example .env   # lalu isi (lihat tabel di bawah)
+flutter pub get
+flutter run
+```
+
+| Variabel `.env` | Contoh | Keterangan |
+|---|---|---|
+| `API_BASE_URL` | `https://domain.com/api` | Backend cPanel; `API_KEY` wajib sama dengan `config.php` |
+| `SER_BASE_URL` | `http://127.0.0.1:8001` | Desktop. Emulator: `http://10.0.2.2:8001`. HP fisik: IP LAN laptop atau URL tunnel |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | — | Akun admin dibuat otomatis saat run pertama |
+
+> Firebase Auth tetap dipakai (UID = kunci user di MySQL). Firestore/Storage lama sudah tidak dipakai.
+
+## 🧪 Pengujian
+```bash
+# Kontrak server (emosi + transkripsi + kasus 400) — butuh server hidup
+python ser_server/test_server_local.py
+# Benchmark latensi (p50/p95 per durasi audio)
+python ser_server/test_latency.py --n 18
+# Tes Flutter (SerService butuh server lokal, sisanya mandiri)
+flutter test test/services/
+dart analyze lib/
+```
+
+## 🔒 Privasi (ringkas)
+Audio dikirim ke server SER **hanya untuk inferensi** (emosi + transkripsi) dan tidak disimpan di sana; yang tersimpan (cPanel) hanya metadata hasil + transkrip. Detail ancaman/batasan ada di `docs/blueprint.md` bag. Keamanan Data dan Privasi.
+
+## 📂 Data & Aset Utama (`assets/`)
+- `BigFive_MiniIPIP20*.json` — bank soal Big Five (id/en)
+- `psych*.json` — kuesioner skrining perempuan (id/en)
+- `saran_bigfive*.json` — basis rekomendasi deterministik (v2 = aktif)
+- `emotion*.json` — leksikon afektif dwibahasa untuk skor teks
 
 ---
 <div align="center">

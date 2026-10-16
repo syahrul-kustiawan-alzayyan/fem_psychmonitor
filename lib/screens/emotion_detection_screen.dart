@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:record/record.dart';
-import 'package:whisper_kit/whisper_kit.dart';
 import 'package:path_provider/path_provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/emotion_model.dart';
@@ -22,7 +21,6 @@ import '../services/gemini_service.dart';
 import '../services/ser_service.dart';
 import '../services/suggestion_service.dart';
 import '../services/text_emotion_service.dart';
-import '../services/whisper_init_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/resonance_colors.dart';
 import '../widgets/painters.dart';
@@ -361,77 +359,13 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
       return;
     }
 
-    // Step 2: Fallback transkripsi on-device (Whisper base -> tiny)
-    // hanya bila transkrip server kosong/gagal.
+    // Step 2: Transkrip server kosong/gagal -> lanjut TANPA fallback
+    // on-device (model on-device dihapus). Skor teks memakai profil
+    // default netral (lihat TextEmotionService.analyze).
     if (transcript.isEmpty) {
-      {
-        if (mounted) {
-          setState(() => _processingMessage = AppLocalizations.tr('processing_transcription_first'));
-        }
-
-      await WhisperInitService.instance.warmUp();
-
-      // Try base model first
-      if (mounted) {
-        setState(() => _processingMessage = 'Transkripsi dengan model Base...');
-      }
-      final baseWhisper = Whisper(model: WhisperModel.base);
-      try {
-        final result = await baseWhisper.transcribe(
-          transcribeRequest: TranscribeRequest(
-            audio: path,
-            language: 'id',
-            threads: 4,
-          ),
-        );
-        transcript = result.text.trim();
-        transcriptionInfo = 'Transkrip: model Base';
-        debugPrint('📝 Whisper base transcript: "$transcript"');
-      } catch (e) {
-        debugPrint('🎙️ Base model error: $e');
-        transcript = '';
-      }
-
-      // Fallback to tiny if base failed or returned empty
-      if (transcript.isEmpty) {
-        if (mounted) {
-          setState(() => _processingMessage = 'Mencoba model Tiny...');
-        }
-        final tinyWhisper = Whisper(model: WhisperModel.tiny);
-        try {
-          final result = await tinyWhisper.transcribe(
-            transcribeRequest: TranscribeRequest(
-              audio: path,
-              language: 'id',
-              threads: 4,
-            ),
-          );
-          transcript = result.text.trim();
-          transcriptionInfo = 'Transkrip: model Tiny (Base tidak didukung)';
-          debugPrint('📝 Whisper tiny transcript: "$transcript"');
-        } catch (e) {
-          debugPrint('🎙️ Tiny model also failed: $e');
-          transcript = '';
-          transcriptionInfo = 'Transkrip tidak tersedia untuk perangkat ini';
-        }
-      }
-
-      if (transcript.isEmpty && transcriptionInfo.isEmpty) {
-        transcriptionInfo = 'Tidak ada teks terdeteksi';
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(transcriptionInfo),
-            duration: const Duration(seconds: 3),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-      }
-    } else if (mounted && transcriptionInfo.isNotEmpty) {
-      // Transkrip server berhasil — beri tahu sumbernya sekilas.
+      transcriptionInfo = 'Tidak ada teks terdeteksi';
+    }
+    if (mounted && transcriptionInfo.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(transcriptionInfo),

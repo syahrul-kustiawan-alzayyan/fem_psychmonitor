@@ -14,8 +14,7 @@ import 'package:fem_physicsmonitor/providers/locale_provider.dart';
 import 'package:fem_physicsmonitor/providers/premium_provider.dart';
 import 'package:fem_physicsmonitor/providers/theme_provider.dart';
 
-/// Mock channel path_provider agar [WhisperInitService.warmUp] tidak menggantung
-/// saat memanggil `getApplicationSupportDirectory()` di lingkungan test.
+/// Mock channel path_provider untuk lingkungan test.
 void mockPathProvider() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final messenger =

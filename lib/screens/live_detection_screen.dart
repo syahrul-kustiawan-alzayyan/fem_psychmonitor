@@ -5,10 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
-import '../models/emotion_model.dart';
 import '../providers/auth_provider.dart';
-import '../services/audio_recorder_detection.dart'
-    show AudioRecorderWithDetection, DetectionResult;
 import '../theme/resonance_colors.dart';
 import 'emotion_detection_screen.dart';
 
@@ -22,17 +19,10 @@ class LiveDetectionScreen extends StatefulWidget {
 class _LiveDetectionScreenState extends State<LiveDetectionScreen>
     with TickerProviderStateMixin {
   final bool _isRecording = false;
-  bool _isModelLoading = true;
 
   late AnimationController _pulseCtrl;
   late Animation<double> _pulseAnim;
   late AnimationController _waveCtrl;
-
-  EmotionType? _detectedEmotion;
-
-  final AudioRecorderWithDetection _recorder =
-      AudioRecorderWithDetection.instance;
-  StreamSubscription? _detectionSubscription;
 
   final _rand = Random();
   final List<double> _waveHeights = List.generate(20, (_) => 0.3);
@@ -55,44 +45,9 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
       duration: const Duration(milliseconds: 400),
     );
 
-    _loadModel();
+    // Tidak ada model on-device yang dimuat di sini; inferensi penuh
+    // via server di EmotionDetectionScreen.
     _waveCtrl.addListener(_updateWaveform);
-  }
-
-  Future<void> _loadModel() async {
-    setState(() => _isModelLoading = true);
-    try {
-      await _recorder.checkAndRequestPermission();
-      await _recorder.loadModel();
-
-      setState(() {
-        _isModelLoading = false;
-      });
-
-      _detectionSubscription = _recorder.detectionStream.listen(
-        _onDetectionResult,
-      );
-    } catch (e) {
-      setState(() {
-        _isModelLoading = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memuat model: $e (mode simulasi diaktifkan)'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    }
-  }
-
-  void _onDetectionResult(DetectionResult result) {
-    if (mounted) {
-      setState(() {
-        _detectedEmotion = result.dominantEmotion;
-      });
-    }
   }
 
   void _updateWaveform() {
@@ -109,7 +64,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
   void dispose() {
     _pulseCtrl.dispose();
     _waveCtrl.dispose();
-    _detectionSubscription?.cancel();
     super.dispose();
   }
 
@@ -182,39 +136,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
             children: [
               const SizedBox(height: 16),
 
-              if (_isModelLoading)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: c.surfaceVariant,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: c.outlineVariant),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            c.primary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        AppLocalizations.tr('loading_model'),
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: c.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
               _buildWaveVisualizer(context),
 
               const SizedBox(height: 28),
@@ -229,7 +150,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
 
               if (!_isRecording) _buildStoryPrompts(context),
 
-              if (!_isRecording && !_isModelLoading) ...[
+              if (!_isRecording) ...[
                 const SizedBox(height: 24),
                 _buildIdleGuide(context),
               ],
@@ -371,24 +292,9 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen>
         const SizedBox(height: 20),
         ResonanceChip(
           c: c,
-          label: _isModelLoading
-              ? AppLocalizations.tr('loading_model_short')
-              : AppLocalizations.tr('tap_to_start'),
-          icon: _isModelLoading
-              ? null
-              : PhosphorIconsRegular.caretRight,
+          label: AppLocalizations.tr('tap_to_start'),
+          icon: PhosphorIconsRegular.caretRight,
         ),
-        if (_detectedEmotion != null) ...[
-          const SizedBox(height: 12),
-          Text(
-            '${AppLocalizations.tr("emotion_detected")} ${_detectedEmotion!.displayName}',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: c.primary,
-            ),
-          ),
-        ],
       ],
     );
   }
