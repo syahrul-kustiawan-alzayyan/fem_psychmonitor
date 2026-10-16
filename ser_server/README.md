@@ -1,4 +1,4 @@
-# model_deploy — Server inferensi SSL Fem-PsychMonitor
+# ser_server — Server inferensi SSL Fem-PsychMonitor
 
 Pengganti drop-in untuk backend TF yang mismatch (lihat `PERBAIKAN_APP.md`).
 Model: WavLM-base-plus frozen + MLP ensemble (seed 7/42/123), akurasi pooled

@@ -350,7 +350,7 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Server emosi lokal gagal: $e\nJalankan: python assets/model_deploy/server_ssl.py',
+              'Server emosi lokal gagal: $e\nJalankan: python ser_server/server_ssl.py',
             ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 6),

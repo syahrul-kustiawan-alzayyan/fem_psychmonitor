@@ -1,6 +1,6 @@
 # AGENTS.md — Instruksi untuk AI yang mengerjakan folder ini
 
-> Berlaku untuk `model_deploy/` dan integrasinya ke aplikasi Fem-PsychMonitor.
+> Berlaku untuk `ser_server/` dan integrasinya ke aplikasi Fem-PsychMonitor.
 > Bahasa kerja: Indonesia kecuali artefak berbahasa Inggris.
 
 ## Konteks singkat

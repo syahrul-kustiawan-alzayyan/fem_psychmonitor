@@ -11,7 +11,7 @@ import 'package:fem_physicsmonitor/services/ser_service.dart';
 /// Tes integrasi SerService melawan server SER asli.
 ///
 /// BUTUH server hidup di http://127.0.0.1:8001
-/// (jalankan: python -u assets/model_deploy/server_ssl.py).
+/// (jalankan: python -u ser_server/server_ssl.py).
 /// Jika server mati, semua tes dilewati (SKIP), bukan gagal —
 /// supaya suite unit tetap hijau di mesin tanpa server.
 void main() {

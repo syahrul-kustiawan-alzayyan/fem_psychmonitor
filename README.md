@@ -48,20 +48,33 @@ Sistem saran cerdas yang mengambil data dari `saran.json`:
 - **State Management**: [Provider](https://pub.dev/packages/provider)
 - **Autentikasi**: Firebase Auth (Google Sign-In) — *tetap dipakai*
 - **Backend Database & Storage**: PHP + MySQL (cPanel) via `http` (REST API)
-- **AI/ML Engine**: [TensorFlow Lite Flutter](https://pub.dev/packages/tflite_flutter) + Whisper (transkripsi)
+- **AI/ML Engine**: Server SER lokal — WavLM-base-plus frozen + MLP ensemble (`ser_server/`, FastAPI + PyTorch CPU) untuk emosi suara, faster-whisper untuk transkripsi
 - **Data Persistence**: [Shared Preferences](https://pub.dev/packages/shared_preferences) + server API
 - **Charts**: [fl_chart](https://pub.dev/packages/fl_chart)
 - **Audio Management**: [record](https://pub.dev/packages/record)
 
 ## 📦 Struktur Project
 ```text
-lib/
-├── l10n/              # File lokalisasi (i18n)
-├── models/            # Model data (AppUser, EmotionRecord)
-├── screens/           # Tampilan antarmuka (Auth, Home, History, dll)
-├── services/          # Logika database, storage, dan ML
-├── theme/             # Konfigurasi gaya visual (Light/Dark mode)
-└── widgets/           # Komponen UI yang reusable
+lib/                 # Aplikasi Flutter
+├── l10n/            # Lokalisasi id/en
+├── models/          # AppUser, EmotionRecord, dst.
+├── providers/       # Auth, locale, theme, premium, admin
+├── screens/         # Auth, onboarding, home, deteksi, history, admin
+├── services/        # ApiService, DatabaseService, SerService, dsb.
+├── theme/           # AppTheme + ResonanceColors
+├── utils/           # Helper animasi
+└── widgets/         # Komponen UI reusable
+ser_server/          # Server inferensi emosi + transkripsi (Python/FastAPI)
+├── server_ssl.py    # Satu-satunya entrypoint (GET /health, POST /predict-ssl, /transcribe)
+├── train_ssl.py     # Definisi arsitektur SSLHead (jangan diubah)
+├── models/ssl/      # Checkpoint ensemble + scaler (jangan commit ulang tanpa perlu)
+├── requirements.txt # Dependensi Python (torch>=2.6, transformers, faster-whisper)
+└── test_*.py        # Uji kontrak + latensi server
+cpanel_api/          # Backend PHP + MySQL (metadata, bukan audio inferensi)
+├── api/             # Endpoint (salin ke public_html/api/)
+└── schema.sql       # Skema database
+docs/                # Blueprint, manual, diagram alir, jurnal teknis, laporan uji
+test/                # Unit/widget test Flutter (mirip struktur lib/)
 ```
 
 ## ⚙️ Cara Instalasi
@@ -69,24 +82,24 @@ lib/
 ### Prasyarat
 - Flutter SDK v3.11 atau lebih baru.
 - Android Studio / VS Code dengan plugin Flutter.
-- Server cPanel dengan PHP 8+ & MySQL (untuk backend).
+- Server cPanel dengan PHP 8+ & MySQL (untuk backend metadata).
+- Python 3.10–3.12 + CPU memadai (untuk server SER lokal, lihat `ser_server/README.md`).
 
 ### Langkah-langkah
 1. **Deploy Backend (cPanel)**:
    Salin isi folder `cpanel_api/api/` ke `public_html/api/`, buat database MySQL, import `cpanel_api/schema.sql`, lalu isi kredensial di `api/config.php` (lihat [cpanel_api/README.md](cpanel_api/README.md)).
-2. **Konfigurasi `.env`**:
-   Salin `.env.example` menjadi `.env` dan isi `API_BASE_URL` (alamat `https://domain.com/api`) serta `API_KEY` — **wajib sama** dengan `API_KEY` di `config.php`.
-3. **Clone Repositori**:
+2. **Jalankan Server SER (lokal)**:
    ```bash
-   git clone https://github.com/username/fem_physicsmonitor.git
+   pip install -r ser_server/requirements.txt
+   python -u ser_server/server_ssl.py   # http://127.0.0.1:8001
    ```
+3. **Konfigurasi `.env`**:
+   Salin `.env.example` menjadi `.env` dan isi `API_BASE_URL` + `API_KEY` (**wajib sama** dengan `API_KEY` di `config.php`), serta `SER_BASE_URL` (alamat server SER, mis. `http://127.0.0.1:8001` untuk desktop atau `http://10.0.2.2:8001` untuk emulator).
 4. **Instal Dependensi**:
    ```bash
    flutter pub get
    ```
-5. **Persiapkan Model AI**:
-   Pastikan file `assets/model_female.tflite` ada di folder assets.
-6. **Jalankan Aplikasi**:
+5. **Jalankan Aplikasi**:
    ```bash
    flutter run
    ```

@@ -47,7 +47,7 @@ class SerResult {
   }
 }
 
-/// Klien HTTP untuk server inferensi SSL lokal (`assets/model_deploy/server_ssl.py`).
+/// Klien HTTP untuk server inferensi SSL lokal (`ser_server/server_ssl.py`).
 ///
 /// Kontrak server: GET /health, POST /predict-ssl (emosi, multipart `file`
 /// .wav/.flac maks 10MB), POST /transcribe (teks Bahasa Indonesia).

@@ -21,8 +21,9 @@ import numpy as np
 args = sys.argv[1:]
 N = int(args[args.index("--n") + 1]) if "--n" in args else 20
 BASE = args[args.index("--base") + 1] if "--base" in args else "http://127.0.0.1:8001"
-HOST, _, PORT = BASE.replace("http://", "").partition(":")
-PORT = int(PORT or "80")
+HOST, _, PORT = BASE.replace("https://", "").replace("http://", "").partition(":")
+USE_HTTPS = BASE.startswith("https://")
+PORT = int(PORT or ("443" if USE_HTTPS else "80"))
 
 
 def make_wav(seconds: float, freq: float = 220.0, sr: int = 16000) -> bytes:
@@ -47,7 +48,8 @@ def post_wav(data: bytes, filename: str = "uji.wav"):
         f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{filename}"\r\n'
         f"Content-Type: audio/wav\r\n\r\n"
     ).encode() + data + f"\r\n--{boundary}--\r\n".encode()
-    conn = http.client.HTTPConnection(HOST, PORT, timeout=300)
+    conn_cls = http.client.HTTPSConnection if USE_HTTPS else http.client.HTTPConnection
+    conn = conn_cls(HOST, PORT, timeout=300)
     t0 = time.perf_counter()
     conn.request("POST", "/predict-ssl", body, {"Content-Type": f"multipart/form-data; boundary={boundary}"})
     resp = conn.getresponse()
