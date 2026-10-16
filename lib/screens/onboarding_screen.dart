@@ -113,6 +113,7 @@ class _OnboardingScreenViewState extends State<_OnboardingScreenView> {
 
       await StorageService.setOnboardingComplete('');
 
+      if (!context.mounted) return;
       final authProvider = context.read<AuthProvider>();
       if (authProvider.isLoggedIn) {
         await OnboardingScreen.savePendingOnboarding();

@@ -971,6 +971,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       if (confirmed != true) return;
+      if (!context.mounted) return;
 
       showDialog(
         context: context,

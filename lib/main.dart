@@ -438,6 +438,7 @@ class _MainNavigationState extends State<MainNavigation>
         }
       }
 
+      if (!mounted) return;
       final premium = context.read<PremiumProvider>();
       if (!premium.isPremium) {
         await Navigator.push(

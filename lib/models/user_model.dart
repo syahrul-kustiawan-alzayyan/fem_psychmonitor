@@ -177,7 +177,7 @@ class BigFiveQuestion {
 /// Hitung skor 5 dimensi Big Five dari daftar jawaban.
 /// [answers] = list jawaban tiap pertanyaan (1-5).
 /// [questions] = daftar BigFiveQuestion.
-/// Returns Map<String, double> berisi rata-rata skor tiap dimensi.
+/// Returns `Map<String, double>` berisi rata-rata skor tiap dimensi.
 Map<String, double> calculateBigFive(List<int> answers, List<BigFiveQuestion> questions) {
   final scores = <String, List<int>>{
     'O': [],
