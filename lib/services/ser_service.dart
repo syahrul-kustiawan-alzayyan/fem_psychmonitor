@@ -73,12 +73,17 @@ class SerService {
   static String get baseUrl => _baseUrl;
 
   /// Cek server hidup + kontrak emosi sesuai harapan.
+  ///
+  /// Catatan untuk perangkat nyata: default `http://127.0.0.1:8001` hanya
+  /// berlaku bila server jalan di mesin yang sama (desktop). Di HP fisik,
+  /// isi `SER_BASE_URL` di `.env` dengan IP LAN laptop atau domain server —
+  /// tanpa IP apa pun yang di-hardcode di sini.
   Future<void> checkHealth() async {
     final uri = Uri.parse('$_baseUrl/health');
     try {
       final res = await http.get(uri, headers: const {'Accept': 'application/json'}).timeout(_healthTimeout);
       if (res.statusCode != 200) {
-        throw SerException('Server SER tidak sehat (HTTP ${res.statusCode}). Pastikan `python server_ssl.py` berjalan di $baseUrl.', statusCode: res.statusCode);
+        throw SerException('Server SER tidak sehat (HTTP ${res.statusCode}) di $baseUrl. Pastikan server jalan dan SER_BASE_URL benar (HP fisik butuh IP LAN/domain, bukan 127.0.0.1).', statusCode: res.statusCode);
       }
       Map<String, dynamic> body;
       try {
@@ -92,9 +97,9 @@ class SerService {
     } on SerException {
       rethrow;
     } on TimeoutException {
-      throw SerException('Timeout menghubungi server SER di $baseUrl. Pastikan `python server_ssl.py` sudah jalan.');
+      throw SerException('Timeout menghubungi server SER di $baseUrl. Di HP fisik, isi SER_BASE_URL dengan IP LAN laptop atau domain server.');
     } on SocketException {
-      throw SerException('Tidak dapat terhubung ke server SER di $baseUrl. Pastikan `python server_ssl.py` sudah jalan dan firewall mengizinkan.');
+      throw SerException('Tidak dapat terhubung ke server SER di $baseUrl. Di HP fisik, isi SER_BASE_URL dengan IP LAN laptop atau domain server, dan pastikan firewall mengizinkan.');
     } on http.ClientException {
       throw SerException('Tidak dapat terhubung ke server SER di $baseUrl.');
     } catch (e) {
